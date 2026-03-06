@@ -17,7 +17,7 @@
       font-weight: 400; font-style: normal;
     }
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Alegreya Sans',sans-serif;background:#F5F0E8;color:#2C1810;font-size:14px}
+    body{font-family:'Alegreya Sans',sans-serif;background:#F5F0E8;color:#2C1810;font-size:14px;background-image:url('img/background.png');background-repeat:repeat;background-size:700px auto}
     #root{min-height:100vh}
     ::-webkit-scrollbar{width:6px}
     ::-webkit-scrollbar-track{background:#F0EBE0}
@@ -53,7 +53,7 @@
 </head>
 <body>
 <div id="root"></div>
-<div id="file-warning" style="display:none;min-height:100vh;background:linear-gradient(135deg,#2C1810 0%,#4A3B2A 50%,#2C1810 100%);padding:40px;font-family:'Alegreya Sans',Arial,sans-serif">
+<div id="file-warning" style="display:none;min-height:100vh;background:linear-gradient(135deg,#4C130F 0%,#300904 50%,#4C130F 100%);padding:40px;font-family:'Alegreya Sans',Arial,sans-serif">
   <div style="max-width:600px;margin:80px auto;background:#FDFAF4;border:2px solid #D4A853;border-radius:12px;padding:30px;text-align:center">
     <div style="font-size:48px;margin-bottom:16px">⚠️</div>
     <div style="font-size:22px;font-weight:700;color:#2C1810;margin-bottom:12px">Plik otwarty z dysku</div>
@@ -125,10 +125,10 @@ function ConnectionIndicator({online}){
 
 /* ========== FAMILY METADATA (needed early for Lobby) ========== */
 const FM = {
-  adams:  {id:"adams",  nom:"Adamsowie",  gen:"Adamsów",  biz:"Saloon",            col:"#8B4513", sPlot:6,  tPlot:1},
-  bennet: {id:"bennet", nom:"Bennetowie", gen:"Bennetów", biz:"Zakład Pogrzebowy", col:"#2E5B3C", sPlot:4,  tPlot:6},
-  clinton:{id:"clinton",nom:"Clintonowie",gen:"Clintonów",biz:"Bank",              col:"#4A3B6B", sPlot:20, tPlot:4},
-  dexter: {id:"dexter", nom:"Dexterowie", gen:"Dexterów", biz:"Ranczo",            col:"#8B2500", sPlot:1,  tPlot:20},
+  adams:  {id:"adams",  nom:"Adamsowie",  gen:"Adamsów",  biz:"Saloon",            col:"#A75F4A", sPlot:6,  tPlot:1},
+  bennet: {id:"bennet", nom:"Bennetowie", gen:"Bennetów", biz:"Zakład Pogrzebowy", col:"#726072", sPlot:4,  tPlot:6},
+  clinton:{id:"clinton",nom:"Clintonowie",gen:"Clintonów",biz:"Bank",              col:"#5E5971", sPlot:20, tPlot:4},
+  dexter: {id:"dexter", nom:"Dexterowie", gen:"Dexterów", biz:"Ranczo",            col:"#5B7674", sPlot:1,  tPlot:20},
 };
 const FO = ["adams","bennet","clinton","dexter"];
 
@@ -266,7 +266,7 @@ function Lobby({onJoin}){
   var boxStyle={background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:8,padding:20,marginBottom:16};
   var titleStyle={fontSize:20,fontWeight:700,color:"#2C1810",marginBottom:12,fontFamily:"'Alegreya Sans',sans-serif"};
 
-  return(<div style={{minHeight:"100vh",background:"linear-gradient(135deg,#2C1810 0%,#4A3B2A 50%,#2C1810 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+  return(<div style={{minHeight:"100vh",background:"linear-gradient(135deg,#4C130F 0%,#300904 50%,#4C130F 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
     <ConnectionIndicator online={online}/>
     <div style={{maxWidth:500,width:"100%"}}>
       <div style={{textAlign:"center",marginBottom:30}}>
@@ -294,7 +294,7 @@ function Lobby({onJoin}){
       {/* Sheriff created room - waiting for players */}
       {mode==="created"&&<div style={boxStyle}>
         <div style={titleStyle}>Pokój utworzony</div>
-        <div style={{background:"#2C1810",borderRadius:6,padding:16,textAlign:"center",marginBottom:16}}>
+        <div style={{background:"#4C130F",borderRadius:6,padding:16,textAlign:"center",marginBottom:16}}>
           <div style={{fontSize:11,color:"#D4A853",fontWeight:700,letterSpacing:2,marginBottom:4}}>KOD POKOJU</div>
           <div style={{fontSize:36,fontWeight:900,color:"#F5F0E8",letterSpacing:6,fontFamily:"monospace"}}>{roomCode}</div>
           <div style={{fontSize:11,color:"#C4B090",marginTop:6}}>Podaj ten kod graczom</div>
@@ -367,14 +367,15 @@ function Lobby({onJoin}){
 }
 
 /* ========== CARD IMAGES ========== */
-const CARD_IMAGES = {};
+/* ========== CARD IMAGES (loaded from img/ folder) ========== */
+const IMG_BASE = "img/";
 function toSlug(s){return s.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');}
-function getImg(prefix,name){return CARD_IMAGES[prefix+'_'+toSlug(name)]||null;}
+function imgUrl(prefix,name){return IMG_BASE+prefix+'_'+toSlug(name)+'.png';}
+function mapImgUrl(n){return IMG_BASE+'map_fragment-'+n+'.png';}
 
 /* ========== REVOLVER IMAGES ========== */
-const REV_IMAGES = {};
-
-function getRevImg(key){return REV_IMAGES[key]||null;}
+const REV_IMG_MAP = {POJEDYNEK:"POJEDYNEK",DOMINACJA:"DOMINACJA",PRZEWAGA:"PRZEWAGA",WYGRANA:"WYGRANA",NABOJ_ZNACZNIK:"Naboj-znacznik",NABOJ_AMMO:"Naboj-amunikcja"};
+function getRevImg(key){return REV_IMG_MAP[key]?IMG_BASE+REV_IMG_MAP[key]+'.png':null;}
 
 /* ========== SCHEDULE STAGES ========== */
 const PAIRINGS = [
@@ -430,7 +431,7 @@ function TimerBar({stage,secondsLeft,totalSeconds,paused,familyId}){
   var stLabel=stage.label;
   if(stage.phase)stLabel="Faza "+(stage.phase===1?"I":stage.phase===2?"II":"III")+": "+PHASE_NAMES[stage.phase];
   var meetInfo=partner?("Spotkanie: "+FM[familyId].nom+" \u2194 "+FM[partner].nom):(stage.type==="narada"?"Czas na narad\u0119 rodzinn\u0105":stage.type==="prep"?"Przygotowanie do rozgrywki":stage.type==="end"?"Zako\u0144czenie rozgrywki":"");
-  return(<div style={{background:isCrit?"#8B2500":isLow?"#A04020":"#2C1810",padding:"10px 20px",position:"relative",overflow:"hidden",transition:"background 0.5s"}}>
+  return(<div style={{background:isCrit?"#8B2500":isLow?"#A04020":"#4C130F",padding:"10px 20px",position:"relative",overflow:"hidden",transition:"background 0.5s"}}>
     <div style={{position:"absolute",top:0,left:0,height:"100%",width:pct+"%",background:"rgba(212,168,83,0.15)",transition:"width 1s linear"}}/>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",position:"relative",zIndex:1}}>
       <div><div style={{fontSize:13,color:"#D4A853",fontWeight:700}}>{stLabel}</div>
@@ -447,10 +448,10 @@ const C_RES="res",C_COMP="comp",C_NRES="nres",C_NCOMP="ncomp",C_PLOT="plot",C_MA
 
 /* ========== BIZNES NA BOKU — PRODUKTY ========== */
 const BNB_PRODUCTS = {
-  adams:  {name:"Mikstura Doktora Geista",  shortName:"Mikstura",   qty:10, unitCost:30, effect:"comp4",   effectDesc:"Zastępuje 4% kompetencji", color:"#8B4513"},
-  bennet: {name:"Kwatera dla Obywatela",    shortName:"Kwatera",    qty:10, unitCost:30, effect:"point1",  effectDesc:"+1 pkt do wyniku",         color:"#2E5B3C"},
-  clinton:{name:"Obligacje Limon Sisters",   shortName:"Obligacje",  qty:4,  unitCost:75, effect:"cash20",  effectDesc:"+20% kasy na koniec gry",  color:"#4A3B6B"},
-  dexter: {name:"Voucher Kuriera Preriowego",shortName:"Kurier",     qty:10, unitCost:30, effect:"res4",    effectDesc:"Zastępuje 4% zasobów",     color:"#8B2500"},
+  adams:  {name:"Mikstura Doktora Geista",  shortName:"Mikstura",   qty:10, unitCost:30, effect:"comp4",   effectDesc:"Zastępuje 4% kompetencji", color:"#A75F4A"},
+  bennet: {name:"Kwatera dla Obywatela",    shortName:"Kwatera",    qty:10, unitCost:30, effect:"point1",  effectDesc:"+1 pkt do wyniku",         color:"#726072"},
+  clinton:{name:"Obligacje Limon Sisters",   shortName:"Obligacje",  qty:4,  unitCost:75, effect:"cash20",  effectDesc:"+20% kasy na koniec gry",  color:"#5E5971"},
+  dexter: {name:"Voucher Kuriera Preriowego",shortName:"Kurier",     qty:10, unitCost:30, effect:"res4",    effectDesc:"Zastępuje 4% zasobów",     color:"#5B7674"},
 };
 function makeBnbCards(fId){var p=BNB_PRODUCTS[fId];var cards=[];for(var i=0;i<p.qty;i++){cards.push({id:ci(),name:p.name,cat:C_BNB,bnbOrigin:fId,effect:p.effect,effectDesc:p.effectDesc});}return cards;}
 
@@ -669,25 +670,21 @@ function StarRating({value, onChange, disabled}) {
 }
 function btnS(v,dis) {
   var b={padding:"10px 18px",borderRadius:"4px",border:"none",fontSize:"14px",fontWeight:700,cursor:dis?"not-allowed":"pointer",fontFamily:"inherit",letterSpacing:"0.3px",transition:"all 0.15s",opacity:dis?0.5:1};
-  var m={primary:{background:"#D4A853",color:"#2C1810"},success:{background:"#2E5B3C",color:"#fff"},danger:{background:"#8B2500",color:"#fff"},barter:{background:"#4A3B6B",color:"#fff"},sheriff:{background:"#8B6914",color:"#fff"},fate:{background:"#6B3FA0",color:"#fff"}};
+  var m={primary:{background:"#D4A853",color:"#4C130F"},success:{background:"#5B7674",color:"#fff"},danger:{background:"#842504",color:"#fff"},barter:{background:"#5E5971",color:"#fff"},sheriff:{background:"#B14A2A",color:"#fff"},fate:{background:"#6B3FA0",color:"#fff"}};
   return Object.assign({},b,m[v]||{background:"#E8E0D0",color:"#2C1810"});
 }
 
 /* ========== RESOURCE CARD ========== */
 function ResourceCard({item, note, selected, onClick, compact, isSheriff, textOnly}) {
   var merged=!!note, isBl=item.blind;
-  var mergedImg=merged?getImg("merged-res",item.name):null;
-  var resImg=getImg("res",item.name);
+  var mergedSrc=merged?imgUrl("merged-res",item.name):null;
+  var resSrc=imgUrl("res",item.name);
+  var imgSrc=merged?mergedSrc:resSrc;
+  const [imgOk,setImgOk]=useState(true);
 
-  if(merged && mergedImg && !compact && !textOnly) {
+  if(imgOk && !compact && !textOnly) {
     return (<div onClick={onClick} className={"cw"+(selected?" sel":"")} style={{cursor:onClick?"pointer":"default"}}>
-      <img src={mergedImg} className="ci" alt={item.name}/>
-      {selected&&<div style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700,textShadow:"0 0 3px #fff"}}>V</div>}
-    </div>);
-  }
-  if(resImg && !compact && !textOnly) {
-    return (<div onClick={onClick} className={"cw"+(selected?" sel":"")} style={{cursor:onClick?"pointer":"default"}}>
-      <img src={resImg} className="ci" alt={item.name}/>
+      <img src={imgSrc} className="ci" alt={item.name} onError={()=>setImgOk(false)}/>
       {selected&&<div style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700,textShadow:"0 0 3px #fff"}}>V</div>}
       {isBl&&isSheriff&&<div style={{position:"absolute",bottom:4,left:4,fontSize:10,color:"#fff",fontWeight:700,background:"#B44",padding:"1px 5px",borderRadius:3}}>ZMYŁKA</div>}
     </div>);
@@ -709,6 +706,16 @@ function ResourceCard({item, note, selected, onClick, compact, isSheriff, textOn
 /* ========== COMPETENCY CARD ========== */
 function CompCard({item, note, selected, onClick, compact, isSheriff}) {
   var merged=!!note, isBl=item.blind;
+  var imgSrc=merged?imgUrl("merged-comp",item.name):imgUrl("comp",item.name);
+  const [imgOk,setImgOk]=useState(true);
+
+  if(imgOk && !compact) {
+    return (<div onClick={onClick} className={"cw"+(selected?" sel":"")} style={{cursor:onClick?"pointer":"default"}}>
+      <img src={imgSrc} className="ci" alt={item.name} onError={()=>setImgOk(false)}/>
+      {selected&&<div style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700,textShadow:"0 0 3px #fff"}}>V</div>}
+      {isBl&&isSheriff&&<div style={{position:"absolute",bottom:4,left:4,fontSize:10,color:"#fff",fontWeight:700,background:"#B44",padding:"1px 5px",borderRadius:3}}>ZMYŁKA</div>}
+    </div>);
+  }
   var borderCol=merged?"#7090B8":isBl&&isSheriff?"#C09090":"#A0B4C4";
   var bgCol=selected?"#FFF8E7":merged?"#F4F6FA":isBl&&isSheriff?"#FFF5F5":"#F4F8FC";
   return (<div onClick={onClick} style={{borderRadius:"5px",position:"relative",border:selected?"2px solid #D4A853":"1px solid "+borderCol,background:bgCol,cursor:onClick?"pointer":"default",transition:"all 0.15s",overflow:"hidden"}}>
@@ -728,10 +735,11 @@ function CompCard({item, note, selected, onClick, compact, isSheriff}) {
 /* ========== NOTE CARD ========== */
 function NoteCard({item, selected, onClick, type, textOnly}) {
   var isR=type==="res";
-  var imgSrc=textOnly?null:(isR?getImg("note-res",item.name):getImg("note-comp",item.name));
-  if(imgSrc) {
+  var src=isR?imgUrl("note-res",item.name):imgUrl("note-comp",item.name);
+  const [imgOk,setImgOk]=useState(!textOnly);
+  if(imgOk && !textOnly) {
     return (<div onClick={onClick} className={"cw"+(selected?" sel":"")} style={{cursor:onClick?"pointer":"default"}}>
-      <img src={imgSrc} className="ci" alt={item.name}/>
+      <img src={src} className="ci" alt={item.name} onError={()=>setImgOk(false)}/>
       {selected&&<div style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700,textShadow:"0 0 3px #fff"}}>V</div>}
     </div>);
   }
@@ -854,6 +862,15 @@ function TxDisplay({tx,cf,onAccept,onReject,onRespond}) {
   </div>);
 }
 
+/* ========== MAP FRAGMENT (with image fallback) ========== */
+function MapFragment({n, have}) {
+  const [imgOk,setImgOk]=useState(true);
+  return <div style={{flex:1,borderRadius:4,overflow:"hidden",border:"2px solid "+(have?"#A09020":"#D4D0C0"),opacity:have?1:0.3,transition:"all 0.3s"}}>
+    {imgOk?<img src={mapImgUrl(n)} style={{width:"100%",height:"auto",display:"block"}} alt={"Fragment "+n} onError={()=>setImgOk(false)}/>
+    :<div style={{height:120,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,fontWeight:700,color:have?"#706010":"#C4C0B0",background:have?"#EDE8B0":"#F5F2E8"}}>{n}</div>}
+  </div>;
+}
+
 /* ========== MAP TRACKER (full width) ========== */
 function MapTracker({items, mapBonusClaimed}) {
   var frags=items.filter(i=>i.cat===C_MAP);
@@ -865,13 +882,9 @@ function MapTracker({items, mapBonusClaimed}) {
     <div style={{background:"#FFFDF0",border:"1px solid #D4C870",borderRadius:6,padding:16}}>
       <div style={{fontSize:16,fontWeight:700,color:"#8B7714",marginBottom:12}} className="wt">Złotodajna Żyła</div>
       <div style={{display:"flex",gap:3}}>
-        {[1,2,3,4,5].map(n=>{
+        {[5,4,3,2,1].map(n=>{
           var have=n<=4?uniqueNrs.indexOf(n)>=0:full;
-          var src=have?CARD_IMAGES["map_fragment-"+n]:null;
-          return <div key={n} style={{flex:1,borderRadius:4,overflow:"hidden",border:"2px solid "+(have?"#A09020":"#D4D0C0"),opacity:have?1:0.3,transition:"all 0.3s"}}>
-            {src?<img src={src} style={{width:"100%",height:"auto",display:"block"}} alt={"Fragment "+n}/>
-            :<div style={{height:120,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,fontWeight:700,color:have?"#706010":"#C4C0B0",background:have?"#EDE8B0":"#F5F2E8"}}>{n}</div>}
-          </div>;
+          return <MapFragment key={n} n={n} have={have}/>;
         })}
       </div>
       <div style={{fontSize:12,color:"#A09060",marginTop:8}}>
@@ -1816,14 +1829,15 @@ function App({roomCode,role}) {
 
   return (<div>
     <ConnectionIndicator online={online}/>
-    <div style={{background:"#2C1810",color:"#F5F0E8",padding:"12px 20px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+    <img src="img/grafika_w_tle.png" style={{width:"100%",display:"block"}} alt="" onError={(e)=>{e.target.style.display="none";}}/>
+    <div style={{background:"#4C130F",color:"#F5F0E8",padding:"12px 20px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:10,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
         <div style={{fontSize:11,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.0</div>
       </div>
     </div>
-    {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #2C1810",overflowX:"auto"}}>
+    {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
       {FO.map(fId=>{var act=!viewSheriff&&cf===fId,col=FM[fId].col;
         return (<div key={fId} onClick={()=>{setCf(fId);setViewSheriff(false);setSheriffViewFamily(null);setActiveTab("inv");}}
           style={{padding:"8px 16px",cursor:"pointer",fontWeight:act?700:400,fontSize:14,background:act?col:"transparent",color:act?"#fff":"#2C1810",borderBottom:act?"3px solid "+col:"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap"}} className="wt">
@@ -1849,7 +1863,7 @@ function App({roomCode,role}) {
 
     {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
-        <div style={{background:"#2C1810",color:"#D4A853",padding:"8px 16px",borderRadius:4,fontSize:28,fontWeight:700}}>{familyData.cash} $</div>
+        <div style={{background:"#4C130F",color:"#D4A853",padding:"8px 16px",borderRadius:4,fontSize:28,fontWeight:700}}>{familyData.cash} $</div>
         {!viewSheriff&&<div style={{display:"flex",gap:6}}>
           <button style={btnS("primary")} onClick={()=>{resetP();setShowP(true);setPMode("sale");}}>Sprzedaż</button>
           <button style={btnS("barter")} onClick={()=>{resetP();setShowP(true);setPMode("barter");}}>Barter</button>
@@ -1864,7 +1878,7 @@ function App({roomCode,role}) {
               if(hidden) return null;
               var locked=(t[0]==="rel"&&!relationsUnlocked)||(t[0]==="results"&&resultsReveal===0);
               if(locked) return <div key={t[0]} style={{padding:"7px 16px",borderRadius:"4px 4px 0 0",fontSize:13,fontWeight:400,background:"#E8E0D0",color:"#C4B090",cursor:"not-allowed",borderBottom:"2px solid transparent",opacity:0.5}}>{t[1]}</div>;
-              return <div key={t[0]} onClick={()=>setActiveTab(t[0])} style={{padding:"7px 16px",borderRadius:"4px 4px 0 0",fontSize:13,fontWeight:act?700:400,background:act?"#fff":t[0]==="fate"?"#EDE4F8":t[0]==="map"?"#FFFDF0":t[0]==="rel"?"#E8F0E8":t[0]==="results"?"#FFF8E0":t[0]==="rev"?"#FFF0EC":"#E8E0D0",color:act?(t[0]==="fate"?"#6B3FA0":t[0]==="map"?"#8B7714":t[0]==="rel"?"#2E5B3C":t[0]==="results"?"#8B7714":t[0]==="rev"?"#8B2500":"#2C1810"):"#8B7355",cursor:"pointer",borderBottom:act?"2px solid "+(t[0]==="fate"?"#6B3FA0":t[0]==="map"?"#D4C870":t[0]==="rel"?"#2E5B3C":t[0]==="results"?"#D4A853":t[0]==="rev"?"#C08060":"#D4A853"):"2px solid transparent"}}>{t[1]}</div>;
+              return <div key={t[0]} onClick={()=>setActiveTab(t[0])} style={{padding:"7px 16px",borderRadius:"4px 4px 0 0",fontSize:13,fontWeight:act?700:400,background:act?"#fff":"#F3CA82",color:act?"#842504":"#4C130F",cursor:"pointer",borderBottom:act?"2px solid #842504":"2px solid transparent"}}>{t[1]}</div>;
             })}
           </div>
           {activeTab==="inv"&&(<div>
@@ -2137,7 +2151,7 @@ function App({roomCode,role}) {
     {showP&&(<div>
       <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(44,24,16,0.4)",zIndex:99}} onClick={resetP}/>
       <div style={{position:"fixed",top:0,right:0,width:420,height:"100vh",background:"#FDFAF4",boxShadow:"-4px 0 20px rgba(0,0,0,0.15)",zIndex:100,display:"flex",flexDirection:"column"}}>
-        <div style={{background:pMode==="barter"||pMode==="barter_response"?"#4A3B6B":"#2C1810",color:"#F5F0E8",padding:"14px 18px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{background:pMode==="barter"||pMode==="barter_response"?"#4A3B6B":"#4C130F",color:"#F5F0E8",padding:"14px 18px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div style={{fontSize:15,fontWeight:700}}>
             {pMode==="sale"&&["Sprzedaż — 1/3: Komu?","Sprzedaż — 2/3: Co?","Sprzedaż — 3/3: Cena"][pStep-1]}
             {pMode==="barter"&&["Barter — 1/3: Komu?","Barter — 2/3: Co oferujesz?","Barter — 3/3: Podsumowanie"][pStep-1]}
