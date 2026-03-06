@@ -1332,7 +1332,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
               return(<button key={a+b} style={{...btnS(played?"secondary":"warning",false),fontSize:11,opacity:played?0.5:1}} onClick={()=>{if(!played)revNewDuel(a,b);}} disabled={played} title={played?"Już rozegrano":""}>{FM[a].nom} vs {FM[b].nom}{played?" ✓":""}</button>);
             }))}
           </div>
-          {revDuels.length>0&&<div style={{marginTop:12}}>
+          {(revDuels||[]).length>0&&<div style={{marginTop:12}}>
             <div style={{fontSize:12,fontWeight:600,color:"#5C4A3A",marginBottom:4}}>Historia pojedynków:</div>
             {revDuels.map(d=>{var wN=d.winner?FM[d.winner].nom:"Remis";return(
               <div key={d.id} style={{fontSize:11,color:"#5C4A3A",padding:"3px 0",borderBottom:"1px dotted #D4C4A8"}}>{FM[d.familyA].nom} vs {FM[d.familyB].nom} — <b>{wN}</b> ({d.winField}, {d.rounds.length} rund, stawka {d.bet} $)</div>
@@ -2078,7 +2078,7 @@ function App({roomCode,role}) {
                 </div>}
               </div>}
               {/* HISTORIA ZAKOŃCZONYCH */}
-              {revDuels.length>0&&<div style={{marginTop:16,borderTop:"1px solid #D4C4A8",paddingTop:10}}>
+              {(revDuels||[]).length>0&&<div style={{marginTop:16,borderTop:"1px solid #D4C4A8",paddingTop:10}}>
                 <div style={{fontSize:11,fontWeight:700,color:"#8B7355",marginBottom:6}}>Zakończone pojedynki:</div>
                 {revDuels.map(d=>{var wN=d.winner?FM[d.winner].nom:"Remis";return(
                   <div key={d.id} style={{fontSize:11,color:"#5C4A3A",padding:"2px 0"}}>{FM[d.familyA].nom} vs {FM[d.familyB].nom} — <b>{wN}</b> ({d.winField}, {d.rounds.length} rund)</div>
