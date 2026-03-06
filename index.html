@@ -142,6 +142,27 @@ function fixFdFromFirebase(fd){
   }
   return r;
 }
+// Firebase drops null/undefined values and empty arrays — sanitize revCurrent
+function revCurrentToFB(rc){
+  if(!rc) return false;
+  return {...rc,
+    rounds:rc.rounds&&rc.rounds.length?rc.rounds:"__empty__",
+    shotsA:rc.shotsA===null?"__null__":rc.shotsA,
+    shotsB:rc.shotsB===null?"__null__":rc.shotsB,
+    winner:rc.winner===null?"__null__":rc.winner,
+    winField:rc.winField===null?"__null__":rc.winField
+  };
+}
+function revCurrentFromFB(rc){
+  if(!rc||rc===false) return null;
+  return {...rc,
+    rounds:rc.rounds==="__empty__"?[]:ensureArray(rc.rounds||[]),
+    shotsA:rc.shotsA==="__null__"?null:rc.shotsA,
+    shotsB:rc.shotsB==="__null__"?null:rc.shotsB,
+    winner:rc.winner==="__null__"?null:rc.winner,
+    winField:rc.winField==="__null__"?null:rc.winField
+  };
+}
 
 /* ========== LOBBY COMPONENT ========== */
 function Lobby({onJoin}){
@@ -1358,8 +1379,8 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
                 return(<div key={side}><div style={{fontSize:10,fontWeight:700,color:col,marginBottom:2}}>{FM[fam].nom}: {ammo}/50</div>{rows}</div>);
               })}
             </div>
-            {revCurrent.rounds.length>0&&<div style={{fontSize:10,color:"#8B7355",marginBottom:6}}>
-              {revCurrent.rounds.map((r,i)=><span key={i} style={{marginRight:8}}>R{i+1}: {r.shotsA} vs {r.shotsB} → {r.winner==="A"?"←":r.winner==="B"?"→":"="}</span>)}
+            {(revCurrent.rounds||[]).length>0&&<div style={{fontSize:10,color:"#8B7355",marginBottom:6}}>
+              {(revCurrent.rounds||[]).map((r,i)=><span key={i} style={{marginRight:8}}>R{i+1}: {r.shotsA} vs {r.shotsB} → {r.winner==="A"?"←":r.winner==="B"?"→":"="}</span>)}
             </div>}
             {revCurrent.shotsA!==null&&revCurrent.shotsB!==null&&revCurrent.status==="playing"&&<button style={btnS("warning")} onClick={revReveal}>Odsłoń strzały</button>}
             {revCurrent.status!=="playing"&&revCurrent.status!=="finished"&&<div style={{fontSize:11,color:"#A89070",fontStyle:"italic"}}>Oczekiwanie na deklaracje obu rodzin...</div>}
@@ -1457,7 +1478,7 @@ function App({roomCode,role}) {
   function revReveal(){setRevCurrent(c=>{if(!c||c.shotsA===null||c.shotsB===null)return c;var sA=c.shotsA,sB=c.shotsB,newPos=c.bulletPos,aA=c.ammoA-sA,aB=c.ammoB-sB;
     if(sA>sB)newPos=Math.max(-3,c.bulletPos-1);else if(sB>sA)newPos=Math.min(3,c.bulletPos+1);
     var round={shotsA:sA,shotsB:sB,winner:sA>sB?"A":sB>sA?"B":"draw",bulletAfter:newPos};
-    var rounds=[...c.rounds,round];var status="playing",winner=null,winField=null;
+    var rounds=[...(c.rounds||[]),round];var status="playing",winner=null,winField=null;
     var fields=["wygrana","dominacja","przewaga","pojedynek","przewaga","dominacja","wygrana"];
     if(Math.abs(newPos)===3){status="finished";winner=newPos<0?c.familyA:c.familyB;winField=fields[newPos+3];}
     else if(aA<=0&&aB>0){newPos=Math.min(3,newPos+1);status="finished";winner=newPos<0?c.familyA:newPos>0?c.familyB:null;winField=fields[newPos+3];}
@@ -1497,7 +1518,7 @@ function App({roomCode,role}) {
   useEffect(()=>{
     stateRef.current={fd,txs:txs.length?txs:[],consultations,blindFate,mapBonusClaimed,plotPenalties,
       relations,relationsUnlocked,biznesNaBoku,bnbEnabled,bnbSettled,showResults,resultsReveal,
-      revEnabled,revMaxBet,revDuels:revDuels.length?revDuels:[],revCurrent:revCurrent||false,
+      revEnabled,revMaxBet,revDuels:revDuels.length?revDuels:[],revCurrent:revCurrentToFB(revCurrent),
       gameStarted,stageIdx,stageDurations,
       timerRunning,timerPaused,secondsLeft,sheriffCalls:sheriffCalls.length?sheriffCalls:[]};
   });
@@ -1548,7 +1569,7 @@ function App({roomCode,role}) {
       if(s.revEnabled!==undefined)setRevEnabled(s.revEnabled);
       if(s.revMaxBet!==undefined)setRevMaxBet(s.revMaxBet);
       if(s.revDuels)setRevDuels(Array.isArray(s.revDuels)?s.revDuels:Object.values(s.revDuels));
-      setRevCurrent(s.revCurrent&&s.revCurrent!==false?s.revCurrent:null);
+      setRevCurrent(revCurrentFromFB(s.revCurrent));
       if(s.gameStarted!==undefined)setGameStarted(s.gameStarted);
       if(s.stageIdx!==undefined)setStageIdx(s.stageIdx);
       if(s.stageDurations)setStageDurations(s.stageDurations);
@@ -2031,9 +2052,9 @@ function App({roomCode,role}) {
                   </div>
                 </div>}
                 {/* HISTORIA RUND */}
-                {rc.rounds.length>0&&<div style={{background:"#fff",border:"1px solid #D4C4A8",borderRadius:6,padding:10,marginBottom:8}}>
+                {(rc.rounds||[]).length>0&&<div style={{background:"#fff",border:"1px solid #D4C4A8",borderRadius:6,padding:10,marginBottom:8}}>
                   <div style={{fontSize:11,fontWeight:700,color:"#8B7355",marginBottom:4}}>Historia rund:</div>
-                  {rc.rounds.map((r,i)=>{
+                  {(rc.rounds||[]).map((r,i)=>{
                     var mySh=isA?r.shotsA:r.shotsB;
                     var myWin=isA?(r.winner==="A"):(r.winner==="B");
                     var draw=r.winner==="draw";
