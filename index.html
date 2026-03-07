@@ -17,7 +17,7 @@
       font-weight: 400; font-style: normal;
     }
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Alegreya Sans',sans-serif;background:#F5F0E8;color:#2C1810;font-size:14px;background-image:url('img/background.png');background-repeat:repeat;background-size:700px auto}
+    body{font-family:'Alegreya Sans',sans-serif;background:#F5F0E8;color:#2C1810;font-size:14px;background-image:url('img/background.png');background-repeat:no-repeat;background-size:100% auto;background-position:top center}
     #root{min-height:100vh}
     ::-webkit-scrollbar{width:6px}
     ::-webkit-scrollbar-track{background:#F0EBE0}
@@ -925,20 +925,33 @@ function Dice3D({value, rolling}) {
 }
 
 /* ========== BLIND FATE FAMILY ========== */
+/* ========== POLICY CARD (with image fallback) ========== */
+function PolicyCard({p, st}) {
+  const [imgOk,setImgOk]=useState(true);
+  var borderCol=st==="active"?"#6B3FA0":st==="used"?"#C4B0D8":"#E0D8E8";
+  var bgCol=st==="active"?"#EDE4F8":st==="used"?"#F0EDE4":"#F8F6FA";
+  var statusText=st==="active"?"Aktywna":st==="used"?"Wykorzystana":"Nie wykupiona";
+  var statusCol=st==="active"?"#2E5B3C":st==="used"?"#8B7355":"#A89070";
+  return (<div style={{flex:1,borderRadius:6,border:"2px solid "+borderCol,background:bgCol,opacity:st==="used"?0.5:1,overflow:"hidden"}}>
+    {imgOk&&<img src={IMG_BASE+p.img+".png"} style={{width:"100%",height:"auto",display:"block"}} alt={p.label} onError={()=>setImgOk(false)}/>}
+    <div style={{padding:8}}>
+      {!imgOk&&<div style={{fontSize:13,fontWeight:700,color:"#6B3FA0"}}>{p.label}</div>}
+      {!imgOk&&<div style={{fontSize:11,color:"#8B7355"}}>Cena: {p.price}</div>}
+      <div style={{fontSize:11,marginTop:imgOk?0:4,fontWeight:600,color:statusCol,textAlign:"center"}}>{statusText}</div>
+    </div>
+  </div>);
+}
+
 function BlindFateFamily({fId, blindFate}) {
   var bf=blindFate[fId]||{}, policies=bf.policies||{p50:null,p100:null}, rolls=bf.rolls||[];
   return (<div>
     <div style={{fontSize:16,fontWeight:700,color:"#6B3FA0",marginBottom:12}} className="wt">Ślepy los</div>
     <div style={{background:"#F8F4FF",border:"1px solid #C4B0D8",borderRadius:6,padding:12,marginBottom:16}}>
       <div style={{fontSize:12,fontWeight:700,color:"#6B3FA0",marginBottom:8}}>Polisy ubezpieczeniowe</div>
-      <div style={{display:"flex",gap:8}}>
-        {[{key:"p50",label:"Polisa 50%",price:"30 $"},{key:"p100",label:"Polisa 100%",price:"50 $"}].map(p=>{
+      <div style={{display:"flex",gap:12}}>
+        {[{key:"p50",label:"Polisa 50%",price:"30 $",img:"policy_50"},{key:"p100",label:"Polisa 100%",price:"50 $",img:"policy_100"}].map(p=>{
           var st=policies[p.key];
-          return (<div key={p.key} style={{flex:1,padding:8,borderRadius:4,border:"1px solid "+(st==="active"?"#6B3FA0":st==="used"?"#C4B0D8":"#E0D8E8"),background:st==="active"?"#EDE4F8":st==="used"?"#F0EDE4":"#F8F6FA",opacity:st==="used"?0.5:1}}>
-            <div style={{fontSize:12,fontWeight:700}}>{p.label}</div>
-            <div style={{fontSize:11,color:"#8B7355"}}>Cena: {p.price}</div>
-            <div style={{fontSize:10,marginTop:4,fontWeight:600,color:st==="active"?"#2E5B3C":st==="used"?"#8B7355":"#A89070"}}>{st==="active"?"Aktywna":st==="used"?"Wykorzystana":"Nie wykupiona"}</div>
-          </div>);
+          return (<PolicyCard key={p.key} p={p} st={st}/>);
         })}
       </div>
     </div>
@@ -1829,7 +1842,6 @@ function App({roomCode,role}) {
 
   return (<div>
     <ConnectionIndicator online={online}/>
-    <img src="img/grafika_w_tle.png" style={{width:"100%",display:"block"}} alt="" onError={(e)=>{e.target.style.display="none";}}/>
     <div style={{background:"#4C130F",color:"#F5F0E8",padding:"12px 20px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -1882,28 +1894,28 @@ function App({roomCode,role}) {
             })}
           </div>
           {activeTab==="inv"&&(<div>
-            <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#8B7355",marginBottom:10,borderBottom:"1px solid #D4C4A8",paddingBottom:4}}>Zasoby ({familyView.mergedRes.length})</div>
+            <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Zasoby ({familyView.mergedRes.length})</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:12}}>
               {familyView.mergedRes.map(({item,note})=><ResourceCard key={item.id} item={item} note={note} isSheriff={viewSheriff}/>)}
             </div>
             {familyView.orphanNR.length>0&&<div>
-              <div style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#B08040",marginBottom:8,marginTop:4}}>Informacje o zasobach ({familyView.orphanNR.length})</div>
+              <div style={{fontSize:22,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,marginTop:4}} className="wt">Informacje o zasobach ({familyView.orphanNR.length})</div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,marginBottom:20}}>
                 {familyView.orphanNR.map(n=><NoteCard key={n.id} item={n} type="res"/>)}
               </div>
             </div>}
-            <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#6090B0",marginBottom:10,borderBottom:"1px solid #A0B4C4",paddingBottom:4,marginTop:8}}>Kompetencje ({familyView.mergedComp.length})</div>
+            <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4,marginTop:8}} className="wt">Kompetencje ({familyView.mergedComp.length})</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:12}}>
               {familyView.mergedComp.map(({item,note})=><CompCard key={item.id} item={item} note={note} isSheriff={viewSheriff}/>)}
             </div>
             {familyView.orphanNK.length>0&&<div>
-              <div style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#4060B0",marginBottom:8,marginTop:4}}>Informacje o kompetencjach ({familyView.orphanNK.length})</div>
+              <div style={{fontSize:22,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,marginTop:4}} className="wt">Informacje o kompetencjach ({familyView.orphanNK.length})</div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,marginBottom:20}}>
                 {familyView.orphanNK.map(n=><NoteCard key={n.id} item={n} type="comp"/>)}
               </div>
             </div>}
             {familyView.plots.length>0&&<div>
-              <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#408040",marginBottom:10,borderBottom:"1px solid #90C090",paddingBottom:4,marginTop:8}}>Działki ({familyView.plots.length})</div>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4,marginTop:8}} className="wt">Działki ({familyView.plots.length})</div>
               <div style={{display:"flex",gap:8,marginBottom:20}}>{familyView.plots.map(p=><GenericCard key={p.id} item={p}/>)}</div>
             </div>}
             {bnbEnabled&&(()=>{
@@ -1915,7 +1927,7 @@ function App({roomCode,role}) {
               var myProduct=BNB_PRODUCTS[familyId];
               var cardStyle=function(col,qty){return{background:"#FDFAF4",border:"2px solid "+col,borderRadius:6,padding:"10px 12px",position:"relative",minWidth:120,maxWidth:160}};
               return(<div style={{marginTop:8}}>
-                <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#8B6914",marginBottom:10,borderBottom:"1px solid #D4A853",paddingBottom:4}}>Biznes na boku</div>
+                <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Biznes na boku</div>
                 {forSale.length>0&&<div style={{marginBottom:12}}>
                   <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#A89070",marginBottom:6}}>Na sprzedaż</div>
                   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
@@ -2140,7 +2152,7 @@ function App({roomCode,role}) {
             })()}
           </div>}
           <div style={{background:"#fff",borderRadius:6,border:"1px solid #D4C4A8",padding:14}}>
-            <div style={{fontSize:12,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#8B7355",marginBottom:10,borderBottom:"1px solid #D4C4A8",paddingBottom:4}}>Księgowość {pendingCount>0&&<span className="badge">{pendingCount}</span>}</div>
+            <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Księgowość {pendingCount>0&&<span className="badge">{pendingCount}</span>}</div>
             {familyTxs.length===0?<div style={{textAlign:"center",padding:24,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Brak wpisów</div>
             :familyTxs.map(t=><TxDisplay key={t.id} tx={t} cf={familyId} onAccept={acceptTx} onReject={rejectTx} onRespond={id=>{resetP();setRTx(id);setShowP(true);setPMode("barter_response");}}/>)}
           </div>
