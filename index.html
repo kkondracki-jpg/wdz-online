@@ -17,7 +17,7 @@
       font-weight: 400; font-style: normal;
     }
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Alegreya Sans',sans-serif;background:#F5F0E8;color:#2C1810;font-size:14px;background-image:url('img/background.png');background-repeat:no-repeat;background-size:100% auto;background-position:top center}
+    body{font-family:'Alegreya Sans',sans-serif;background:#F5F0E8;color:#2C1810;font-size:14px;background-image:url('img/background.jpg');background-repeat:no-repeat;background-size:100% auto;background-position:top center}
     #root{min-height:100vh}
     ::-webkit-scrollbar{width:6px}
     ::-webkit-scrollbar-track{background:#F0EBE0}
@@ -370,12 +370,12 @@ function Lobby({onJoin}){
 /* ========== CARD IMAGES (loaded from img/ folder) ========== */
 const IMG_BASE = "img/";
 function toSlug(s){return s.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');}
-function imgUrl(prefix,name){return IMG_BASE+prefix+'_'+toSlug(name)+'.png';}
-function mapImgUrl(n){return IMG_BASE+'map_fragment-'+n+'.png';}
+function imgUrl(prefix,name){return IMG_BASE+prefix+'_'+toSlug(name)+'.jpg';}
+function mapImgUrl(n){return IMG_BASE+'map_fragment-'+n+'.jpg';}
 
 /* ========== REVOLVER IMAGES ========== */
-const REV_IMG_MAP = {POJEDYNEK:"POJEDYNEK",DOMINACJA:"DOMINACJA",PRZEWAGA:"PRZEWAGA",WYGRANA:"WYGRANA",NABOJ_ZNACZNIK:"Naboj-znacznik",NABOJ_AMMO:"Naboj-amunikcja"};
-function getRevImg(key){return REV_IMG_MAP[key]?IMG_BASE+REV_IMG_MAP[key]+'.png':null;}
+const REV_IMG_MAP = {POJEDYNEK:"POJEDYNEK.jpg",DOMINACJA:"DOMINACJA.jpg",PRZEWAGA:"PRZEWAGA.jpg",WYGRANA:"WYGRANA.jpg",NABOJ_ZNACZNIK:"Naboj-znacznik.png",NABOJ_AMMO:"Naboj-amunikcja.png"};
+function getRevImg(key){return REV_IMG_MAP[key]?IMG_BASE+REV_IMG_MAP[key]:null;}
 
 /* ========== SCHEDULE STAGES ========== */
 const PAIRINGS = [
@@ -933,7 +933,7 @@ function PolicyCard({p, st}) {
   var statusText=st==="active"?"Aktywna":st==="used"?"Wykorzystana":"Nie wykupiona";
   var statusCol=st==="active"?"#2E5B3C":st==="used"?"#8B7355":"#A89070";
   return (<div style={{flex:1,borderRadius:6,border:"2px solid "+borderCol,background:bgCol,opacity:st==="used"?0.5:1,overflow:"hidden"}}>
-    {imgOk&&<img src={IMG_BASE+p.img+".png"} style={{width:"100%",height:"auto",display:"block"}} alt={p.label} onError={()=>setImgOk(false)}/>}
+    {imgOk&&<img src={IMG_BASE+p.img+".jpg"} style={{width:"100%",height:"auto",display:"block"}} alt={p.label} onError={()=>setImgOk(false)}/>}
     <div style={{padding:8}}>
       {!imgOk&&<div style={{fontSize:13,fontWeight:700,color:"#6B3FA0"}}>{p.label}</div>}
       {!imgOk&&<div style={{fontSize:11,color:"#8B7355"}}>Cena: {p.price}</div>}
@@ -1506,11 +1506,9 @@ function App({roomCode,role}) {
     var round={shotsA:sA,shotsB:sB,winner:sA>sB?"A":sB>sA?"B":"draw",bulletAfter:newPos};
     var rounds=[...(c.rounds||[]),round];var status="playing",winner=null,winField=null;
     var fields=["wygrana","dominacja","przewaga","pojedynek","przewaga","dominacja","wygrana"];
-    if(Math.abs(newPos)===3){status="finished";winner=newPos<0?c.familyA:c.familyB;winField=fields[newPos+3];}
-    else if(aA<=0&&aB>0){newPos=Math.min(3,newPos+1);status="finished";winner=newPos<0?c.familyA:newPos>0?c.familyB:null;winField=fields[newPos+3];}
-    else if(aB<=0&&aA>0){newPos=Math.max(-3,newPos-1);status="finished";winner=newPos<0?c.familyA:newPos>0?c.familyB:null;winField=fields[newPos+3];}
-    else if(aA<=0&&aB<=0){status="finished";winner=newPos<0?c.familyA:newPos>0?c.familyB:null;winField=fields[newPos+3];}
-    else{winField=fields[newPos+3];}
+    winField=fields[newPos+3];
+    if(Math.abs(newPos)===3){status="finished";winner=newPos<0?c.familyA:c.familyB;}
+    else if(aA<=0&&aB<=0){status="finished";winner=newPos<0?c.familyA:newPos>0?c.familyB:null;}
     return{...c,bulletPos:newPos,ammoA:aA,ammoB:aB,rounds:rounds,shotsA:null,shotsB:null,status:status,winner:winner,winField:winField};
   });}
   function revSettle(){if(!revCurrent||revCurrent.status!=="finished")return;var c=revCurrent;
@@ -2056,9 +2054,37 @@ function App({roomCode,role}) {
                   <AmmoGrid ammo={rc.ammoA} col={FM[rc.familyA].col} label={FM[rc.familyA].nom}/>
                   <AmmoGrid ammo={rc.ammoB} col={FM[rc.familyB].col} label={FM[rc.familyB].nom}/>
                 </div>}
+                {/* ODSŁONIĘCIE STRZAŁÓW — pokaż po revealcie, przed następną deklaracją */}
+                {isPlayer&&(rc.rounds||[]).length>0&&myShots===null&&rc.status==="playing"&&(()=>{
+                  var lastRound=(rc.rounds||[])[(rc.rounds||[]).length-1];
+                  var oppName=isA?FM[rc.familyB].nom:FM[rc.familyA].nom;
+                  var oppCol=isA?FM[rc.familyB].col:FM[rc.familyA].col;
+                  var myLastShots=isA?lastRound.shotsA:lastRound.shotsB;
+                  var oppLastShots=isA?lastRound.shotsB:lastRound.shotsA;
+                  var iWon=isA?(lastRound.winner==="A"):(lastRound.winner==="B");
+                  var draw=lastRound.winner==="draw";
+                  var oppAmmo=isA?rc.ammoB:rc.ammoA;
+                  return(<div style={{background:"#FFF8E0",border:"2px solid #D4A853",borderRadius:6,padding:14,marginBottom:12}}>
+                    <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:8}} className="wt">Wynik ostatniej rundy</div>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:8}}>
+                      <div style={{textAlign:"center",padding:8,background:"#fff",borderRadius:4,border:"1px solid "+FM[familyId].col}}>
+                        <div style={{fontSize:11,color:"#8B7355"}}>Twoje strzały</div>
+                        <div style={{fontSize:24,fontWeight:700,color:FM[familyId].col}}>{myLastShots}</div>
+                      </div>
+                      <div style={{textAlign:"center",padding:8,background:"#fff",borderRadius:4,border:"1px solid "+oppCol}}>
+                        <div style={{fontSize:11,color:"#8B7355"}}>{oppName}</div>
+                        <div style={{fontSize:24,fontWeight:700,color:oppCol}}>{oppLastShots}</div>
+                      </div>
+                    </div>
+                    <div style={{textAlign:"center",fontSize:13,fontWeight:700,color:iWon?"#2E5B3C":draw?"#8B7355":"#842504"}}>
+                      {iWon?"Wygrywasz tę rundę!":draw?"Remis — nabój stoi":"Przegrywasz tę rundę"}
+                    </div>
+                    <div style={{textAlign:"center",fontSize:11,color:"#8B7355",marginTop:4}}>Amunicja {oppName}: {oppAmmo} strzałów</div>
+                  </div>);
+                })()}
                 {/* INPUT STRZAŁÓW — AKTYWNY GRACZ */}
                 {isPlayer&&rc.status==="playing"&&myShots===null&&<div style={{background:"#fff",border:"2px solid "+FM[familyId].col,borderRadius:6,padding:12,marginBottom:12}}>
-                  <div style={{fontSize:12,fontWeight:700,color:FM[familyId].col,marginBottom:6}}>Twoja deklaracja strzałów:</div>
+                  <div style={{fontSize:12,fontWeight:700,color:FM[familyId].col,marginBottom:6}}>Ile oddajesz strzałów?</div>
                   <div style={{display:"flex",gap:8,alignItems:"center"}}>
                     <input type="number" id="revShotInput" min={0} max={myAmmo} defaultValue={1} style={{width:70,padding:6,borderRadius:4,border:"2px solid "+FM[familyId].col,fontSize:14,fontWeight:700,textAlign:"center"}}/>
                     <span style={{fontSize:11,color:"#8B7355"}}>/ {myAmmo} dostępnych</span>
@@ -2082,12 +2108,15 @@ function App({roomCode,role}) {
                   <div style={{fontSize:11,fontWeight:700,color:"#8B7355",marginBottom:4}}>Historia rund:</div>
                   {(rc.rounds||[]).map((r,i)=>{
                     var mySh=isA?r.shotsA:r.shotsB;
+                    var oppSh=isA?r.shotsB:r.shotsA;
+                    var oppName=isA?FM[rc.familyB].nom:FM[rc.familyA].nom;
                     var myWin=isA?(r.winner==="A"):(r.winner==="B");
                     var draw=r.winner==="draw";
                     return isPlayer?(<div key={i} style={{fontSize:11,color:"#5C4A3A",padding:"2px 0",display:"flex",gap:8}}>
                       <span style={{fontWeight:600,color:"#8B7355",minWidth:30}}>R{i+1}:</span>
-                      <span>Twoje strzały: <b>{mySh}</b></span>
-                      <span style={{fontWeight:600,color:myWin?"#2E5B3C":draw?"#8B7355":"#8B2500"}}>{myWin?"→ Wygrywasz":draw?"= Remis":"→ Przegrywasz"}</span>
+                      <span>Ty: <b>{mySh}</b></span>
+                      <span>vs {oppName}: <b>{oppSh}</b></span>
+                      <span style={{fontWeight:600,color:myWin?"#2E5B3C":draw?"#8B7355":"#842504"}}>{myWin?"→ Wygrywasz":draw?"= Remis":"→ Przegrywasz"}</span>
                     </div>):(<div key={i} style={{fontSize:11,color:"#5C4A3A",padding:"2px 0",display:"flex",gap:8}}>
                       <span style={{fontWeight:600,color:"#8B7355",minWidth:30}}>R{i+1}:</span>
                       <span style={{color:FM[rc.familyA].col}}>{FM[rc.familyA].nom} {r.shotsA}</span>
