@@ -369,7 +369,7 @@ function Lobby({onJoin}){
 /* ========== CARD IMAGES ========== */
 /* ========== CARD IMAGES (loaded from img/ folder) ========== */
 const IMG_BASE = "img/";
-function toSlug(s){return s.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');}
+function toSlug(s){return s.toLowerCase().replace(/ą/g,'a').replace(/ć/g,'c').replace(/ę/g,'e').replace(/ł/g,'l').replace(/ń/g,'n').replace(/ó/g,'o').replace(/ś/g,'s').replace(/ź/g,'z').replace(/ż/g,'z').replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');}
 function imgUrl(prefix,name){return IMG_BASE+prefix+'_'+toSlug(name)+'.jpg';}
 function mapImgUrl(n){return IMG_BASE+'map_fragment-'+n+'.jpg';}
 
