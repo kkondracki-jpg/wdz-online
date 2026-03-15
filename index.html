@@ -22,14 +22,11 @@
     ::-webkit-scrollbar{width:6px}
     ::-webkit-scrollbar-track{background:#F0EBE0}
     ::-webkit-scrollbar-thumb{background:#C4B090;border-radius:3px}
-    .badge{display:inline-block;background:#D4A853;color:#2C1810;border-radius:8px;padding:0 6px;font-size:11px;font-weight:700;margin-left:4px;min-width:16px;text-align:center}
+    .badge{display:inline-block;background:#D4A853;color:#2C1810;border-radius:8px;padding:0 6px;font-size:13px;font-weight:700;margin-left:4px;min-width:16px;text-align:center}
     .wt{font-family:'Aka Posse','Bitter',serif}
     @keyframes fadeIn{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
-    .card-reveal{animation:fadeIn 0.5s ease-out}
-    @keyframes fadeInCard{0%{opacity:0;transform:scale(0.95)}100%{opacity:1;transform:scale(1)}}
-    .fate-card-reveal{animation:fadeInCard 0.6s ease-out}
-    @keyframes fadeInSettle{0%{opacity:0}100%{opacity:1}}
-    .fate-settle-reveal{animation:fadeInSettle 0.8s ease-out 0.4s both}
+    @keyframes cardRevealFade{0%{opacity:0;transform:scale(0.95)}100%{opacity:1;transform:scale(1)}}
+    .card-reveal{animation:cardRevealFade 0.6s ease-out}
     .ci{width:100%;height:auto;display:block;border-radius:4px}
     .cw{border-radius:5px;overflow:hidden;cursor:default;transition:all 0.15s;position:relative}
     .cw.sel{box-shadow:0 0 0 3px #D4A853}
@@ -121,7 +118,7 @@ function useConnectionStatus(){
 
 /* ========== CONNECTION INDICATOR ========== */
 function ConnectionIndicator({online}){
-  return(<div style={{position:"fixed",bottom:8,left:8,zIndex:999,display:"flex",alignItems:"center",gap:5,background:online?"rgba(46,91,60,0.9)":"rgba(139,37,0,0.9)",color:"#fff",padding:"4px 10px",borderRadius:12,fontSize:11,fontWeight:600,boxShadow:"0 2px 8px rgba(0,0,0,0.2)"}}>
+  return(<div style={{position:"fixed",bottom:8,left:8,zIndex:999,display:"flex",alignItems:"center",gap:5,background:online?"rgba(46,91,60,0.9)":"rgba(139,37,0,0.9)",color:"#fff",padding:"4px 10px",borderRadius:12,fontSize:13,fontWeight:600,boxShadow:"0 2px 8px rgba(0,0,0,0.2)"}}>
     <div style={{width:8,height:8,borderRadius:"50%",background:online?"#90EE90":"#FF6B6B",boxShadow:online?"0 0 4px #90EE90":"0 0 4px #FF6B6B"}}/>
     {online?"Połączono":"Brak połączenia"}
   </div>);
@@ -276,7 +273,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:11,color:"#8B7355",marginTop:4}}>v7.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.0</div>
       </div>
 
       {/* Initial choice */}
@@ -286,22 +283,22 @@ function Lobby({onJoin}){
           <button onClick={handleCreate} disabled={loading} style={{...btnS("sheriff"),padding:"14px 20px",fontSize:16,width:"100%",textAlign:"center"}}>
             Stwórz pokój (Szeryf / Trener)
           </button>
-          <div style={{textAlign:"center",fontSize:12,color:"#8B7355",margin:"4px 0"}}>— lub —</div>
+          <div style={{textAlign:"center",fontSize:13,color:"#8B7355",margin:"4px 0"}}>— lub —</div>
           <div style={{display:"flex",gap:8}}>
             <input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} placeholder="Kod pokoju (np. WDZ-A3K7)" style={{flex:1,padding:"12px 14px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:15,fontFamily:"monospace",letterSpacing:2,textTransform:"uppercase",background:"#fff"}} onKeyDown={e=>{if(e.key==="Enter")handleJoin();}}/>
             <button onClick={handleJoin} disabled={loading} style={{...btnS("primary"),padding:"12px 18px",fontSize:14}}>Dołącz</button>
           </div>
         </div>
-        {error&&<div style={{background:"#FEE",border:"1px solid #C88",borderRadius:4,padding:"8px 12px",marginTop:10,fontSize:12,color:"#8B2500"}}>{error}</div>}
+        {error&&<div style={{background:"#FEE",border:"1px solid #C88",borderRadius:4,padding:"8px 12px",marginTop:10,fontSize:13,color:"#8B2500"}}>{error}</div>}
       </div>}
 
       {/* Sheriff created room - waiting for players */}
       {mode==="created"&&<div style={boxStyle}>
         <div style={titleStyle}>Pokój utworzony</div>
         <div style={{background:"#4C130F",borderRadius:6,padding:16,textAlign:"center",marginBottom:16}}>
-          <div style={{fontSize:11,color:"#D4A853",fontWeight:700,letterSpacing:2,marginBottom:4}}>KOD POKOJU</div>
+          <div style={{fontSize:13,color:"#D4A853",fontWeight:700,letterSpacing:2,marginBottom:4}}>KOD POKOJU</div>
           <div style={{fontSize:36,fontWeight:900,color:"#F5F0E8",letterSpacing:6,fontFamily:"monospace"}}>{roomCode}</div>
-          <div style={{fontSize:11,color:"#C4B090",marginTop:6}}>Podaj ten kod graczom</div>
+          <div style={{fontSize:13,color:"#C4B090",marginTop:6}}>Podaj ten kod graczom</div>
         </div>
         <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:8}}>Podłączeni gracze:</div>
         <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:16}}>
@@ -314,15 +311,15 @@ function Lobby({onJoin}){
             return(<div key={fId} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:connected?"#F0FAF0":"#F5F0E8",borderRadius:4,border:"1px solid "+(connected?"#90C090":"#D4C4A8")}}>
               <div style={{width:10,height:10,borderRadius:"50%",background:connected?"#2E5B3C":"#C4B090"}}/>
               <span style={{fontSize:13,fontWeight:connected?700:400,color:connected?FM[fId].col:"#C4B090"}}>{FM[fId].nom}</span>
-              {connected&&<span style={{fontSize:10,color:"#2E5B3C",marginLeft:"auto"}}>✓ gotowy</span>}
-              {!connected&&<span style={{fontSize:10,color:"#C4B090",marginLeft:"auto"}}>oczekiwanie...</span>}
+              {connected&&<span style={{fontSize:13,color:"#2E5B3C",marginLeft:"auto"}}>✓ gotowy</span>}
+              {!connected&&<span style={{fontSize:13,color:"#C4B090",marginLeft:"auto"}}>oczekiwanie...</span>}
             </div>);
           })}
         </div>
         <button onClick={startGame} disabled={!allReady&&connectedFamilies.length===0} style={{...btnS(allReady?"success":"primary",!allReady&&connectedFamilies.length===0),width:"100%",padding:"12px 20px",fontSize:15,textAlign:"center"}}>
           {allReady?"Rozpocznij grę (wszyscy gotowi)":"Rozpocznij grę ("+connectedFamilies.length+"/4 rodzin)"}
         </button>
-        {connectedFamilies.length>0&&connectedFamilies.length<4&&<div style={{fontSize:11,color:"#A08050",textAlign:"center",marginTop:6}}>Możesz wystartować bez kompletu — brakujące rodziny będą sterowane z panelu Szeryfa</div>}
+        {connectedFamilies.length>0&&connectedFamilies.length<4&&<div style={{fontSize:13,color:"#A08050",textAlign:"center",marginTop:6}}>Możesz wystartować bez kompletu — brakujące rodziny będą sterowane z panelu Szeryfa</div>}
       </div>}
 
       {/* Player joining - select family */}
@@ -335,12 +332,12 @@ function Lobby({onJoin}){
             return(<button key={fId} onClick={()=>!taken&&selectFamily(fId)} disabled={taken||loading} style={{padding:"12px 16px",border:"2px solid "+(taken?"#D4C4A8":FM[fId].col),borderRadius:6,background:taken?"#F0F0F0":"#fff",cursor:taken?"not-allowed":"pointer",display:"flex",alignItems:"center",gap:10,fontFamily:"inherit",fontSize:14}}>
               <div style={{width:14,height:14,borderRadius:"50%",background:taken?"#C4B090":FM[fId].col}}/>
               <span style={{fontWeight:700,color:taken?"#C4B090":FM[fId].col}}>{FM[fId].nom}</span>
-              <span style={{fontSize:11,color:"#A89070"}}>— {FM[fId].biz}</span>
-              {taken&&<span style={{marginLeft:"auto",fontSize:10,color:"#C00"}}>zajęta</span>}
+              <span style={{fontSize:13,color:"#A89070"}}>— {FM[fId].biz}</span>
+              {taken&&<span style={{marginLeft:"auto",fontSize:13,color:"#C00"}}>zajęta</span>}
             </button>);
           })}
         </div>
-        {error&&<div style={{background:"#FEE",border:"1px solid #C88",borderRadius:4,padding:"8px 12px",marginTop:10,fontSize:12,color:"#8B2500"}}>{error}</div>}
+        {error&&<div style={{background:"#FEE",border:"1px solid #C88",borderRadius:4,padding:"8px 12px",marginTop:10,fontSize:13,color:"#8B2500"}}>{error}</div>}
       </div>}
 
       {/* Player selected family - waiting for game start */}
@@ -348,22 +345,22 @@ function Lobby({onJoin}){
         <div style={titleStyle}>Pokój: {roomCode}</div>
         <div style={{background:FM[selectedRole].col,color:"#fff",borderRadius:6,padding:14,textAlign:"center",marginBottom:14}}>
           <div style={{fontSize:22,fontWeight:700}} className="wt">{FM[selectedRole].nom}</div>
-          <div style={{fontSize:12,opacity:0.8,marginTop:2}}>Biznes: {FM[selectedRole].biz}</div>
+          <div style={{fontSize:13,opacity:0.8,marginTop:2}}>Biznes: {FM[selectedRole].biz}</div>
         </div>
         <div style={{fontSize:13,color:"#5C4A3A",marginBottom:10}}>Podłączeni gracze:</div>
         <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:14}}>
-          {sheriffConnected&&<div style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:"#8B6914"}}><div style={{width:8,height:8,borderRadius:"50%",background:"#2E5B3C"}}/>Szeryf</div>}
+          {sheriffConnected&&<div style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"#8B6914"}}><div style={{width:8,height:8,borderRadius:"50%",background:"#2E5B3C"}}/>Szeryf</div>}
           {["adams","bennet","clinton","dexter"].map(fId=>{
             var connected=players[fId]&&players[fId].connected;
             if(!connected)return null;
-            return(<div key={fId} style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:FM[fId].col,fontWeight:fId===selectedRole?700:400}}>
+            return(<div key={fId} style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:FM[fId].col,fontWeight:fId===selectedRole?700:400}}>
               <div style={{width:8,height:8,borderRadius:"50%",background:FM[fId].col}}/>{FM[fId].nom}{fId===selectedRole?" (Ty)":""}
             </div>);
           })}
         </div>
         <div style={{textAlign:"center",padding:14,background:"#FFF8E0",borderRadius:6,border:"1px solid #D4C870"}}>
           <div style={{fontSize:13,color:"#8B7714",fontWeight:600}}>Oczekiwanie na start gry...</div>
-          <div style={{fontSize:11,color:"#A89070",marginTop:4}}>Szeryf rozpocznie grę, gdy wszyscy będą gotowi</div>
+          <div style={{fontSize:13,color:"#A89070",marginTop:4}}>Szeryf rozpocznie grę, gdy wszyscy będą gotowi</div>
         </div>
       </div>}
     </div>
@@ -378,7 +375,7 @@ function imgUrl(prefix,name){return IMG_BASE+prefix+'_'+toSlug(name)+'.jpg';}
 function mapImgUrl(n){return IMG_BASE+'map_fragment-'+n+'.jpg';}
 
 /* ========== REVOLVER IMAGES ========== */
-const REV_IMG_MAP = {POJEDYNEK:"Rew_1-POJEDYNEK.jpg",DOMINACJA:"Rew_3-DOMINACJA.jpg",PRZEWAGA:"Rew_2-PRZEWAGA.jpg",WYGRANA:"Rew_4-WYGRANA.jpg",NABOJ_ZNACZNIK:"Rew_5-Naboj-znacznik.png",NABOJ_AMMO:"Rew_6-Naboj-amunicja.png"};
+const REV_IMG_MAP = {POJEDYNEK:"POJEDYNEK.jpg",DOMINACJA:"DOMINACJA.jpg",PRZEWAGA:"PRZEWAGA.jpg",WYGRANA:"WYGRANA.jpg",NABOJ_ZNACZNIK:"Naboj-znacznik.png",NABOJ_AMMO:"Naboj-amunikcja.png"};
 function getRevImg(key){return REV_IMG_MAP[key]?IMG_BASE+REV_IMG_MAP[key]:null;}
 
 /* ========== SCHEDULE STAGES ========== */
@@ -388,21 +385,19 @@ const PAIRINGS = [
   [["adams","dexter"],["bennet","clinton"]],
 ];
 const STAGES = [
-  {id:"PREP", label:"Przygotowanie",              type:"prep",    defMin:60, pairingIdx:null, phase:null},
-  {id:"F1T1", label:"Faza I \u2014 Tura 1",       type:"turn",    defMin:7,  pairingIdx:0,    phase:1},
-  {id:"F1T2", label:"Faza I \u2014 Tura 2",       type:"turn",    defMin:7,  pairingIdx:1,    phase:1},
-  {id:"F1T3", label:"Faza I \u2014 Tura 3",       type:"turn",    defMin:7,  pairingIdx:2,    phase:1},
-  {id:"KN1",  label:"Krótka narada 1",            type:"knarada", defMin:5,  pairingIdx:null, phase:null},
-  {id:"NAR1", label:"Narada rodzinna I",           type:"narada",  defMin:15, pairingIdx:null, phase:null},
-  {id:"F2T1", label:"Faza II \u2014 Tura 1",      type:"turn",    defMin:15, pairingIdx:0,    phase:2},
-  {id:"F2T2", label:"Faza II \u2014 Tura 2",      type:"turn",    defMin:15, pairingIdx:1,    phase:2},
-  {id:"F2T3", label:"Faza II \u2014 Tura 3",      type:"turn",    defMin:15, pairingIdx:2,    phase:2},
-  {id:"KN2",  label:"Krótka narada 2",            type:"knarada", defMin:5,  pairingIdx:null, phase:null},
-  {id:"NAR2", label:"Narada rodzinna II",          type:"narada",  defMin:15, pairingIdx:null, phase:null},
-  {id:"F3T1", label:"Faza III \u2014 Tura 1",     type:"turn",    defMin:5,  pairingIdx:0,    phase:3},
-  {id:"F3T2", label:"Faza III \u2014 Tura 2",     type:"turn",    defMin:5,  pairingIdx:1,    phase:3},
-  {id:"F3T3", label:"Faza III \u2014 Tura 3",     type:"turn",    defMin:5,  pairingIdx:2,    phase:3},
-  {id:"END",  label:"Zako\u0144czenie rozgrywki", type:"end",     defMin:0,  pairingIdx:null, phase:null},
+  {id:"PREP", label:"Przygotowanie",         type:"prep",   defMin:30, pairingIdx:null, phase:null},
+  {id:"F1T1", label:"Faza I \u2014 Tura 1", type:"turn",   defMin:5,  pairingIdx:0,    phase:1},
+  {id:"F1T2", label:"Faza I \u2014 Tura 2", type:"turn",   defMin:5,  pairingIdx:1,    phase:1},
+  {id:"F1T3", label:"Faza I \u2014 Tura 3", type:"turn",   defMin:5,  pairingIdx:2,    phase:1},
+  {id:"NAR1", label:"Narada rodzinna I",      type:"narada", defMin:10, pairingIdx:null, phase:null},
+  {id:"F2T1", label:"Faza II \u2014 Tura 1",type:"turn",   defMin:10, pairingIdx:0,    phase:2},
+  {id:"F2T2", label:"Faza II \u2014 Tura 2",type:"turn",   defMin:10, pairingIdx:1,    phase:2},
+  {id:"F2T3", label:"Faza II \u2014 Tura 3",type:"turn",   defMin:10, pairingIdx:2,    phase:2},
+  {id:"NAR2", label:"Narada rodzinna II",     type:"narada", defMin:10, pairingIdx:null, phase:null},
+  {id:"F3T1", label:"Faza III \u2014 Tura 1",type:"turn",  defMin:5,  pairingIdx:0,    phase:3},
+  {id:"F3T2", label:"Faza III \u2014 Tura 2",type:"turn",  defMin:5,  pairingIdx:1,    phase:3},
+  {id:"F3T3", label:"Faza III \u2014 Tura 3",type:"turn",  defMin:5,  pairingIdx:2,    phase:3},
+  {id:"END",  label:"Zako\u0144czenie rozgrywki",type:"end",defMin:0,pairingIdx:null, phase:null},
 ];
 const PHASE_NAMES = {1:"WYMIANA INFORMACJI",2:"PIERWSZE TRANSAKCJE",3:"FINA\u0141"};
 /* ========== AUDIO: GUNSHOT SYNTHESIS ========== */
@@ -436,15 +431,15 @@ function TimerBar({stage,secondsLeft,totalSeconds,paused,familyId}){
   var partner=stage.type==="turn"?getMeetingPartner(familyId,stage.pairingIdx):null;
   var stLabel=stage.label;
   if(stage.phase)stLabel="Faza "+(stage.phase===1?"I":stage.phase===2?"II":"III")+": "+PHASE_NAMES[stage.phase];
-  var meetInfo=partner?("Spotkanie: "+FM[familyId].nom+" \u2194 "+FM[partner].nom):(stage.type==="narada"?"Czas na narad\u0119 rodzinn\u0105":stage.type==="knarada"?"Kr\u00f3tka narada":stage.type==="prep"?"Przygotowanie do rozgrywki":stage.type==="end"?"Zako\u0144czenie rozgrywki":"");
+  var meetInfo=partner?("Spotkanie: "+FM[familyId].nom+" \u2194 "+FM[partner].nom):(stage.type==="narada"?"Czas na narad\u0119 rodzinn\u0105":stage.type==="prep"?"Przygotowanie do rozgrywki":stage.type==="end"?"Zako\u0144czenie rozgrywki":"");
   return(<div style={{background:isCrit?"#8B2500":isLow?"#A04020":"#4C130F",padding:"10px 20px",position:"relative",overflow:"hidden",transition:"background 0.5s"}}>
     <div style={{position:"absolute",top:0,left:0,height:"100%",width:pct+"%",background:"rgba(212,168,83,0.15)",transition:"width 1s linear"}}/>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",position:"relative",zIndex:1}}>
       <div><div style={{fontSize:13,color:"#D4A853",fontWeight:700}}>{stLabel}</div>
-        {meetInfo&&<div style={{fontSize:11,color:"#F5F0E8",opacity:0.8,marginTop:2}}>{meetInfo}</div>}
+        {meetInfo&&<div style={{fontSize:13,color:"#F5F0E8",opacity:0.8,marginTop:2}}>{meetInfo}</div>}
       </div>
       <div style={{textAlign:"right"}}><div style={{fontSize:28,fontWeight:700,color:isCrit?"#FFD700":"#F5F0E8",fontFamily:"monospace",letterSpacing:2}}>{timeStr}</div>
-        {paused&&<div style={{fontSize:10,color:"#D4A853",fontWeight:700}}>PAUZA</div>}
+        {paused&&<div style={{fontSize:13,color:"#D4A853",fontWeight:700}}>PAUZA</div>}
       </div>
     </div>
   </div>);
@@ -587,21 +582,25 @@ const BLIND_FATE_EVENTS = {
 };
 
 /* ========== MERGE LOGIC ========== */
-/* MECHANIZM MERGE (v7.0) — zachowany do ewentualnego przywrócenia:
-   Karty zasobów/kompetencji były wizualnie scalane z odpowiadającymi im notatkami
-   (gdy obie należały do tej samej rodziny wg forBiz). buildView łączyło je w pary
-   {item, note}, a ResourceCard/CompCard wyświetlały połączoną kartę ze stopką.
-   Aby przywrócić: zmień mergedRes/mergedComp z powrotem na logikę match po name+forBiz,
-   a w kartach przywróć ścieżkę renderowania dla merged===true.
-*/
 function buildView(items) {
   var resources=items.filter(i=>i.cat===C_RES), comps=items.filter(i=>i.cat===C_COMP);
   var nRes=items.filter(i=>i.cat===C_NRES), nComp=items.filter(i=>i.cat===C_NCOMP);
   var plots=items.filter(i=>i.cat===C_PLOT), maps=items.filter(i=>i.cat===C_MAP);
-  var mergedRes=resources.map(r=>({item:r, note:null}));
-  var orphanNR=nRes;
-  var mergedComp=comps.map(k=>({item:k, note:null}));
-  var orphanNK=nComp;
+  var usedNR={};
+  // MERGED CARDS DISABLED — aby przywrócić, usuń "false&&" poniżej
+  var mergedRes=resources.map(r=>{
+    var m=nRes.find(n=>n.name===r.name&&!usedNR[n.id]);
+    if(false&&m) usedNR[m.id]=true;
+    return {item:r, note:null/*m||null*/};
+  });
+  var orphanNR=nRes.filter(n=>!usedNR[n.id]);
+  var usedNK={};
+  var mergedComp=comps.map(k=>{
+    var m=nComp.find(n=>n.name===k.name&&!usedNK[n.id]);
+    if(false&&m) usedNK[m.id]=true;
+    return {item:k, note:null/*m||null*/};
+  });
+  var orphanNK=nComp.filter(n=>!usedNK[n.id]);
   return {mergedRes, orphanNR, mergedComp, orphanNK, plots, maps};
 }
 
@@ -639,7 +638,7 @@ function calcScore(fId, fd, plotPenalties, biznesNaBoku, bnbEnabled) {
   // BnB points: kwatera bonus if enabled, else manual input
   var bnb=bnbEnabled?bnbKwatera:((biznesNaBoku&&biznesNaBoku[fId])||0);
   var bizTotal=resScore+compScore+plotScore+cashScore+mapScore+bnb;
-  return {resPct,resScore:Math.round(resScore*10)/10,compPct,compScore:Math.round(compScore*10)/10,plotOk,plotScore,cash:d.cash,cashForScore:Math.round(cashForScore),cashScore:Math.round(cashScore*10)/10,mapScore,bnb,bnbKurier,bnbMikstura,bnbObligacje,bnbKwatera,bizTotal:Math.round(bizTotal*10)/10};
+  return {resPct,resScore:Math.round(resScore),compPct,compScore:Math.round(compScore),plotOk,plotScore,cash:d.cash,cashForScore:Math.round(cashForScore),cashScore:Math.round(cashScore),mapScore,bnb,bnbKurier,bnbMikstura,bnbObligacje,bnbKwatera,bizTotal:Math.round(resScore+compScore+plotScore+cashScore+mapScore+bnb)};
 }
 
 /* ========== RELATION SCORE ========== */
@@ -678,56 +677,60 @@ function btnS(v,dis) {
 }
 
 /* ========== RESOURCE CARD ========== */
-function ResourceCard({item, selected, onClick, compact, isSheriff, textOnly}) {
-  var isBl=item.blind;
+function ResourceCard({item, note, selected, onClick, compact, isSheriff, textOnly}) {
+  var merged=!!note, isBl=item.blind;
+  var mergedSrc=merged?imgUrl("merged-res",item.name):null;
   var resSrc=imgUrl("res",item.name);
+  var imgSrc=merged?mergedSrc:resSrc;
   const [imgOk,setImgOk]=useState(true);
 
   if(imgOk && !compact && !textOnly) {
     return (<div onClick={onClick} className={"cw"+(selected?" sel":"")} style={{cursor:onClick?"pointer":"default"}}>
-      <img src={resSrc} className="ci" alt={item.name} onError={()=>setImgOk(false)}/>
+      <img src={imgSrc} className="ci" alt={item.name} onError={()=>setImgOk(false)}/>
       {selected&&<div style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700,textShadow:"0 0 3px #fff"}}>V</div>}
-      {isBl&&isSheriff&&<div style={{position:"absolute",bottom:4,left:4,fontSize:10,color:"#fff",fontWeight:700,background:"#B44",padding:"1px 5px",borderRadius:3}}>ZMYŁKA</div>}
+      {isBl&&isSheriff&&<div style={{position:"absolute",bottom:4,left:4,fontSize:13,color:"#fff",fontWeight:700,background:"#B44",padding:"1px 5px",borderRadius:3}}>ZMYŁKA</div>}
     </div>);
   }
 
-  var borderCol=isBl&&isSheriff?"#C09090":"#C4B090";
-  var bgCol=selected?"#FFF8E7":isBl&&isSheriff?"#FFF5F5":"#FDFAF4";
+  var borderCol=merged?"#90A868":isBl&&isSheriff?"#C09090":"#C4B090";
+  var bgCol=selected?"#FFF8E7":merged?"#F8FAF4":isBl&&isSheriff?"#FFF5F5":"#FDFAF4";
   return (<div onClick={onClick} style={{borderRadius:"5px",position:"relative",border:selected?"2px solid #D4A853":"1px solid "+borderCol,background:bgCol,cursor:onClick?"pointer":"default",transition:"all 0.15s",overflow:"hidden"}}>
     <div style={{padding:compact?"8px 10px":"10px 12px"}}>
       {selected&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
       <div style={{fontSize:compact?12:13,fontWeight:600,lineHeight:1.3,paddingRight:selected?16:0}}>{item.name}</div>
-      {isBl&&isSheriff&&<div style={{fontSize:10,color:"#B44",fontWeight:700,marginTop:2}}>ZMYŁKA</div>}
-      <div style={{fontSize:10,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A08050",marginTop:3}}>ZASÓB</div>
+      {isBl&&isSheriff&&<div style={{fontSize:13,color:"#B44",fontWeight:700,marginTop:2}}>ZMYŁKA</div>}
+      <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A08050",marginTop:3}}>ZASÓB</div>
     </div>
+    {merged&&<div style={{background:"#EEF2E6",borderTop:"1px dashed #B0C090",padding:compact?"4px 10px":"6px 12px",fontSize:13,color:"#5A6B40"}}><b>{note.forBiz}</b> — <b>{note.weight}%</b></div>}
   </div>);
 }
 
 /* ========== COMPETENCY CARD ========== */
-function CompCard({item, selected, onClick, compact, isSheriff}) {
-  var isBl=item.blind;
-  var imgSrc=imgUrl("comp",item.name);
+function CompCard({item, note, selected, onClick, compact, isSheriff}) {
+  var merged=!!note, isBl=item.blind;
+  var imgSrc=merged?imgUrl("merged-comp",item.name):imgUrl("comp",item.name);
   const [imgOk,setImgOk]=useState(true);
 
   if(imgOk && !compact) {
     return (<div onClick={onClick} className={"cw"+(selected?" sel":"")} style={{cursor:onClick?"pointer":"default"}}>
       <img src={imgSrc} className="ci" alt={item.name} onError={()=>setImgOk(false)}/>
       {selected&&<div style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700,textShadow:"0 0 3px #fff"}}>V</div>}
-      {isBl&&isSheriff&&<div style={{position:"absolute",bottom:4,left:4,fontSize:10,color:"#fff",fontWeight:700,background:"#B44",padding:"1px 5px",borderRadius:3}}>ZMYŁKA</div>}
+      {isBl&&isSheriff&&<div style={{position:"absolute",bottom:4,left:4,fontSize:13,color:"#fff",fontWeight:700,background:"#B44",padding:"1px 5px",borderRadius:3}}>ZMYŁKA</div>}
     </div>);
   }
-  var borderCol=isBl&&isSheriff?"#C09090":"#A0B4C4";
-  var bgCol=selected?"#FFF8E7":isBl&&isSheriff?"#FFF5F5":"#F4F8FC";
+  var borderCol=merged?"#7090B8":isBl&&isSheriff?"#C09090":"#A0B4C4";
+  var bgCol=selected?"#FFF8E7":merged?"#F4F6FA":isBl&&isSheriff?"#FFF5F5":"#F4F8FC";
   return (<div onClick={onClick} style={{borderRadius:"5px",position:"relative",border:selected?"2px solid #D4A853":"1px solid "+borderCol,background:bgCol,cursor:onClick?"pointer":"default",transition:"all 0.15s",overflow:"hidden"}}>
     <div style={{padding:compact?"8px 10px":"10px 12px"}}>
       {selected&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
       <div style={{fontSize:compact?12:13,fontWeight:600,lineHeight:1.3,paddingRight:selected?16:0}}>{item.name}</div>
-      {isBl&&isSheriff&&<div style={{fontSize:10,color:"#B44",fontWeight:700,marginTop:2}}>ZMYŁKA</div>}
-      {!compact&&item.author&&<div style={{fontSize:11,color:"#6090B0",fontStyle:"italic",marginTop:2,lineHeight:1.2}}>
-        {item.author}: {"„"}{item.title}{"”"}
+      {isBl&&isSheriff&&<div style={{fontSize:13,color:"#B44",fontWeight:700,marginTop:2}}>ZMYŁKA</div>}
+      {!compact&&item.author&&<div style={{fontSize:13,color:"#6090B0",fontStyle:"italic",marginTop:2,lineHeight:1.2}}>
+        {item.author}: {"\u201e"}{item.title}{"\u201d"}
       </div>}
-      <div style={{fontSize:10,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#6090B0",marginTop:3}}>KOMPETENCJA</div>
+      <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#6090B0",marginTop:3}}>KOMPETENCJA</div>
     </div>
+    {merged&&<div style={{background:"#E4EAF4",borderTop:"1px dashed #90A8C8",padding:compact?"4px 10px":"6px 12px",fontSize:13,color:"#40506B"}}><b>{note.forBiz}</b> — <b>{note.weight}%</b></div>}
   </div>);
 }
 
@@ -747,9 +750,9 @@ function NoteCard({item, selected, onClick, type, textOnly}) {
   var border=selected?"#D4A853":isR?"#D4B896":"#96A8D4";
   return (<div onClick={onClick} style={{borderRadius:"5px",border:(selected?"2px":"1px")+" solid "+border,background:bg,padding:"8px 10px",cursor:onClick?"pointer":"default",transition:"all 0.15s",position:"relative"}}>
     {selected&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
-    <div style={{fontSize:12,fontWeight:600,lineHeight:1.3}}>{item.name}</div>
-    <div style={{fontSize:10,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:accent,marginTop:2}}>INFORMACJA</div>
-    <div style={{fontSize:11,color:accent,marginTop:2}}>{item.forBiz} — {item.weight}%</div>
+    <div style={{fontSize:13,fontWeight:600,lineHeight:1.3}}>{item.name}</div>
+    <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:accent,marginTop:2}}>INFORMACJA</div>
+    <div style={{fontSize:13,color:accent,marginTop:2}}>{item.forBiz} — {item.weight}%</div>
   </div>);
 }
 
@@ -758,10 +761,11 @@ function GenericCard({item, selected, onClick}) {
   var isPlot=item.cat===C_PLOT;
   var bg=selected?"#FFF8E7":"#F0FFF0";
   var border=selected?"#D4A853":"#90C090";
-  return (<div onClick={onClick} style={{borderRadius:"5px",border:(selected?"2px":"1px")+" solid "+border,background:bg,padding:"10px 12px",cursor:onClick?"pointer":"default",transition:"all 0.15s",position:"relative"}}>
+  return (<div onClick={onClick} style={{borderRadius:"5px",border:(selected?"2px":"1px")+" solid "+border,background:bg,padding:"10px 12px",cursor:onClick?"pointer":"default",transition:"all 0.15s",position:"relative",minWidth:isPlot?160:undefined}}>
     {selected&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
+    {isPlot&&<img src={IMG_BASE+"dzialka_"+item.plotNr+".jpg"} alt={"Działka "+item.plotNr} style={{width:"100%",height:"auto",borderRadius:4,marginBottom:6}} onError={e=>{e.target.style.display="none"}}/>}
     <div style={{fontSize:13,fontWeight:600}}>{item.name}</div>
-    <div style={{fontSize:10,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#408040",marginTop:2}}>DZIAŁKA</div>
+    <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#408040",marginTop:2}}>DZIAŁKA</div>
   </div>);
 }
 
@@ -785,21 +789,21 @@ function TxDisplay({tx,cf,onAccept,onReject,onRespond}) {
   // Fate
   if(tx.type==="fate") {
     return (<div style={{padding:12,borderRadius:5,border:"1px solid #C4B0D8",background:"#F8F4FF",marginBottom:8}}>
-      <div style={{fontSize:12,color:"#6B3FA0"}}><b>Ślepy los</b> — {tx.description}</div>
+      <div style={{fontSize:13,color:"#6B3FA0"}}><b>Ślepy los</b> — {tx.description}</div>
     </div>);
   }
 
   // Penalty (wrong plot, auto-applied)
   if(tx.type==="penalty") {
     return (<div style={{padding:12,borderRadius:5,border:"1px solid #C09090",background:"#FFF0F0",marginBottom:8}}>
-      <div style={{fontSize:12,color:"#8B2500"}}><b>MANDAT</b> — {tx.description}</div>
+      <div style={{fontSize:13,color:"#8B2500"}}><b>MANDAT</b> — {tx.description}</div>
     </div>);
   }
 
   // BnB settlement
   if(tx.type==="bnb_settle") {
     return (<div style={{padding:12,borderRadius:5,border:"1px solid #D4C870",background:"#FFF8E0",marginBottom:8}}>
-      <div style={{fontSize:12,color:"#8B7714"}}><b>BIZNES NA BOKU</b> — {tx.description}</div>
+      <div style={{fontSize:13,color:"#8B7714"}}><b>BIZNES NA BOKU</b> — {tx.description}</div>
     </div>);
   }
 
@@ -807,7 +811,7 @@ function TxDisplay({tx,cf,onAccept,onReject,onRespond}) {
   if(tx.type==="revolver") {
     var isWin=tx.to===cf;
     return (<div style={{padding:12,borderRadius:5,border:"1px solid #C08060",background:"#FFF5F0",marginBottom:8}}>
-      <div style={{fontSize:12,color:"#8B2500"}}><b>REWOLWEROWIEC</b> — {isWin?"Wygrana":"Przegrana"}: {tx.amount} $ (pole: {tx.field}) {isWin?("od "+FM[tx.from].gen):("dla "+FM[tx.to].gen)}</div>
+      <div style={{fontSize:13,color:"#8B2500"}}><b>REWOLWEROWIEC</b> — {isWin?"Wygrana":"Przegrana"}: {tx.amount} $ (pole: {tx.field}) {isWin?("od "+FM[tx.from].gen):("dla "+FM[tx.to].gen)}</div>
     </div>);
   }
 
@@ -835,12 +839,12 @@ function TxDisplay({tx,cf,onAccept,onReject,onRespond}) {
   return (<div style={{padding:12,borderRadius:5,border:"1px solid "+(tx.status==="accepted"?"#90C090":tx.status==="rejected"?"#C09090":"#D4C4A8"),background:bgC,marginBottom:8}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
       <span style={{fontSize:13,fontWeight:700}}>
-        <span style={{fontSize:10,textTransform:"uppercase",letterSpacing:"1px",color:tx.type==="sale"?"#8B7355":"#4A3B6B",marginRight:6}}>{dirLabel}</span>
+        <span style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",color:tx.type==="sale"?"#8B7355":"#4A3B6B",marginRight:6}}>{dirLabel}</span>
         {isFrom?"\u2192 ":"\u2190 "}{other}
       </span>
-      <span style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",padding:"2px 6px",borderRadius:3,background:sBg,color:"#fff"}}>{sLabel}</span>
+      <span style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",padding:"2px 6px",borderRadius:3,background:sBg,color:"#fff"}}>{sLabel}</span>
     </div>
-    <div style={{fontSize:12,color:"#5C4A3A",lineHeight:1.5}}>
+    <div style={{fontSize:13,color:"#5C4A3A",lineHeight:1.5}}>
       {tx.type==="sale"&&<div><b>Towar:</b> {fmtItems(tx.offeredItems)}<br/><b>Cena:</b> {tx.price} $</div>}
       {tx.type==="barter"&&<div>
         <b>Rodzina {FM[tx.from].gen} oferuje:</b> {fmtItems(tx.offeredItems)}{tx.offeredCash>0?" + "+tx.offeredCash+" $":""}
@@ -879,32 +883,18 @@ function MapTracker({items, mapBonusClaimed}) {
   if(mapBonusClaimed){Object.keys(mapBonusClaimed).forEach(fId=>{if(mapBonusClaimed[fId])winnerFam=fId;});}
   return (
     <div style={{background:"#FFFDF0",border:"1px solid #D4C870",borderRadius:6,padding:16}}>
-      <div style={{background:"rgba(255,255,255,0.75)",borderRadius:6,padding:"6px 12px",marginBottom:16,display:"inline-block"}}>
-        <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504"}} className="wt">Zadanie: Złotodajna żyła — zebranie fragmentów mapy do żyły złota</div>
-      </div>
+      <div style={{fontSize:16,fontWeight:700,color:"#8B7714",marginBottom:12}} className="wt">Złotodajna Żyła</div>
       <div style={{display:"flex",gap:3}}>
         {[5,4,3,2,1].map(n=>{
           var have=n<=4?uniqueNrs.indexOf(n)>=0:full;
           return <MapFragment key={n} n={n} have={have}/>;
         })}
       </div>
-      <div style={{fontSize:12,color:"#A09060",marginTop:8}}>
-        Posiadane fragmenty mapy: {uniqueNrs.length}/5
+      <div style={{fontSize:13,color:"#A09060",marginTop:8}}>
+        Posiadane fragmenty: {uniqueNrs.length}/5
         {full&&<span style={{color:"#706010",fontWeight:700,marginLeft:8}}>Mapa kompletna!</span>}
       </div>
-      {!full&&<div style={{marginTop:10}}>
-        <div style={{fontSize:12,fontWeight:700,color:"#8B7714",marginBottom:6}}>Liczba fragmentów mapy na sprzedaż:</div>
-        <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-          {Array.from({length:Math.max(0,4-uniqueNrs.length)}).map((_,i)=>(
-            <div key={i} style={{width:48,height:64,border:"2px dashed #D4C870",borderRadius:6,background:"#FFFDF0",display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
-              <div style={{fontSize:22,fontWeight:700,color:"#8B7714",lineHeight:1}}>?</div>
-              <div style={{position:"absolute",top:-8,right:-8,background:"#8B7714",color:"#fff",borderRadius:"50%",width:20,height:20,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700}}>1</div>
-            </div>
-          ))}
-          {(4-uniqueNrs.length)>0&&<div style={{fontSize:11,color:"#A09060",fontStyle:"italic",marginLeft:4}}>Fragmenty do zdobycia: {4-uniqueNrs.length}</div>}
-        </div>
-      </div>}
-      {winnerFam&&<div style={{marginTop:10,padding:8,background:"#FFF8E0",border:"1px dashed #D4C870",borderRadius:4,fontSize:12,fontWeight:600,color:"#8B7714",textAlign:"center"}}>
+      {winnerFam&&<div style={{marginTop:10,padding:8,background:"#FFF8E0",border:"1px dashed #D4C870",borderRadius:4,fontSize:13,fontWeight:600,color:"#8B7714",textAlign:"center"}}>
         Wszystkie fragmenty mapy jako pierwsza zdobyła rodzina {FM[winnerFam].gen}!
       </div>}
     </div>
@@ -938,127 +928,111 @@ function Dice3D({value, rolling}) {
 }
 
 /* ========== BLIND FATE FAMILY ========== */
-/* ========== POLICY CARD (with image fallback) ========== */
-function PolicyCard({p, st}) {
+/* ========== FATE EVENT CARD (image with text fallback) ========== */
+function FateEventCard({sum, showEvent, animating}) {
   const [imgOk,setImgOk]=useState(true);
-  var borderCol=st==="active"?"#6B3FA0":st==="used"?"#C4B0D8":"#D0C8D8";
-  var bgCol=st==="active"?"#EDE4F8":st==="used"?"#F0EDE4":"#F4F2F8";
-  var statusText=st==="active"?"Aktywna":st==="used"?"Wykorzystana":"Nie wykupiona";
-  var statusCol=st==="active"?"#2E5B3C":st==="used"?"#8B7355":"#A89070";
-  return (<div style={{flex:1,borderRadius:6,border:"2px solid "+borderCol,background:bgCol,opacity:st==="used"?0.55:1,overflow:"hidden"}}>
-    {imgOk&&<img src={IMG_BASE+p.img+".jpg"} style={{width:"100%",height:"auto",display:"block"}} alt={p.label} onError={()=>setImgOk(false)}/>}
-    <div style={{padding:8}}>
-      {!imgOk&&<div style={{fontSize:13,fontWeight:700,color:"#6B3FA0"}}>{p.label}</div>}
-      <div style={{fontSize:11,color:"#8B7355",textAlign:"center"}}>Cena: {p.price}</div>
-      <div style={{fontSize:11,marginTop:2,fontWeight:600,color:statusCol,textAlign:"center"}}>{statusText}</div>
-    </div>
+  var ev=sum?BLIND_FATE_EVENTS[sum]:null;
+  var src=IMG_BASE+"los_"+(showEvent&&sum?String(sum).padStart(2,"0"):"01")+".jpg";
+  return (<div style={{flex:"0 0 auto",width:180,minHeight:180,borderRadius:6,border:"2px solid #C4B0D8",background:"#F8F6FA",overflow:"hidden",transition:"opacity 0.6s ease",opacity:animating?0:1}}>
+    {imgOk&&<img src={src} style={{width:"100%",height:"auto",display:"block"}} alt={showEvent&&ev?ev.text:"Ślepy los"} onError={()=>setImgOk(false)}/>}
+    {(!imgOk&&showEvent&&ev)&&<div style={{padding:12,textAlign:"center"}}>
+      <div style={{fontSize:14,fontWeight:600,color:"#2C1810",lineHeight:1.4}}>{ev.text}</div>
+      <div style={{fontSize:18,fontWeight:700,color:ev.amount>=0?"#2E5B3C":"#8B2500",marginTop:8}}>{ev.amount>=0?"+":""}{ev.amount} $</div>
+    </div>}
+    {(!imgOk&&!showEvent)&&<div style={{padding:24,textAlign:"center",color:"#A89070",fontSize:14,fontStyle:"italic"}}>Karta zakryta</div>}
   </div>);
 }
 
+function PolicyCardFate({pKey, label, price, status, imgName}) {
+  const [imgOk,setImgOk]=useState(true);
+  var borderCol=status==="active"?"#6B3FA0":"#C4B0D8";
+  var bgCol=status==="active"?"#EDE4F8":"#F0EDE4";
+  var statusText=status==="active"?"Aktywna":status==="used"?"Wykorzystana":"Nie wykupiona";
+  var statusCol=status==="active"?"#2E5B3C":"#8B7355";
+  var opa=status==="active"?1:0.5;
+  return (<div style={{flex:"0 0 auto",width:120,borderRadius:6,border:"2px solid "+borderCol,background:bgCol,opacity:opa,overflow:"hidden"}}>
+    {imgOk&&<img src={IMG_BASE+imgName+".jpg"} style={{width:"100%",height:"auto",display:"block"}} alt={label} onError={()=>setImgOk(false)}/>}
+    <div style={{padding:6,textAlign:"center"}}>
+      {!imgOk&&<div style={{fontSize:13,fontWeight:700,color:"#6B3FA0"}}>{label}</div>}
+      {!imgOk&&<div style={{fontSize:13,color:"#8B7355"}}>Cena: {price}</div>}
+      <div style={{fontSize:13,fontWeight:600,color:statusCol}}>{statusText}</div>
+    </div>
+  </div>);
+}
 
 function BlindFateFamily({fId, blindFate}) {
   var bf=blindFate[fId]||{}, policies=bf.policies||{p50:null,p100:null}, rolls=bf.rolls||[];
-  var POLS=[{key:"p100",label:"Polisa 100%",price:"50 $",img:"policy_100"},{key:"p50",label:"Polisa 50%",price:"30 $",img:"policy_50"}];
-
-  function FateEventCard({sum, showCard}) {
-    const [imgOk,setImgOk]=useState(true);
-    var ev=BLIND_FATE_EVENTS[sum]||{text:"",type:"",amount:0};
-    if(!showCard) {
-      // blind card
-      const [blOk,setBlOk]=useState(true);
-      return (<div style={{flex:2,maxWidth:180,borderRadius:6,overflow:"hidden",border:"1px solid #C4B0D8"}}>
-        {blOk?<img src={IMG_BASE+"los_01.jpg"} style={{width:"100%",height:"auto",display:"block"}} alt="Ślepy los" onError={()=>setBlOk(false)}/>
-          :<div style={{background:"#EDE4F8",padding:20,textAlign:"center",minHeight:160,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{fontSize:13,color:"#6B3FA0",fontWeight:700}}>?</div></div>}
-      </div>);
-    }
-    var cardName="los_0"+sum+".jpg"; if(sum>=10) cardName="los_"+sum+".jpg";
-    return (<div className="fate-card-reveal" style={{flex:2,maxWidth:180,borderRadius:6,overflow:"hidden",border:"1px solid #C4B0D8"}}>
-      {imgOk?<img src={IMG_BASE+cardName} style={{width:"100%",height:"auto",display:"block"}} alt={"Los "+sum} onError={()=>setImgOk(false)}/>
-        :<div style={{background:"#EDE4F8",padding:12,minHeight:160}}>
-          <div style={{fontSize:12,fontWeight:700,color:"#6B3FA0",marginBottom:6}}>{ev.text}</div>
-          <div style={{fontSize:11,color:"#8B7355"}}>Wynik: {ev.type==="gain"?"+"+(ev.amount)+" $":ev.type==="loss"?ev.amount+" $":ev.type==="loss_resources"?"-10% zasobów":ev.type==="gain_policy"?"Złoty Los":""}</div>
-        </div>}
-    </div>);
+  var [animIdx,setAnimIdx]=useState(-1);
+  // Format history line
+  function fmtHistory(roll,idx){
+    if(!roll.resolved)return null;
+    var ev=BLIND_FATE_EVENTS[roll.sum];
+    var polTxt=roll.policyUsed?" (polisa "+roll.policyUsed+"%)":"";
+    var effectTxt=roll.netEffect>=0?"+"+roll.netEffect+" $":roll.netEffect+" $";
+    if(roll.event&&roll.event.type==="loss_resources") effectTxt="utrata 10% zasobów na koniec rozgrywki";
+    return "Losowanie "+(idx+1)+": Rzut ["+roll.dice1+"+"+roll.dice2+"="+roll.sum+"] — "+ev.text+" → "+effectTxt+polTxt;
   }
-
   return (<div>
-    <div style={{fontSize:16,fontWeight:700,color:"#6B3FA0",marginBottom:12}} className="wt">Ślepy los</div>
-
-    <div style={{background:"#F8F4FF",border:"1px solid #C4B0D8",borderRadius:6,padding:12,marginBottom:16}}>
-      <div style={{fontSize:12,fontWeight:700,color:"#6B3FA0",marginBottom:8}}>Polisy ubezpieczeniowe</div>
-      <div style={{display:"flex",gap:12}}>
-        {POLS.map(p=><PolicyCard key={p.key} p={p} st={policies[p.key]}/>)}
-      </div>
-    </div>
-
-    {rolls.length===0&&<div style={{display:"flex",justifyContent:"center",marginBottom:12}}>
-      <div style={{borderRadius:6,overflow:"hidden",border:"1px solid #C4B0D8",maxWidth:180}}>
-        <img src={IMG_BASE+"los_01.jpg"} style={{width:"100%",height:"auto",display:"block"}} alt="Ślepy los"
-          onError={e=>e.target.style.display="none"}/>
+    <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:12,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Ślepy los</div>
+    {/* — POLISY: kupno przed pierwszym losowaniem — */}
+    {rolls.length===0&&<div style={{background:"#F8F4FF",border:"1px solid #C4B0D8",borderRadius:6,padding:12,marginBottom:16}}>
+      <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:8}}>Polisy ubezpieczeniowe — oczekuj na sygnał Szeryfa</div>
+      <div style={{display:"flex",gap:12,justifyContent:"center"}}>
+        <PolicyCardFate pKey="p100" label="Polisa 100%" price="50 $" status={policies.p100} imgName="policy_100"/>
+        <PolicyCardFate pKey="p50" label="Polisa 50%" price="30 $" status={policies.p50} imgName="policy_50"/>
       </div>
     </div>}
-    {rolls.length===0&&<div style={{textAlign:"center",padding:"8px 0 16px",color:"#A89070",fontSize:13,fontStyle:"italic"}}>Oczekuj na sygnał Szeryfa do losowania...</div>}
-
-    {rolls.map((roll,idx)=>(<div key={idx} style={{marginBottom:20}}>
-      <div style={{fontSize:13,fontWeight:700,color:"#6B3FA0",marginBottom:8}}>
-        Losowanie {idx+1}{roll.resolved?<span style={{fontSize:11,fontWeight:400,color:"#8B7355",marginLeft:8}}>{roll.dice1}+{roll.dice2}={roll.sum}</span>:""}
-      </div>
-
-      {!roll.diceReady&&!roll.resolved&&<div style={{textAlign:"center",padding:16,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Szeryf przygotowuje losowanie...</div>}
-
-      {roll.diceReady&&!roll.resolved&&!roll.rolling&&<div>
-        <div style={{display:"flex",justifyContent:"center",marginBottom:10}}>
-          <div style={{borderRadius:6,overflow:"hidden",border:"1px solid #C4B0D8",maxWidth:180}}>
-            <img src={IMG_BASE+"los_01.jpg"} style={{width:"100%",height:"auto",display:"block"}} alt="Ślepy los"
-              onError={e=>e.target.style.display="none"}/>
-          </div>
+    {/* — LOSOWANIA — */}
+    {rolls.map((roll,idx)=>{
+      var ev=roll.resolved?BLIND_FATE_EVENTS[roll.sum]:null;
+      return (<div key={idx} style={{marginBottom:20,background:"#F8F4FF",border:"1px solid #C4B0D8",borderRadius:8,padding:14}}>
+        <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:10}}>Losowanie {idx+1}</div>
+        {/* 3 karty w linii */}
+        <div style={{display:"flex",gap:10,justifyContent:"center",alignItems:"flex-start",marginBottom:12}}>
+          <PolicyCardFate pKey="p100" label="Polisa 100%" price="50 $" status={policies.p100} imgName="policy_100"/>
+          <PolicyCardFate pKey="p50" label="Polisa 50%" price="30 $" status={policies.p50} imgName="policy_50"/>
+          <FateEventCard sum={roll.sum} showEvent={roll.resolved&&roll.showCard} animating={animIdx===idx}/>
         </div>
-        <div style={{textAlign:"center"}}>
-          <div style={{fontSize:12,color:"#5C4A3A",marginBottom:8}}>{roll.policyUsed?"Polisa "+roll.policyUsed+"% aktywna":"Bez polisy"}</div>
-          <button data-roll={fId+"-"+idx} style={{...btnS("fate"),fontSize:15,padding:"12px 28px",borderRadius:8}}>🎲 Rzuć kośćmi</button>
-        </div>
-      </div>}
-
-      {roll.rolling&&<div style={{textAlign:"center",padding:20}}>
-        <div style={{display:"flex",justifyContent:"center",gap:16,marginBottom:10}}>
-          <Dice3D rolling={true}/><Dice3D rolling={true}/>
-        </div>
-        <div style={{fontSize:13,color:"#6B3FA0",fontWeight:600}}>Kości w powietrzu...</div>
-      </div>}
-
-      {roll.resolved&&<div>
-        <div style={{display:"flex",justifyContent:"center",gap:12,marginBottom:10,alignItems:"flex-start"}}>
-          {POLS.map(p=><PolicyCard key={p.key} p={p} st={policies[p.key]}/>)}
-          <FateEventCard sum={roll.sum} showCard={roll.showCard}/>
-        </div>
-        <div style={{textAlign:"center",marginBottom:8}}>
-          <div style={{display:"flex",justifyContent:"center",gap:16,marginBottom:6}}>
-            <Dice3D value={roll.dice1}/><Dice3D value={roll.dice2}/>
-          </div>
-          <div style={{fontSize:13,fontWeight:700,color:"#2C1810"}}>{roll.dice1} + {roll.dice2} = {roll.sum}</div>
-          {!roll.showCard&&<div style={{fontSize:11,color:"#A89070",marginTop:6,fontStyle:"italic"}}>Odkrywanie karty zdarzenia...</div>}
-        </div>
-        {roll.showCard&&<div className="fate-settle-reveal" style={{background:"rgba(255,255,255,0.75)",border:"1px solid #C4B0D8",borderRadius:6,padding:"10px 14px",textAlign:"center"}}>
-          <div style={{fontSize:13,fontWeight:700,color:"#6B3FA0",marginBottom:4}}>Rozliczenie:</div>
-          <div style={{fontSize:22,fontWeight:700,color:roll.netEffect>=0?"#2E5B3C":"#8B2500",fontFamily:"'Aka Posse',sans-serif"}}>{roll.netEffectText}</div>
-          {roll.policyUsed&&roll.event&&roll.event.type!=="gain"&&roll.event.type!=="gain_policy"&&<div style={{fontSize:11,color:"#6B3FA0",marginTop:4}}>Polisa {roll.policyUsed}% zmniejszyła stratę</div>}
+        {/* Przycisk rzutu */}
+        {!roll.diceReady&&!roll.resolved&&<div style={{textAlign:"center",padding:12,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Szeryf przygotowuje losowanie...</div>}
+        {roll.diceReady&&!roll.resolved&&!roll.rolling&&<div style={{textAlign:"center",padding:12}}>
+          <button data-roll={fId+"-"+idx} style={{...btnS("fate"),fontSize:16,padding:"14px 32px",borderRadius:8}}>Rzuć kośćmi</button>
         </div>}
-        {roll.resolved&&!roll.showDice&&!roll.showCard&&<div style={{textAlign:"center",padding:8,color:"#A89070",fontSize:12,fontStyle:"italic"}}>Losowanie {idx+1} zakończone</div>}
-      </div>}
-    </div>))}
+        {/* Kości — JEDNA para */}
+        {(roll.rolling||roll.resolved&&roll.showDice)&&<div style={{textAlign:"center",marginBottom:10}}>
+          <div style={{display:"flex",justifyContent:"center",gap:16,marginBottom:6}}>
+            <Dice3D rolling={roll.rolling} value={roll.resolved?roll.dice1:null}/>
+            <Dice3D rolling={roll.rolling} value={roll.resolved?roll.dice2:null}/>
+          </div>
+          {roll.rolling&&<div style={{fontSize:14,color:"#6B3FA0",fontWeight:600}}>Kości w powietrzu...</div>}
+          {roll.resolved&&roll.showDice&&<div style={{fontSize:16,fontWeight:700,color:"#2C1810"}}>{roll.dice1} + {roll.dice2} = {roll.sum}</div>}
+        </div>}
+        {/* Rozliczenie */}
+        {roll.resolved&&roll.showCard&&<div className="card-reveal" style={{background:roll.netEffect>=0?"#E8F5E8":"#FFF0F0",border:"1px solid "+(roll.netEffect>=0?"#90C090":"#C09090"),borderRadius:6,padding:14,textAlign:"center",marginTop:8}}>
+          <div style={{fontSize:16,fontWeight:700,color:"#2C1810",marginBottom:4}}>ROZLICZENIE:</div>
+          <div style={{fontSize:24,fontWeight:700,color:roll.netEffect>=0?"#2E5B3C":"#8B2500"}}>{roll.netEffectText}</div>
+          {roll.policyUsed&&roll.event&&roll.event.type!=="gain"&&roll.event.type!=="gain_policy"&&<div style={{fontSize:14,color:"#6B3FA0",marginTop:4}}>Polisa zmniejsza tratę o {roll.policyUsed}%</div>}
+        </div>}
+        {roll.resolved&&!roll.showDice&&!roll.showCard&&<div style={{textAlign:"center",padding:8,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Losowanie {idx+1} zakończone</div>}
+      </div>);
+    })}
+    {/* — HISTORIA LOSOWAŃ (widoczna dla rodziny) — */}
+    {rolls.filter(r=>r.resolved).length>0&&<div style={{marginTop:12,background:"#F0EDE4",border:"1px solid #D4C4A8",borderRadius:6,padding:12}}>
+      <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:8}}>Historia losowań</div>
+      {rolls.map((r,i)=>{var h=fmtHistory(r,i);return h?<div key={i} style={{fontSize:13,color:"#5C4A3A",padding:"4px 0",borderBottom:"1px solid #E0D8D0",lineHeight:1.5}}>{h}</div>:null;})}
+    </div>}
   </div>);
 }
 
-
 /* ========== SHERIFF PANEL ========== */
-function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,resultsReveal,setResultsReveal,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,revEnabled,setRevEnabled,revMaxBet,setRevMaxBet,revBetSec,setRevBetSec,revRevealSec,setRevRevealSec,revCountdown,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle,trainerNotes,setTrainerNotes}) {
+function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,resultsReveal,setResultsReveal,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,revEnabled,setRevEnabled,revMaxBet,setRevMaxBet,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle}) {
   function applyPlotPenalties(){
     FO.forEach(fId=>{
       if(plotPenalties[fId]) return;
       var f=FM[fId],d=fd[fId],plotI=d.items.find(i=>i.cat===C_PLOT),plotOk=plotI&&plotI.plotNr===f.tPlot;
       if(!plotOk){
         setFd(prev=>{var n={...prev};n[fId]={...n[fId],cash:n[fId].cash-50};return n;});
-        setTxs(prev=>[{id:Date.now().toString()+fId,type:"penalty",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:"Dodatkowy koszt 50$ wynikający z posiadania niewłaściwej działki (nr "+(plotI?plotI.plotNr:"?")+", docelowa: "+f.tPlot+")"},...prev]);
+        setTxs(prev=>[{id:Date.now().toString()+fId,type:"penalty",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:"Mandat 50 $ — pozostanie na złej działce (nr "+(plotI?plotI.plotNr:"?")+", docelowa: "+f.tPlot+")"},...prev]);
         setPlotPenalties(prev=>({...prev,[fId]:true}));
       }
     });
@@ -1146,9 +1120,9 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
       <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
         {allTx.length>0&&!undoConfirm&&<button style={btnS("danger")} onClick={()=>setUndoConfirm(true)}>Cofnij ostatnią transakcję</button>}
         {undoConfirm&&<div style={{display:"flex",gap:4,alignItems:"center",background:"#FEE",padding:"4px 8px",borderRadius:4,border:"1px solid #C88"}}>
-          <span style={{fontSize:11,color:"#8B2500"}}>Cofnąć: {allTx[0]&&(FM[allTx[0].from].nom+"→"+FM[allTx[0].to].nom)}?</span>
-          <button style={{...btnS("danger"),fontSize:10,padding:"3px 8px"}} onClick={undoLastTx}>Tak</button>
-          <button style={{...btnS("primary"),fontSize:10,padding:"3px 8px"}} onClick={()=>setUndoConfirm(false)}>Nie</button>
+          <span style={{fontSize:13,color:"#8B2500"}}>Cofnąć: {allTx[0]&&(FM[allTx[0].from].nom+"→"+FM[allTx[0].to].nom)}?</span>
+          <button style={{...btnS("danger"),fontSize:13,padding:"3px 8px"}} onClick={undoLastTx}>Tak</button>
+          <button style={{...btnS("primary"),fontSize:13,padding:"3px 8px"}} onClick={()=>setUndoConfirm(false)}>Nie</button>
         </div>}
         <button style={btnS(resultsReveal>=1?"danger":"success")} onClick={()=>{if(resultsReveal===0){applyPlotPenalties();if(bnbEnabled)settleBnb();setResultsReveal(1);}else{setResultsReveal(0);}}}>{resultsReveal>=1?"Ukryj wyniki":"1. Biznes"}</button>
         {resultsReveal>=1&&<button style={btnS(resultsReveal>=2?"danger":"success")} onClick={()=>setResultsReveal(resultsReveal>=2?1:2)}>{resultsReveal>=2?"Cofnij relacje":"2. Relacje"}</button>}
@@ -1159,64 +1133,41 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
     <div style={{background:"#FFF8E7",border:"2px solid #D4A853",borderRadius:8,padding:16,marginBottom:20}}>
       <div style={{fontSize:16,fontWeight:700,color:"#8B6914",marginBottom:12}} className="wt">Przebieg rozgrywki</div>
       {!gameStarted?(<div>
-        <div style={{fontSize:12,color:"#5C4A3A",marginBottom:10}}>Ustaw czasy trwania etapów (minuty), a następnie kliknij Start.</div>
+        <div style={{fontSize:13,color:"#5C4A3A",marginBottom:10}}>Ustaw czasy trwania etapów (minuty), a następnie kliknij Start.</div>
         {(()=>{
           var grouped=[
-            {key:"PREP",  label:"Przygotowanie",                    ids:["PREP"],             color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-            {key:"F1",    label:"Tury Fazy I (wymiana informacji)",  ids:["F1T1","F1T2","F1T3"],color:"#6B3FA0",bg:"#F8F4FF",border:"#C4B0D8"},
-            {key:"KN1",   label:"Krótka narada 1",                   ids:["KN1"],              color:"#5C7A4A",bg:"#F0F8F0",border:"#A0C8A8"},
-            {key:"NAR1",  label:"Narada rodzinna 1",                 ids:["NAR1"],             color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-            {key:"F2",    label:"Tury Fazy II (pierwsze transakcje)",ids:["F2T1","F2T2","F2T3"],color:"#6B3FA0",bg:"#F8F4FF",border:"#C4B0D8"},
-            {key:"KN2",   label:"Krótka narada 2",                   ids:["KN2"],              color:"#5C7A4A",bg:"#F0F8F0",border:"#A0C8A8"},
-            {key:"NAR2",  label:"Narada rodzinna 2",                 ids:["NAR2"],             color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-            {key:"F3",    label:"Tury Fazy III (finał)",             ids:["F3T1","F3T2","F3T3"],color:"#6B3FA0",bg:"#F8F4FF",border:"#C4B0D8"},
+            {key:"PREP",label:"Przygotowanie",ids:["PREP"],defMin:30,color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
+            {key:"F1",label:"Tury Fazy I (wymiana informacji)",ids:["F1T1","F1T2","F1T3"],defMin:5,color:"#6B3FA0",bg:"#F8F4FF",border:"#C4B0D8"},
+            {key:"NAR1",label:"Narada rodzinna 1",ids:["NAR1"],defMin:10,color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
+            {key:"F2",label:"Tury Fazy II (pierwsze transakcje)",ids:["F2T1","F2T2","F2T3"],defMin:10,color:"#6B3FA0",bg:"#F8F4FF",border:"#C4B0D8"},
+            {key:"NAR2",label:"Narada rodzinna 2",ids:["NAR2"],defMin:10,color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
+            {key:"F3",label:"Tury Fazy III (finał)",ids:["F3T1","F3T2","F3T3"],defMin:5,color:"#6B3FA0",bg:"#F8F4FF",border:"#C4B0D8"},
           ];
           function setGrouped(g,val){setStageDurations(prev=>{var n={...prev};g.ids.forEach(id=>{n[id]=val;});return n;});}
           return(<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
             {grouped.map(g=>{var val=stageDurations[g.ids[0]];return(<div key={g.key} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:g.bg,borderRadius:4,border:"1px solid "+g.border}}>
-              <span style={{fontSize:12,flex:1,fontWeight:600,color:g.color}}>{g.label}{g.ids.length>1?<span style={{fontSize:10,fontWeight:400,color:"#A89070",marginLeft:4}}>×3 tury</span>:null}</span>
+              <span style={{fontSize:13,flex:1,fontWeight:600,color:g.color}}>{g.label}{g.ids.length>1?<span style={{fontSize:13,fontWeight:400,color:"#A89070",marginLeft:4}}>×3 tury</span>:null}</span>
               <input type="number" min="1" max="120" value={val} onChange={e=>setGrouped(g,Math.max(1,Number(e.target.value)||1))} style={{width:55,padding:"4px 6px",border:"1px solid #D4C4A8",borderRadius:3,fontSize:13,fontWeight:700,fontFamily:"inherit",textAlign:"center"}}/>
-              <span style={{fontSize:10,color:"#A89070"}}>min</span>
+              <span style={{fontSize:13,color:"#A89070"}}>min</span>
             </div>);})}
           </div>);
         })()}
         <button style={{...btnS("success"),fontSize:16,padding:"10px 32px"}} onClick={()=>startStage(0)}>Start rozgrywki</button>
-      </div>):((()=>{
-        var [manualMode,setManualMode]=React.useState(false);
-        return(<div>
-          <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:8,flexWrap:"wrap"}}>
-            {timerRunning&&!timerPaused&&<button style={btnS("sheriff")} onClick={pauseTimer}>Pauza</button>}
-            {timerPaused&&<button style={btnS("success")} onClick={resumeTimer}>Wznów</button>}
-            {!manualMode&&<button style={btnS("primary")} onClick={advanceStage}>{stageIdx<STAGES.length-1?"Następny etap \u2192":"Zakończ"}</button>}
-            {timerRunning&&<span style={{fontSize:14,fontWeight:700,color:"#8B6914",fontFamily:"monospace"}}>{Math.floor(secondsLeft/60)+":"+(secondsLeft%60<10?"0":"")+(secondsLeft%60)}</span>}
-            <button
-              onClick={()=>setManualMode(m=>!m)}
-              style={{marginLeft:"auto",fontSize:10,padding:"3px 10px",borderRadius:4,border:"1px solid "+(manualMode?"#8B2500":"#B0A080"),background:manualMode?"#FFF0EC":"#F5F2E8",color:manualMode?"#8B2500":"#8B7355",cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>
-              {manualMode?"\u26A0 Tryb r\u0119czny — wy\u0142\u0105cz":"Tryb r\u0119czny"}
-            </button>
-          </div>
-          {manualMode&&<div style={{fontSize:11,color:"#8B2500",background:"#FFF0EC",border:"1px solid #E8C0A8",borderRadius:4,padding:"5px 10px",marginBottom:8}}>
-            Tryb r\u0119czny — kliknij dowolny etap na li\u015bcie, aby prze\u015bkocz\u00f3 do niego. Klikni\u0119cie uruchamia etap i timer.
-          </div>}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:4}}>
-            {STAGES.map((s,idx)=>{
-              var isCur=idx===stageIdx,isDone=idx<stageIdx;
-              var clickable=manualMode&&!isCur;
-              return(<div key={s.id}
-                onClick={clickable?()=>{startStage(idx);showMsg("R\u0119cznie: "+s.label);}:undefined}
-                style={{padding:"4px 8px",borderRadius:3,fontSize:11,fontWeight:isCur?700:400,
-                  background:isCur?"#D4A853":isDone?"#E8F0E8":"#F5F2E8",
-                  color:isCur?"#2C1810":isDone?"#2E5B3C":"#A89070",
-                  border:isCur?"2px solid #8B6914":clickable?"1px dashed #C08060":"1px solid transparent",
-                  opacity:isDone&&!manualMode?0.6:1,
-                  cursor:clickable?"pointer":"default",
-                  transition:"border 0.2s"}}>
-                {isCur&&"\u25B6 "}{clickable&&"\u00BB "}{s.label} ({stageDurations[s.id]} min){isDone&&!manualMode&&" \u2713"}
-              </div>);
-            })}
-          </div>
-        </div>);
-      })())}
+      </div>):(<div>
+        <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10,flexWrap:"wrap"}}>
+          {timerRunning&&!timerPaused&&<button style={btnS("sheriff")} onClick={pauseTimer}>Pauza</button>}
+          {timerPaused&&<button style={btnS("success")} onClick={resumeTimer}>Wznów</button>}
+          <button style={btnS("primary")} onClick={advanceStage}>{stageIdx<STAGES.length-1?"Następny etap \u2192":"Zakończ"}</button>
+          {timerRunning&&<span style={{fontSize:14,fontWeight:700,color:"#8B6914",fontFamily:"monospace"}}>{Math.floor(secondsLeft/60)+":"+(secondsLeft%60<10?"0":"")+(secondsLeft%60)}</span>}
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:4}}>
+          {STAGES.map((s,idx)=>{var isCur=idx===stageIdx,isDone=idx<stageIdx;
+            return(<div key={s.id} style={{padding:"4px 8px",borderRadius:3,fontSize:13,fontWeight:isCur?700:400,background:isCur?"#D4A853":isDone?"#E8F0E8":"#F5F2E8",color:isCur?"#2C1810":isDone?"#2E5B3C":"#A89070",border:isCur?"2px solid #8B6914":"1px solid transparent",opacity:isDone?0.6:1}}>
+              {isCur&&"\u25B6 "}{s.label} ({stageDurations[s.id]} min){isDone&&" \u2713"}
+            </div>);
+          })}
+        </div>
+      </div>)}
     </div>
     {/* === 2. PODGLĄD I WYNIKI RODZIN === */}
     <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20}}>
@@ -1225,12 +1176,12 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
         return (<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:12}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
             <div style={{fontSize:14,fontWeight:700,color:f.col}} className="wt">{f.nom}</div>
-            <button style={{fontSize:9,padding:"2px 6px",background:f.col,color:"#fff",border:"none",borderRadius:3,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>onViewFamily(fId)}>Podgląd</button>
+            <button style={{fontSize:13,padding:"2px 6px",background:f.col,color:"#fff",border:"none",borderRadius:3,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>onViewFamily(fId)}>Podgląd</button>
           </div>
-          <div style={{fontSize:12,color:"#5C4A3A",lineHeight:1.8}}>
+          <div style={{fontSize:13,color:"#5C4A3A",lineHeight:1.8}}>
             <div>Gotówka: <b>{d.cash} $</b></div>
             <div>Działka: nr {plotI?plotI.plotNr:"—"} {plotOk?<span style={{color:"#2E5B3C"}}>OK</span>:<span style={{color:"#C06030"}}>cel: {f.tPlot}</span>}</div>
-            <div style={{marginTop:4,padding:"3px 6px",background:"#F0EBE0",borderRadius:3,fontWeight:700,fontSize:11}}>Wynik: {sc.bizTotal} pkt (biz.) + {calcRelationScore(fId,relations)} pkt (rel.)</div>
+            <div style={{marginTop:4,padding:"3px 6px",background:"#F0EBE0",borderRadius:3,fontWeight:700,fontSize:13}}>Wynik: {sc.bizTotal} pkt (biz.) + {calcRelationScore(fId,relations)} pkt (rel.)</div>
           </div>
         </div>);
       })}
@@ -1240,13 +1191,13 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
         {FO.map(fId=>{var sc=calcScore(fId,fd,plotPenalties,biznesNaBoku,bnbEnabled),f=FM[fId];return (<div key={fId} style={{background:"#FDFAF4",border:"2px solid "+f.col,borderRadius:6,padding:14}}>
           <div style={{fontSize:15,fontWeight:700,color:f.col,marginBottom:8,textAlign:"center"}} className="wt">{f.nom}</div>
-          <div style={{fontSize:11,color:"#5C4A3A",lineHeight:2}}>
-            <div>Zasoby: <b>{sc.resPct}%</b> = <b>{sc.resScore} pkt</b>{bnbEnabled&&sc.bnbKurier>0&&<span style={{fontSize:9,color:"#8B2500"}}> (w tym Kurier ×{sc.bnbKurier}: +{sc.bnbKurier*4}%)</span>}</div>
-            <div>Kompetencje: <b>{sc.compPct}%</b> = <b>{sc.compScore} pkt</b>{bnbEnabled&&sc.bnbMikstura>0&&<span style={{fontSize:9,color:"#8B4513"}}> (w tym Mikstura ×{sc.bnbMikstura}: +{sc.bnbMikstura*4}%)</span>}</div>
+          <div style={{fontSize:13,color:"#5C4A3A",lineHeight:2}}>
+            <div>Zasoby: <b>{sc.resPct}%</b> = <b>{sc.resScore} pkt</b>{bnbEnabled&&sc.bnbKurier>0&&<span style={{fontSize:13,color:"#8B2500"}}> (w tym Kurier ×{sc.bnbKurier}: +{sc.bnbKurier*4}%)</span>}</div>
+            <div>Kompetencje: <b>{sc.compPct}%</b> = <b>{sc.compScore} pkt</b>{bnbEnabled&&sc.bnbMikstura>0&&<span style={{fontSize:13,color:"#8B4513"}}> (w tym Mikstura ×{sc.bnbMikstura}: +{sc.bnbMikstura*4}%)</span>}</div>
             <div>Działka: {sc.plotOk?"właściwa":"niewłaściwa"} = <b>{sc.plotScore} pkt</b></div>
-            <div>Gotówka: <b>{sc.cash} $</b>{bnbEnabled&&sc.bnbObligacje>0?<span style={{fontSize:9,color:"#4A3B6B"}}> (Obligacje ×{sc.bnbObligacje}: +{sc.bnbObligacje*20}% → {sc.cashForScore} $)</span>:""} = <b>{sc.cashScore} pkt</b></div>
+            <div>Gotówka: <b>{sc.cash} $</b>{bnbEnabled&&sc.bnbObligacje>0?<span style={{fontSize:13,color:"#4A3B6B"}}> (Obligacje ×{sc.bnbObligacje}: +{sc.bnbObligacje*20}% → {sc.cashForScore} $)</span>:""} = <b>{sc.cashScore} pkt</b></div>
             <div>Mapa: <b>{sc.mapScore} pkt</b></div>
-            {sc.bnb>0&&<div>Biznes na boku: <b>{sc.bnb} pkt</b>{bnbEnabled&&sc.bnbKwatera>0&&<span style={{fontSize:9,color:"#2E5B3C"}}> (Kwatera ×{sc.bnbKwatera})</span>}</div>}
+            {sc.bnb>0&&<div>Biznes na boku: <b>{sc.bnb} pkt</b>{bnbEnabled&&sc.bnbKwatera>0&&<span style={{fontSize:13,color:"#2E5B3C"}}> (Kwatera ×{sc.bnbKwatera})</span>}</div>}
           </div>
           <div style={{marginTop:6,padding:6,background:"#F0EBE0",borderRadius:4,textAlign:"center"}}><div style={{fontSize:14,fontWeight:700,color:"#5C4A3A"}}>Biznes: {sc.bizTotal} pkt</div></div>
           {(()=>{var relS=calcRelationScore(fId,relations);return (<div>
@@ -1262,23 +1213,23 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
         return(<div style={{background:waiting.length>0?"#FFF0F0":"#F8F6FA",border:"2px solid "+(waiting.length>0?"#C09090":"#C4B0D8"),borderRadius:8,padding:16,transition:"all 0.3s"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
             <div style={{fontSize:14,fontWeight:700,color:waiting.length>0?"#8B2500":"#6B3FA0"}} className="wt">
-              Wezwij Szeryfa {waiting.length>0&&<span style={{background:"#8B2500",color:"#fff",padding:"2px 8px",borderRadius:10,fontSize:12,marginLeft:6}}>{waiting.length}</span>}
+              Wezwij Szeryfa {waiting.length>0&&<span style={{background:"#8B2500",color:"#fff",padding:"2px 8px",borderRadius:10,fontSize:13,marginLeft:6}}>{waiting.length}</span>}
             </div>
           </div>
-          {waiting.length===0&&<div style={{fontSize:12,color:"#A89070",fontStyle:"italic"}}>Brak oczekujących wezwań</div>}
+          {waiting.length===0&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak oczekujących wezwań</div>}
           {waiting.map((call,ci)=>{var absIdx=sheriffCalls.indexOf(call);return(<div key={absIdx} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:8,background:"#fff",border:"1px solid "+FM[call.fId].col,borderRadius:5,marginBottom:6}}>
             <div><span style={{fontSize:13,fontWeight:700,color:FM[call.fId].col}}>{FM[call.fId].nom}</span>
-              <span style={{fontSize:10,color:"#A89070",marginLeft:8}}>{new Date(call.ts).toLocaleTimeString("pl")}</span></div>
+              <span style={{fontSize:13,color:"#A89070",marginLeft:8}}>{new Date(call.ts).toLocaleTimeString("pl")}</span></div>
             <div style={{display:"flex",gap:4}}>
-              <button style={{...btnS("success"),fontSize:10,padding:"4px 10px"}} onClick={()=>grantConsultation(call.fId)}>Sprzedaj konsultację</button>
-              <button style={{fontSize:10,padding:"4px 8px",background:"#E8E0D0",color:"#5C4A3A",border:"1px solid #D4C4A8",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>dismissCall(absIdx)}>Odrzuć</button>
+              <button style={{...btnS("success"),fontSize:13,padding:"4px 10px"}} onClick={()=>grantConsultation(call.fId)}>Sprzedaj konsultację</button>
+              <button style={{fontSize:13,padding:"4px 8px",background:"#E8E0D0",color:"#5C4A3A",border:"1px solid #D4C4A8",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>dismissCall(absIdx)}>Odrzuć</button>
             </div>
           </div>);})}
           {recent.length>0&&<div style={{marginTop:8,borderTop:"1px solid #E0D8E8",paddingTop:6}}>
-            <div style={{fontSize:10,fontWeight:700,color:"#A89070",marginBottom:4}}>Ostatnie wezwania</div>
-            {recent.map((call,ci)=>{var absIdx=sheriffCalls.indexOf(call);return(<div key={absIdx} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"3px 6px",fontSize:11,color:"#8B7355"}}>
+            <div style={{fontSize:13,fontWeight:700,color:"#A89070",marginBottom:4}}>Ostatnie wezwania</div>
+            {recent.map((call,ci)=>{var absIdx=sheriffCalls.indexOf(call);return(<div key={absIdx} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"3px 6px",fontSize:13,color:"#8B7355"}}>
               <span>{FM[call.fId].nom} — <b style={{color:call.status==="sold"?"#2E5B3C":"#8B2500"}}>{call.status==="sold"?"sprzedano":call.status==="cancelled"?"anulowano":"odrzucono"}</b></span>
-              {call.status==="sold"&&<button style={{fontSize:9,padding:"1px 6px",background:"#C09090",color:"#fff",border:"none",borderRadius:3,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>cancelConsultation(absIdx)}>Anuluj (zwrot 15$)</button>}
+              {call.status==="sold"&&<button style={{fontSize:13,padding:"1px 6px",background:"#C09090",color:"#fff",border:"none",borderRadius:3,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>cancelConsultation(absIdx)}>Anuluj (zwrot 15$)</button>}
             </div>);})}
           </div>}
         </div>);
@@ -1287,26 +1238,17 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
         <div style={{fontSize:14,fontWeight:700,color:"#8B6914",marginBottom:10}} className="wt">Konsultacje</div>
         {FO.map(fId=>{var cs=consultations[fId]||[];if(!cs.length)return null;
           return (<div key={fId} style={{marginBottom:8}}>
-            <div style={{fontSize:12,fontWeight:700,color:FM[fId].col,marginBottom:4}}>{FM[fId].nom}</div>
+            <div style={{fontSize:13,fontWeight:700,color:FM[fId].col,marginBottom:4}}>{FM[fId].nom}</div>
             {cs.map((c,idx)=>{var rem=c.questionsTotal-c.questionsUsed;
-              return (<div key={idx} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 0",borderBottom:"1px solid #EDE8D8",fontSize:12}}>
+              return (<div key={idx} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 0",borderBottom:"1px solid #EDE8D8",fontSize:13}}>
                 <span>Konsultacja {idx+1}: {c.questionsUsed}/{c.questionsTotal} pytań</span>
-                {rem>0?<button style={{fontSize:10,padding:"2px 8px",background:"#8B6914",color:"#fff",border:"none",borderRadius:3,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>completeConsult(fId,idx)}>Odnotuj pytanie ({rem} pozostało)</button>
-                :<span style={{fontSize:10,color:"#2E5B3C",fontWeight:600}}>Wyczerpana</span>}
+                {rem>0?<button style={{fontSize:13,padding:"2px 8px",background:"#8B6914",color:"#fff",border:"none",borderRadius:3,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>completeConsult(fId,idx)}>Odnotuj pytanie ({rem} pozostało)</button>
+                :<span style={{fontSize:13,color:"#2E5B3C",fontWeight:600}}>Wyczerpana</span>}
               </div>);
             })}
           </div>);
         })}
-        {Object.values(consultations).every(a=>!a||!a.length)&&<div style={{fontSize:12,color:"#A89070",fontStyle:"italic"}}>Brak konsultacji</div>}
-        <div style={{marginTop:14,borderTop:"1px solid #EDE8D8",paddingTop:12}}>
-          <div style={{fontSize:13,fontWeight:700,color:"#8B6914",marginBottom:6}}>Notatki trenera</div>
-          <textarea
-            value={trainerNotes}
-            onChange={e=>setTrainerNotes(e.target.value)}
-            placeholder="Notatki widoczne w raporcie końcowym rozgrywki..."
-            style={{width:"100%",minHeight:90,padding:8,fontSize:12,fontFamily:"inherit",borderRadius:4,border:"1px solid #D4C4A8",background:"#FFFDF5",resize:"vertical",boxSizing:"border-box"}}
-          />
-        </div>
+        {Object.values(consultations).every(a=>!a||!a.length)&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak konsultacji</div>}
       </div>
     </div>
     {/* === 4. ŚLEPY LOS — KONTROLA === */}
@@ -1319,17 +1261,17 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
           return (<div key={fId} style={{background:"#fff",border:"1px solid "+f.col,borderRadius:5,padding:10}}>
             <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
             <div style={{display:"flex",gap:4,marginBottom:8,flexWrap:"wrap"}}>
-              <button style={{...btnS("fate"),fontSize:10,padding:"3px 8px",opacity:pol.p50!==null?0.4:1}} onClick={()=>activatePolicy(fId,"p50")} disabled={pol.p50!==null}>Polisa 50% (30$)</button>
-              {pol.p50==="active"&&<button style={{fontSize:10,padding:"3px 8px",background:"#C09090",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>undoPolicy(fId,"p50")}>Cofnij 50%</button>}
-              <button style={{...btnS("fate"),fontSize:10,padding:"3px 8px",opacity:pol.p100!==null?0.4:1}} onClick={()=>activatePolicy(fId,"p100")} disabled={pol.p100!==null}>Polisa 100% (50$)</button>
-              {pol.p100==="active"&&<button style={{fontSize:10,padding:"3px 8px",background:"#C09090",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>undoPolicy(fId,"p100")}>Cofnij 100%</button>}
+              <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px",opacity:pol.p50!==null?0.4:1}} onClick={()=>activatePolicy(fId,"p50")} disabled={pol.p50!==null}>Polisa 50% (30$)</button>
+              {pol.p50==="active"&&<button style={{fontSize:13,padding:"3px 8px",background:"#C09090",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>undoPolicy(fId,"p50")}>Cofnij 50%</button>}
+              <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px",opacity:pol.p100!==null?0.4:1}} onClick={()=>activatePolicy(fId,"p100")} disabled={pol.p100!==null}>Polisa 100% (50$)</button>
+              {pol.p100==="active"&&<button style={{fontSize:13,padding:"3px 8px",background:"#C09090",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>undoPolicy(fId,"p100")}>Cofnij 100%</button>}
             </div>
             {rollsPending===0&&rollsDone<2&&<div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-              <button style={{...btnS("fate"),fontSize:10,padding:"3px 8px"}} onClick={()=>prepareRoll(fId,null)}>Bez polisy</button>
-              {avPol.map(ap=><button key={ap.v} style={{...btnS("fate"),fontSize:10,padding:"3px 8px"}} onClick={()=>prepareRoll(fId,ap.v)}>Z polisą {ap.l}</button>)}
+              <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px"}} onClick={()=>prepareRoll(fId,null)}>Bez polisy</button>
+              {avPol.map(ap=><button key={ap.v} style={{...btnS("fate"),fontSize:13,padding:"3px 8px"}} onClick={()=>prepareRoll(fId,ap.v)}>Z polisą {ap.l}</button>)}
             </div>}
-            {rolls.map((roll,idx)=>(<div key={idx} style={{fontSize:11,color:"#5C4A3A",marginTop:4,padding:4,background:"#F8F6FA",borderRadius:3}}>
-              <b>Rzut {idx+1}:</b> {roll.resolved?<span>{roll.dice1}+{roll.dice2}={roll.sum} &rarr; {roll.netEffectText}{roll.showCard&&<button style={{fontSize:9,padding:"1px 4px",marginLeft:4,cursor:"pointer",background:"#E8E0D0",border:"1px solid #C4B090",borderRadius:2,fontFamily:"inherit"}} onClick={()=>clearCard(fId,idx)}>Ukryj</button>}</span>:<span style={{fontStyle:"italic"}}>oczekuje...</span>}
+            {rolls.map((roll,idx)=>(<div key={idx} style={{fontSize:13,color:"#5C4A3A",marginTop:4,padding:4,background:"#F8F6FA",borderRadius:3}}>
+              <b>Rzut {idx+1}:</b> {roll.resolved?<span>{roll.dice1}+{roll.dice2}={roll.sum} &rarr; {roll.netEffectText}{roll.showCard&&<button style={{fontSize:13,padding:"1px 4px",marginLeft:4,cursor:"pointer",background:"#E8E0D0",border:"1px solid #C4B090",borderRadius:2,fontFamily:"inherit"}} onClick={()=>clearCard(fId,idx)}>Ukryj</button>}</span>:<span style={{fontStyle:"italic"}}>oczekuje...</span>}
             </div>))}
           </div>);
         })}
@@ -1342,17 +1284,17 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
       {FO.map(fId=>{var f=FM[fId],bf=blindFate[fId]||{},pol=bf.policies||{p50:null,p100:null},rolls=(bf.rolls||[]).filter(r=>r.resolved);
         return (<div key={fId} style={{background:"#FDFAF4",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
           <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
-          <div style={{fontSize:11,color:"#5C4A3A",marginBottom:4}}>
+          <div style={{fontSize:13,color:"#5C4A3A",marginBottom:4}}>
             <b>Polisy:</b>{" "}
             {pol.p50==="active"?"50% aktywna":pol.p50==="used"?"50% wykorzystana":"50% —"}{" | "}
             {pol.p100==="active"?"100% aktywna":pol.p100==="used"?"100% wykorzystana":"100% —"}
           </div>
-          {rolls.length>0?<div style={{fontSize:11,color:"#5C4A3A"}}>
+          {rolls.length>0?<div style={{fontSize:13,color:"#5C4A3A"}}>
             <b>Losowania:</b>
             {rolls.map((r,i)=>(<div key={i} style={{padding:"3px 0",borderBottom:i<rolls.length-1?"1px dotted #E0D8E8":"none"}}>
               Rzut {i+1}: {r.dice1}+{r.dice2}={r.sum} — <i>{r.event.text}</i> → <b style={{color:r.netEffect>=0?"#2E5B3C":"#8B2500"}}>{r.netEffectText}</b>{r.policyUsed?" (polisa "+r.policyUsed+"%)":""}
             </div>))}
-          </div>:<div style={{fontSize:11,color:"#A89070",fontStyle:"italic"}}>Brak losowań</div>}
+          </div>:<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak losowań</div>}
         </div>);
       })}
       </div>
@@ -1363,13 +1305,13 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
         <div style={{fontSize:14,fontWeight:700,color:"#8B7714"}} className="wt">Biznes na boku</div>
         {!bnbEnabled&&<button style={btnS("success")} onClick={activateBnb}>Aktywuj dodatek</button>}
         {bnbEnabled&&<div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <span style={{fontSize:11,fontWeight:700,color:bnbSettled?"#2E5B3C":"#8B7714",padding:"3px 10px",background:bnbSettled?"#E8F5E8":"#FFF8E7",borderRadius:4,border:"1px solid "+(bnbSettled?"#90C090":"#D4C870")}}>{bnbSettled?"Rozliczono":"Aktywny"}</span>
+          <span style={{fontSize:13,fontWeight:700,color:bnbSettled?"#2E5B3C":"#8B7714",padding:"3px 10px",background:bnbSettled?"#E8F5E8":"#FFF8E7",borderRadius:4,border:"1px solid "+(bnbSettled?"#90C090":"#D4C870")}}>{bnbSettled?"Rozliczono":"Aktywny"}</span>
           {!bnbSettled&&!gameStarted&&<button style={btnS("danger",false)} onClick={()=>{setFd(prev=>{var n={...prev};FO.forEach(fId=>{n[fId]={...n[fId],items:n[fId].items.filter(i=>i.cat!==C_BNB)};});return n;});setBnbEnabled(false);showMsg("Biznes na boku — zablokowany");}}>Zablokuj</button>}
         </div>}
       </div>
-      {!bnbEnabled&&<div style={{fontSize:12,color:"#8B7355"}}>
+      {!bnbEnabled&&<div style={{fontSize:13,color:"#8B7355"}}>
         <div style={{marginBottom:6}}>Dodatek wprowadza wątek sprzedaży dodatkowego produktu przez każdą rodzinę.</div>
-        <div style={{fontSize:11,color:"#A89070"}}>Po aktywacji każda rodzina otrzyma swoje karty produktów do sprzedaży.</div>
+        <div style={{fontSize:13,color:"#A89070"}}>Po aktywacji każda rodzina otrzyma swoje karty produktów do sprzedaży.</div>
       </div>}
       {bnbEnabled&&<div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
@@ -1382,24 +1324,24 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
             var boughtGrouped={};boughtCards.forEach(i=>{if(!boughtGrouped[i.bnbOrigin])boughtGrouped[i.bnbOrigin]=0;boughtGrouped[i.bnbOrigin]++;});
             return(<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
               <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
-              <div style={{fontSize:11,color:"#5C4A3A",marginBottom:6}}>
+              <div style={{fontSize:13,color:"#5C4A3A",marginBottom:6}}>
                 <b>Sprzedaje:</b> {p.name}
               </div>
               <div style={{display:"flex",gap:12,marginBottom:6}}>
-                <div style={{fontSize:11,color:"#5C4A3A"}}>
+                <div style={{fontSize:13,color:"#5C4A3A"}}>
                   Stan: <b style={{color:soldAll?"#2E5B3C":"#8B7355"}}>{ownCards.length}/{p.qty}</b>
-                  <span style={{marginLeft:4,fontSize:10,color:"#A89070"}}>(sprzedano {soldCount})</span>
+                  <span style={{marginLeft:4,fontSize:13,color:"#A89070"}}>(sprzedano {soldCount})</span>
                 </div>
               </div>
-              {soldAll&&<div style={{fontSize:10,color:"#2E5B3C",fontWeight:600,marginBottom:4}}>Sprzedano wszystko — bonifikata 100 $</div>}
+              {soldAll&&<div style={{fontSize:13,color:"#2E5B3C",fontWeight:600,marginBottom:4}}>Sprzedano wszystko — bonifikata 100 $</div>}
               {boughtCards.length>0&&<div style={{borderTop:"1px solid #E0D8E8",paddingTop:4,marginTop:4}}>
-                <div style={{fontSize:10,fontWeight:700,color:"#A89070",marginBottom:2}}>Zakupione od innych:</div>
-                {Object.keys(boughtGrouped).map(o=><div key={o} style={{fontSize:10,color:"#5C4A3A"}}>{BNB_PRODUCTS[o].shortName} ×{boughtGrouped[o]} <span style={{color:"#A89070"}}>(od {FM[o].gen})</span></div>)}
+                <div style={{fontSize:13,fontWeight:700,color:"#A89070",marginBottom:2}}>Zakupione od innych:</div>
+                {Object.keys(boughtGrouped).map(o=><div key={o} style={{fontSize:13,color:"#5C4A3A"}}>{BNB_PRODUCTS[o].shortName} ×{boughtGrouped[o]} <span style={{color:"#A89070"}}>(od {FM[o].gen})</span></div>)}
               </div>}
             </div>);
           })}
         </div>
-        {bnbSettled&&<div style={{marginTop:10,padding:8,background:"#E8F5E8",border:"1px solid #90C090",borderRadius:4,fontSize:11,color:"#2E5B3C",textAlign:"center",fontWeight:600}}>Rozliczenie końcowe przeprowadzone — prowizje pobrane</div>}
+        {bnbSettled&&<div style={{marginTop:10,padding:8,background:"#E8F5E8",border:"1px solid #90C090",borderRadius:4,fontSize:13,color:"#2E5B3C",textAlign:"center",fontWeight:600}}>Rozliczenie końcowe przeprowadzone — prowizje pobrane</div>}
       </div>}
     </div>
     {/* === 7. BUDOWANIE RELACJI === */}
@@ -1408,14 +1350,14 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
         <div style={{fontSize:14,fontWeight:700,color:"#2E5B3C"}} className="wt">Budowanie relacji</div>
         <button style={btnS(relationsUnlocked?"danger":"success",false)} onClick={()=>setRelationsUnlocked(!relationsUnlocked)}>{relationsUnlocked?"Zablokuj zakładkę":"Odblokuj zakładkę"}</button>
       </div>
-      <div style={{fontSize:12,color:"#5C4A3A",marginBottom:8}}>{relationsUnlocked?"Zakładka \u201eBudowanie relacji\u201d jest odblokowana — rodziny mogą wystawiać oceny.":"Zakładka zablokowana — rodziny nie widzą jej jeszcze."}</div>
+      <div style={{fontSize:13,color:"#5C4A3A",marginBottom:8}}>{relationsUnlocked?"Zakładka \u201eBudowanie relacji\u201d jest odblokowana — rodziny mogą wystawiać oceny.":"Zakładka zablokowana — rodziny nie widzą jej jeszcze."}</div>
       {relationsUnlocked&&<div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
         {FO.map(fId=>{var f=FM[fId];var relS=calcRelationScore(fId,relations);
           return (<div key={fId} style={{background:"#fff",border:"1px solid "+f.col,borderRadius:5,padding:8}}>
-            <div style={{fontSize:12,fontWeight:700,color:f.col,marginBottom:4}} className="wt">{f.nom}</div>
-            <div style={{fontSize:11,color:"#5C4A3A"}}>Otrzymane: <b>{relS} pkt</b></div>
+            <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:4}} className="wt">{f.nom}</div>
+            <div style={{fontSize:13,color:"#5C4A3A"}}>Otrzymane: <b>{relS} pkt</b></div>
             {FO.filter(r=>r!==fId).map(rater=>{var r=relations[rater]&&relations[rater][fId];
-              return (<div key={rater} style={{fontSize:10,color:"#8B7355",marginTop:2}}>od {FM[rater].gen}: {r?(r.partnership||0)+"+"+(r.rules||0)+"+"+(r.communication||0)+"="+(((r.partnership||0)+(r.rules||0)+(r.communication||0)))+"★":"—"}</div>);
+              return (<div key={rater} style={{fontSize:13,color:"#8B7355",marginTop:2}}>od {FM[rater].gen}: {r?(r.partnership||0)+"+"+(r.rules||0)+"+"+(r.communication||0)+"="+(((r.partnership||0)+(r.rules||0)+(r.communication||0)))+"★":"—"}</div>);
             })}
           </div>);
         })}
@@ -1427,109 +1369,86 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
         <div style={{fontSize:14,fontWeight:700,color:"#8B2500"}} className="wt">Rewolwerowiec</div>
         {!revEnabled&&<button style={btnS("success")} onClick={()=>setRevEnabled(true)}>Aktywuj dodatek</button>}
         {revEnabled&&<div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <span style={{fontSize:11,fontWeight:700,color:"#8B2500",padding:"3px 10px",background:"#FFE8E0",borderRadius:4,border:"1px solid #C08060"}}>Aktywny</span>
+          <span style={{fontSize:13,fontWeight:700,color:"#8B2500",padding:"3px 10px",background:"#FFE8E0",borderRadius:4,border:"1px solid #C08060"}}>Aktywny</span>
           {!revCurrent&&<button style={btnS("danger",false)} onClick={()=>setRevEnabled(false)}>Zablokuj</button>}
         </div>}
       </div>
-      {!revEnabled&&<div style={{fontSize:12,color:"#8B7355"}}>Mini-gra rywalizacyjna — dwie rodziny licytują strzałami o ustaloną stawkę. Aktywuj, aby uruchomić.</div>}
+      {!revEnabled&&<div style={{fontSize:13,color:"#8B7355"}}>Mini-gra rywalizacyjna — dwie rodziny licytują strzałami o ustaloną stawkę. Aktywuj, aby uruchomić.</div>}
       {revEnabled&&<div>
-        {/* Ustawienia */}
-        <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap",marginBottom:12,padding:"8px 10px",background:"#FFF5F0",border:"1px solid #E8C8B0",borderRadius:6}}>
-          <div style={{display:"flex",gap:6,alignItems:"center"}}>
-            <label style={{fontSize:11,color:"#5C4A3A"}}>Max stawka ($):</label>
-            <input type="number" min={1} step={1} value={revMaxBet} onChange={e=>setRevMaxBet(Math.max(1,parseInt(e.target.value)||1))} style={{width:64,padding:"3px 6px",borderRadius:4,border:"1px solid #C08060",fontSize:12}} disabled={!!revCurrent}/>
-          </div>
-          <div style={{display:"flex",gap:6,alignItems:"center"}}>
-            <label style={{fontSize:11,color:"#5C4A3A"}}>Czas obstawiania (s):</label>
-            <input type="number" min={5} max={120} step={5} value={revBetSec} onChange={e=>setRevBetSec(Math.max(5,parseInt(e.target.value)||30))} style={{width:56,padding:"3px 6px",borderRadius:4,border:"1px solid #C08060",fontSize:12}}/>
-          </div>
-          <div style={{display:"flex",gap:6,alignItems:"center"}}>
-            <label style={{fontSize:11,color:"#5C4A3A"}}>Czas po obu (s):</label>
-            <input type="number" min={3} max={30} step={1} value={revRevealSec} onChange={e=>setRevRevealSec(Math.max(3,parseInt(e.target.value)||10))} style={{width:48,padding:"3px 6px",borderRadius:4,border:"1px solid #C08060",fontSize:12}}/>
-          </div>
+        <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:12}}>
+          <label style={{fontSize:13,color:"#5C4A3A"}}>Max stawka ($):</label>
+          <input type="number" min={1} step={1} value={revMaxBet} onChange={e=>setRevMaxBet(Math.max(1,parseInt(e.target.value)||1))} style={{width:70,padding:4,borderRadius:4,border:"1px solid #C08060",fontSize:13}} disabled={!!revCurrent}/>
         </div>
-        {/* Wybór pary */}
         {!revCurrent&&<div>
-          <div style={{fontSize:12,fontWeight:600,color:"#5C4A3A",marginBottom:6}}>Wybierz parę do pojedynku (można grać wielokrotnie):</div>
+          <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:6}}>Wybierz parę do pojedynku:</div>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
             {FO.map((a,ai)=>FO.slice(ai+1).map(b=>{
-              var cnt=revDuels.filter(d=>(d.familyA===a&&d.familyB===b)||(d.familyA===b&&d.familyB===a)).length;
-              return(<button key={a+b} style={{...btnS("warning",false),fontSize:11}} onClick={()=>revNewDuel(a,b)}>
-                {FM[a].nom} vs {FM[b].nom}{cnt>0&&<span style={{fontSize:10,opacity:0.7}}> ×{cnt}</span>}
-              </button>);
+              var played=revDuels.some(d=>(d.familyA===a&&d.familyB===b)||(d.familyA===b&&d.familyB===a));
+              return(<button key={a+b} style={{...btnS(played?"secondary":"warning",false),fontSize:13,opacity:played?0.5:1}} onClick={()=>{if(!played)revNewDuel(a,b);}} disabled={played} title={played?"Już rozegrano":""}>{FM[a].nom} vs {FM[b].nom}{played?" ✓":""}</button>);
             }))}
           </div>
           {(revDuels||[]).length>0&&<div style={{marginTop:12}}>
-            <div style={{fontSize:12,fontWeight:600,color:"#5C4A3A",marginBottom:4}}>Historia pojedynków:</div>
-            {revDuels.map((d,di)=>{var wN=d.winner?FM[d.winner].nom:"Remis";return(
-              <div key={d.id} style={{fontSize:11,color:"#5C4A3A",padding:"2px 0",borderBottom:"1px dotted #D4C4A8"}}>
-                #{di+1} {FM[d.familyA].nom} vs {FM[d.familyB].nom} — <b>{wN}</b> ({d.winField}, {d.rounds.length} rund, stawka {d.bet} $)
-              </div>
+            <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:4}}>Historia pojedynków:</div>
+            {revDuels.map(d=>{var wN=d.winner?FM[d.winner].nom:"Remis";return(
+              <div key={d.id} style={{fontSize:13,color:"#5C4A3A",padding:"3px 0",borderBottom:"1px dotted #D4C4A8"}}>{FM[d.familyA].nom} vs {FM[d.familyB].nom} — <b>{wN}</b> ({d.winField}, {d.rounds.length} rund, stawka {d.bet} $)</div>
             );})}
           </div>}
         </div>}
-        {/* Trwający pojedynek */}
         {revCurrent&&<div>
           {revCurrent.status==="betting"&&<div style={{background:"#fff",border:"1px solid #C08060",borderRadius:6,padding:12,marginBottom:8}}>
             <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:8}} className="wt">{FM[revCurrent.familyA].nom} vs {FM[revCurrent.familyB].nom}</div>
-            <div style={{fontSize:12,color:"#5C4A3A",marginBottom:6}}>Ustalcie stawkę (max {revMaxBet} $):</div>
+            <div style={{fontSize:13,color:"#5C4A3A",marginBottom:6}}>Ustalcie stawkę (max {revMaxBet} $):</div>
             <div style={{display:"flex",gap:8,alignItems:"center"}}>
               <input type="number" id="revBetInput" min={1} max={revMaxBet} step={1} defaultValue={Math.min(30,revMaxBet)} style={{width:80,padding:4,borderRadius:4,border:"1px solid #C08060",fontSize:13}}/>
-              <button style={btnS("success")} onClick={()=>{var v=parseInt(document.getElementById("revBetInput").value)||0;if(v<1||v>revMaxBet){showMsg("Stawka musi wynosić od 1 do "+revMaxBet+" $");return;}revSetBet(v);}}>Zatwierdź stawkę i start</button>
+              <button style={btnS("success")} onClick={()=>{var v=parseInt(document.getElementById("revBetInput").value)||0;if(v<1||v>revMaxBet){showMsg("Stawka musi wynosić od 1 do "+revMaxBet+" $");return;}revSetBet(v);}}>Zatwierdź stawkę</button>
               <button style={btnS("danger")} onClick={()=>setRevCurrent(null)}>Anuluj</button>
             </div>
           </div>}
           {(revCurrent.status==="playing"||revCurrent.status==="reveal")&&<div style={{background:"#fff",border:"1px solid #C08060",borderRadius:6,padding:12}}>
-            <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:6}} className="wt">{FM[revCurrent.familyA].nom} vs {FM[revCurrent.familyB].nom} — stawka: {revCurrent.bet} $</div>
-            {revCountdown!==null&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",borderRadius:4,padding:"4px 12px",marginBottom:8,fontSize:14,fontWeight:700,color:"#664D03",textAlign:"center"}}>⏱ {revCountdown} s</div>}
+            <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:4}} className="wt">{FM[revCurrent.familyA].nom} vs {FM[revCurrent.familyB].nom} — stawka: {revCurrent.bet} $</div>
             <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-              <div style={{fontSize:12,color:FM[revCurrent.familyA].col}}><b>{FM[revCurrent.familyA].nom}</b>: {revCurrent.ammoA} nab. {revCurrent.shotsA!==null?"✓":"…"}</div>
-              <div style={{fontSize:12,color:FM[revCurrent.familyB].col}}><b>{FM[revCurrent.familyB].nom}</b>: {revCurrent.ammoB} nab. {revCurrent.shotsB!==null?"✓":"…"}</div>
+              <div style={{fontSize:13,color:FM[revCurrent.familyA].col}}><b>{FM[revCurrent.familyA].nom}</b>: {revCurrent.ammoA} strzałów {revCurrent.shotsA!==null?"(✓ gotowy)":"(czeka...)"}</div>
+              <div style={{fontSize:13,color:FM[revCurrent.familyB].col}}><b>{FM[revCurrent.familyB].nom}</b>: {revCurrent.ammoB} strzałów {revCurrent.shotsB!==null?"(✓ gotowy)":"(czeka...)"}</div>
             </div>
-            {/* Plansza mini */}
+            {/* PLANSZA MINI */}
             <div style={{display:"flex",gap:2,marginBottom:8,alignItems:"stretch"}}>
               {["WYGRANA","DOMINACJA","PRZEWAGA","POJEDYNEK","PRZEWAGA","DOMINACJA","WYGRANA"].map((label,idx)=>{
                 var pos=idx-3,isBullet=revCurrent.bulletPos===pos;
                 var imgKey=label==="POJEDYNEK"?"POJEDYNEK":label==="PRZEWAGA"?"PRZEWAGA":label==="DOMINACJA"?"DOMINACJA":"WYGRANA";
                 var img=getRevImg(imgKey);
-                return(<div key={idx} style={{flex:1,border:"2px solid "+(isBullet?"#8B2500":"#D4C4A8"),borderRadius:4,textAlign:"center",position:"relative",overflow:"hidden",minHeight:50}}>
+                var borderCol=isBullet?"#8B2500":"#D4C4A8";
+                return(<div key={idx} style={{flex:1,border:"2px solid "+borderCol,borderRadius:4,textAlign:"center",position:"relative",overflow:"hidden",minHeight:50}}>
                   {img&&<img src={img} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt={label}/>}
-                  {!img&&<div style={{padding:"8px 4px"}}><div style={{fontSize:8,fontWeight:700,color:"#8B7355",textTransform:"uppercase"}}>{label}</div></div>}
+                  {!img&&<div style={{padding:"8px 4px"}}><div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase"}}>{label}</div></div>}
                   {isBullet&&<div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)"}}>
-                    {getRevImg("NABOJ_ZNACZNIK")?<img src={getRevImg("NABOJ_ZNACZNIK")} style={{height:35,filter:"drop-shadow(0 2px 3px rgba(0,0,0,0.5))"}} alt="●"/>:<div style={{fontSize:20}}>●</div>}
+                    {getRevImg("NABOJ_ZNACZNIK")?<img src={getRevImg("NABOJ_ZNACZNIK")} style={{height:35,filter:"drop-shadow(0 2px 3px rgba(0,0,0,0.5))"}} alt="nabój"/>:<div style={{fontSize:20}}>●</div>}
                   </div>}
                 </div>);
               })}
             </div>
-            {/* Amunicja */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:6}}>
+            {/* AMUNICJA TRENERA = KIBIC */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
               {[["A",revCurrent.familyA,revCurrent.ammoA],["B",revCurrent.familyB,revCurrent.ammoB]].map(([side,fam,ammo])=>{
                 var col=FM[fam].col;var ammoImg=getRevImg("NABOJ_AMMO");var rows=[];
-                for(var r=0;r<5;r++){var cols2=[];for(var cc=0;cc<10;cc++){var idx2=r*10+cc;var alive=idx2<ammo;cols2.push(ammoImg?<div key={cc} style={{width:10,height:20,opacity:alive?1:0.15}}><img src={ammoImg} style={{width:10,height:20,objectFit:"contain"}} alt=""/></div>:<div key={cc} style={{width:10,height:20,borderRadius:2,background:alive?col:"#E8E0D0",opacity:alive?1:0.3}}/>);}rows.push(<div key={r} style={{display:"flex",gap:1,marginBottom:1}}>{cols2}</div>);}
-                return(<div key={side}><div style={{fontSize:10,fontWeight:700,color:col,marginBottom:2}}>{FM[fam].nom}: {ammo}/50</div>{rows}</div>);
+                for(var r=0;r<5;r++){var cols2=[];for(var c=0;c<10;c++){var idx2=r*10+c;var alive=idx2<ammo;cols2.push(ammoImg?<div key={c} style={{width:10,height:20,transition:"all 0.3s",opacity:alive?1:0.15}}><img src={ammoImg} style={{width:10,height:20,objectFit:"contain"}} alt=""/></div>:<div key={c} style={{width:10,height:20,borderRadius:2,background:alive?col:"#E8E0D0",border:"1px solid "+(alive?"rgba(0,0,0,0.15)":"#D4C4A8"),opacity:alive?1:0.3}}/>);}rows.push(<div key={r} style={{display:"flex",gap:1,marginBottom:1}}>{cols2}</div>);}
+                return(<div key={side}><div style={{fontSize:13,fontWeight:700,color:col,marginBottom:2}}>{FM[fam].nom}: {ammo}/50</div>{rows}</div>);
               })}
             </div>
-            {(revCurrent.rounds||[]).length>0&&<div style={{fontSize:10,color:"#8B7355",marginBottom:4}}>
+            {(revCurrent.rounds||[]).length>0&&<div style={{fontSize:13,color:"#8B7355",marginBottom:6}}>
               {(revCurrent.rounds||[]).map((r,i)=><span key={i} style={{marginRight:8}}>R{i+1}: {r.shotsA} vs {r.shotsB} → {r.winner==="A"?"←":r.winner==="B"?"→":"="}</span>)}
             </div>}
-            <div style={{fontSize:11,color:"#A89070",fontStyle:"italic"}}>Wynik pojawi się automatycznie po obstawieniu przez obie rodziny (lub po upływie czasu).</div>
+            {revCurrent.shotsA!==null&&revCurrent.shotsB!==null&&revCurrent.status==="playing"&&<button style={btnS("warning")} onClick={revReveal}>Odsłoń strzały</button>}
+            {revCurrent.status!=="playing"&&revCurrent.status!=="finished"&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Oczekiwanie na deklaracje obu rodzin...</div>}
           </div>}
           {revCurrent.status==="finished"&&<div style={{background:"#fff",border:"2px solid #8B2500",borderRadius:6,padding:12,marginTop:8}}>
             <div style={{fontSize:14,fontWeight:700,color:"#8B2500",marginBottom:6}} className="wt">Koniec pojedynku!</div>
-            {revCurrent.winner
-              ?<div style={{fontSize:12,color:"#5C4A3A",marginBottom:4}}>Wygrywa: <b style={{color:FM[revCurrent.winner].col}}>{FM[revCurrent.winner].nom}</b> (pole: {revCurrent.winField}) — transfer: {Math.round(revCurrent.bet*(revCurrent.winField==="wygrana"?1:revCurrent.winField==="dominacja"?2/3:1/3))} $</div>
-              :<div style={{fontSize:12,color:"#5C4A3A",marginBottom:4}}>Remis!</div>}
-            <div style={{fontSize:11,color:"#8B7355",marginBottom:10}}>{FM[revCurrent.familyA].nom} wystrzelili {revCurrent.totalShotsA||0} nabojów. {FM[revCurrent.familyB].nom} wystrzelili {revCurrent.totalShotsB||0} nabojów.</div>
+            <div style={{fontSize:13,color:"#5C4A3A",marginBottom:4}}>{revCurrent.winner?<span>Wygrywa: <b style={{color:FM[revCurrent.winner].col}}>{FM[revCurrent.winner].nom}</b> (pole: {revCurrent.winField})</span>:<span>Remis!</span>}</div>
+            {revCurrent.winner&&<div style={{fontSize:13,color:"#5C4A3A",marginBottom:8}}>Transfer: {Math.round(revCurrent.bet*(revCurrent.winField==="wygrana"?1:revCurrent.winField==="dominacja"?2/3:1/3))} $ → {FM[revCurrent.winner].nom}</div>}
             <button style={btnS("success")} onClick={revSettle}>Rozlicz i zakończ</button>
           </div>}
         </div>}
       </div>}
     </div>
-    {/* === 8b. NOTATKI TRENERA — RAPORT === */}
-    {trainerNotes&&<div style={{background:"#FFFDF5",border:"1px solid #D4C4A8",borderRadius:6,padding:14,marginBottom:20}}>
-      <div style={{fontSize:14,fontWeight:700,color:"#8B6914",marginBottom:8}}>Notatki trenera (raport)</div>
-      <div style={{fontSize:12,color:"#5C4A3A",whiteSpace:"pre-wrap",lineHeight:1.6}}>{trainerNotes}</div>
-    </div>}
     {/* === 8. KSIĘGOWOŚĆ (PER FAMILY) === */}
     <div style={{background:"#fff",border:"1px solid #D4C4A8",borderRadius:6,padding:14}}>
       <div style={{fontSize:14,fontWeight:700,color:"#8B7355",marginBottom:12}}>Księgowość</div>
@@ -1541,38 +1460,24 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
         var fFate=txs.filter(t=>t.type==="fate"&&t.from===fId&&t.status==="accepted");
         var fMap=txs.filter(t=>t.type==="map_bonus"&&(t.from===fId||t.to===fId)&&t.status==="accepted");
         var fBnb=txs.filter(t=>t.type==="bnb_settle"&&t.from===fId&&t.status==="accepted");
-        var fRev=txs.filter(t=>(t.type==="revolver"||t.type==="revolver_loss"||t.type==="revolver_draw")&&(t.from===fId||t.to===fId)&&t.status==="accepted");
+        var fRev=txs.filter(t=>t.type==="revolver"&&(t.from===fId||t.to===fId)&&t.status==="accepted");
         var hasAny=fTx.length>0||fPen.length>0||fFate.length>0||fMap.length>0||fBnb.length>0||fRev.length>0;
         return(<div key={fId} style={{background:"#FDFAF4",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
           <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
-          {!hasAny&&<div style={{fontSize:11,color:"#A89070",fontStyle:"italic"}}>Brak wpisów</div>}
+          {!hasAny&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak wpisów</div>}
           {fTx.map(tx=>{
             var isFrom=tx.from===fId,other=FM[isFrom?tx.to:tx.from];
-            return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:11,color:"#5C4A3A"}}>
+            return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#5C4A3A"}}>
               <b style={{color:tx.type==="sale"?"#8B7355":"#4A3B6B"}}>{tx.type==="sale"?(isFrom?"Sprzedaż":"Zakup"):"Barter"}</b> {isFrom?"\u2192":"\u2190"} {other.nom}
               {tx.type==="sale"&&<span>: {fmtItems(tx.offeredItems)} za {tx.price} $</span>}
               {tx.type==="barter"&&<span>: {fmtItems(tx.offeredItems)} \u2194 {fmtItems(tx.responseItems)}</span>}
             </div>);
           })}
-          {fFate.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:11,color:"#6B3FA0"}}><b>Ślepy los:</b> {tx.description}</div>))}
-          {fMap.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:11,color:"#8B7714"}}><b>Mapa:</b> {tx.from===fId?"Bonus 300 $ (kompletna mapa)":"Opłata 100 $ (mapa "+FM[tx.from].gen+")"}</div>))}
-          {fBnb.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:11,color:"#8B7714"}}><b>BnB:</b> {tx.description}</div>))}
-          {fRev.map(tx=>{
-            if(tx.type==="revolver"){var isWin=tx.to===fId;return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:11}}>
-              <span style={{color:"#8B2500",fontWeight:700}}>Rewolwerowiec:</span> <span style={{color:"#2E5B3C",fontWeight:600}}>Wygrana {tx.amount} $</span> ({tx.field}) ← {FM[tx.from].nom}
-              {tx.shotLine&&<div style={{fontSize:10,color:"#8B7355",marginTop:1}}>{tx.shotLine}</div>}
-            </div>);}
-            if(tx.type==="revolver_loss"){return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:11}}>
-              <span style={{color:"#8B2500",fontWeight:700}}>Rewolwerowiec:</span> <span style={{color:"#8B2500",fontWeight:600}}>Przegrana {Math.abs(tx.amount)} $</span> ({tx.field}) → {FM[tx.to].nom}
-              {tx.shotLine&&<div style={{fontSize:10,color:"#8B7355",marginTop:1}}>{tx.shotLine}</div>}
-            </div>);}
-            if(tx.type==="revolver_draw"){return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:11}}>
-              <span style={{color:"#8B2500",fontWeight:700}}>Rewolwerowiec:</span> <span style={{color:"#8B7355"}}>Remis</span> vs {FM[tx.to===fId?tx.from:tx.to].nom}
-              {tx.shotLine&&<div style={{fontSize:10,color:"#8B7355",marginTop:1}}>{tx.shotLine}</div>}
-            </div>);}
-            var isWin=tx.to===fId;return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:11,color:"#8B2500"}}><b>Rewolwerowiec:</b> {isWin?"Wygrana":"Przegrana"} {tx.amount} $ ({tx.field})</div>);
-          })}
-          {fPen.map(tx=>(<div key={tx.id} style={{padding:"4px 0",fontSize:11,color:"#8B2500"}}><b>Mandat:</b> {tx.description}</div>))}
+          {fFate.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#6B3FA0"}}><b>Ślepy los:</b> {tx.description}</div>))}
+          {fMap.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B7714"}}><b>Mapa:</b> {tx.from===fId?"Bonus 300 $ (kompletna mapa)":"Opłata 100 $ (mapa "+FM[tx.from].gen+")"}</div>))}
+          {fBnb.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B7714"}}><b>BnB:</b> {tx.description}</div>))}
+          {fRev.map(tx=>{var isWin=tx.to===fId;return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B2500"}}><b>Rewolwerowiec:</b> {isWin?"Wygrana":"Przegrana"} {tx.amount} $ ({tx.field}) {isWin?"\u2190 "+FM[tx.from].nom:"\u2192 "+FM[tx.to].nom}</div>);})}
+          {fPen.map(tx=>(<div key={tx.id} style={{padding:"4px 0",fontSize:13,color:"#8B2500"}}><b>Mandat:</b> {tx.description}</div>))}
         </div>);
       })}
       </div>
@@ -1598,7 +1503,6 @@ function App({roomCode,role}) {
   const [consultations,setConsultations]=useState({});
   const [blindFate,setBlindFate]=useState({});
   const [showResults,setShowResults]=useState(false);
-  const [trainerNotes,setTrainerNotes]=useState("");
   const [showP,setShowP]=useState(false);
   const [pMode,setPMode]=useState(null);
   const [pStep,setPStep]=useState(1);
@@ -1620,129 +1524,30 @@ function App({roomCode,role}) {
   // === REWOLWEROWIEC STATE ===
   const [revEnabled,setRevEnabled]=useState(false);
   const [revMaxBet,setRevMaxBet]=useState(60);
-  const [revBetSec,setRevBetSec]=useState(30);   // timer obstawiania (s)
-  const [revRevealSec,setRevRevealSec]=useState(10); // timer prezentacji wyniku (s)
   const [revDuels,setRevDuels]=useState([]);
   const [revCurrent,setRevCurrent]=useState(null);
-  const [revCountdown,setRevCountdown]=useState(null); // sekundy odliczania widoczne graczom
-  const revCdRef=useRef(null);
-  // revCurrent shape: {id, familyA, familyB, bet, bulletPos, ammoA, ammoB, rounds,
-  //   shotsA, shotsB, status:'betting'|'playing'|'reveal'|'finished', winner, winField,
-  //   totalShotsA, totalShotsB}
-
-  // Start countdown (shared via Firebase through revCountdown field on revCurrent)
-  function revStartCountdown(sec, onExpire){
-    if(revCdRef.current) clearInterval(revCdRef.current);
-    setRevCountdown(sec);
-    var s=sec;
-    revCdRef.current=setInterval(()=>{
-      s--;
-      if(s<=0){
-        clearInterval(revCdRef.current); revCdRef.current=null;
-        setRevCountdown(null);
-        onExpire();
-      } else { setRevCountdown(s); }
-    },1000);
-  }
-  function revStopCountdown(){
-    if(revCdRef.current){clearInterval(revCdRef.current);revCdRef.current=null;}
-    setRevCountdown(null);
-  }
-
-  // Wykonaj reveal (używa aktualnego stanu — missing shots → 0)
-  function revDoReveal(rc){
-    var sA=rc.shotsA!==null?rc.shotsA:0;
-    var sB=rc.shotsB!==null?rc.shotsB:0;
-    var newPos=rc.bulletPos, aA=rc.ammoA-sA, aB=rc.ammoB-sB;
-    if(aA<0)aA=0; if(aB<0)aB=0;
-    if(sA>sB) newPos=Math.max(-3,rc.bulletPos-1);
-    else if(sB>sA) newPos=Math.min(3,rc.bulletPos+1);
+  // revCurrent shape: {id, familyA, familyB, bet:0, bulletPos:0, ammoA:50, ammoB:50, rounds:[], shotsA:null, shotsB:null, status:'betting'|'playing'|'reveal'|'finished', winner:null, winField:null}
+  function revNewDuel(fA,fB){setRevCurrent({id:ci(),familyA:fA,familyB:fB,bet:0,bulletPos:0,ammoA:50,ammoB:50,rounds:[],shotsA:null,shotsB:null,status:"betting",winner:null,winField:null});}
+  function revSetBet(amt){setRevCurrent(c=>c?{...c,bet:amt,status:"playing"}:c);}
+  function revSubmitShots(fId,n){setRevCurrent(c=>{if(!c)return c;if(fId===c.familyA)return{...c,shotsA:n};if(fId===c.familyB)return{...c,shotsB:n};return c;});}
+  function revReveal(){setRevCurrent(c=>{if(!c||c.shotsA===null||c.shotsB===null)return c;var sA=c.shotsA,sB=c.shotsB,newPos=c.bulletPos,aA=c.ammoA-sA,aB=c.ammoB-sB;
+    if(sA>sB)newPos=Math.max(-3,c.bulletPos-1);else if(sB>sA)newPos=Math.min(3,c.bulletPos+1);
     var round={shotsA:sA,shotsB:sB,winner:sA>sB?"A":sB>sA?"B":"draw",bulletAfter:newPos};
-    var rounds=[...(rc.rounds||[]),round];
+    var rounds=[...(c.rounds||[]),round];var status="playing",winner=null,winField=null;
     var fields=["wygrana","dominacja","przewaga","pojedynek","przewaga","dominacja","wygrana"];
-    var winField=fields[newPos+3];
-    var status="playing", winner=null;
-    if(Math.abs(newPos)===3){status="finished";winner=newPos<0?rc.familyA:rc.familyB;}
-    else if(aA<=0&&aB<=0){status="finished";winner=newPos<0?rc.familyA:newPos>0?rc.familyB:null;}
-    var tSA=(rc.totalShotsA||0)+sA, tSB=(rc.totalShotsB||0)+sB;
-    return{...rc,bulletPos:newPos,ammoA:aA,ammoB:aB,rounds:rounds,
-      shotsA:null,shotsB:null,status:status,winner:winner,winField:winField,
-      totalShotsA:tSA,totalShotsB:tSB};
-  }
-
-  function revNewDuel(fA,fB){
-    setRevCurrent({id:ci(),familyA:fA,familyB:fB,bet:0,bulletPos:0,
-      ammoA:50,ammoB:50,rounds:[],shotsA:null,shotsB:null,
-      status:"betting",winner:null,winField:null,totalShotsA:0,totalShotsB:0});
-  }
-  function revSetBet(amt){
-    setRevCurrent(c=>c?{...c,bet:amt,status:"playing"}:c);
-    // Automatyczny timer obstawiania — po upływie → reveal z zerowymi strzałami
-    revStartCountdown(revBetSec, ()=>{
-      setRevCurrent(prev=>{
-        if(!prev||prev.status!=="playing")return prev;
-        return revDoReveal(prev);
-      });
-    });
-  }
-  function revSubmitShots(fId,n){
-    // Oblicz nowy stan bez efektów ubocznych
-    setRevCurrent(c=>{
-      if(!c) return c;
-      if(fId===c.familyA) return {...c,shotsA:n};
-      if(fId===c.familyB) return {...c,shotsB:n};
-      return c;
-    });
-    // Efekty uboczne (timer) poza updaterem — używamy setTimeout 0 by odczytać nowy stan
-    setTimeout(()=>{
-      setRevCurrent(prev=>{
-        if(!prev||prev.status!=="playing")return prev;
-        var sA=fId===prev.familyA?n:prev.shotsA;
-        var sB=fId===prev.familyB?n:prev.shotsB;
-        if(sA!==null&&sB!==null){
-          revStopCountdown();
-          revStartCountdown(5,()=>{
-            setRevCurrent(p=>{
-              if(!p||p.status!=="playing")return p;
-              return revDoReveal(p);
-            });
-          });
-        }
-        return prev; // nie zmieniamy stanu tutaj
-      });
-    },0);
-  }
-  // Szeryf może ręcznie wywołać reveal (nie ma tego przycisku — zostawione dla spójności)
-  function revReveal(){
-    setRevCurrent(c=>{if(!c)return c; return revDoReveal(c);});
-    revStopCountdown();
-  }
-  function revSettle(){
-    if(!revCurrent||revCurrent.status!=="finished")return;
-    var c=revCurrent;
-    revStopCountdown();
+    winField=fields[newPos+3];
+    if(Math.abs(newPos)===3){status="finished";winner=newPos<0?c.familyA:c.familyB;}
+    else if(aA<=0&&aB<=0){status="finished";winner=newPos<0?c.familyA:newPos>0?c.familyB:null;}
+    return{...c,bulletPos:newPos,ammoA:aA,ammoB:aB,rounds:rounds,shotsA:null,shotsB:null,status:status,winner:winner,winField:winField};
+  });}
+  function revSettle(){if(!revCurrent||revCurrent.status!=="finished")return;var c=revCurrent;
     var payFrac=c.winField==="wygrana"?1:c.winField==="dominacja"?2/3:c.winField==="przewaga"?1/3:0;
     var winAmt=Math.round(c.bet*payFrac);
-    var shotLine=FM[c.familyA].nom+" wystrzelili "+(c.totalShotsA||0)+" nabojów. "+FM[c.familyB].nom+" wystrzelili "+(c.totalShotsB||0)+" nabojów.";
-    if(c.winner&&winAmt>0){
-      var loser=c.winner===c.familyA?c.familyB:c.familyA;
-      setFd(fd2=>{var n={...fd2};
-        n[c.winner]={...n[c.winner],cash:n[c.winner].cash+winAmt};
-        n[loser]={...n[loser],cash:n[loser].cash-winAmt};
-        return n;
-      });
-      setTxs(p=>[...p,
-        {id:ci(),type:"revolver",from:loser,to:c.winner,amount:winAmt,
-         field:c.winField,status:"accepted",ts:Date.now(),shotLine},
-        {id:ci(),type:"revolver_loss",from:loser,to:c.winner,amount:-winAmt,
-         field:c.winField,status:"accepted",ts:Date.now(),shotLine}
-      ]);
-    } else {
-      setTxs(p=>[...p,{id:ci(),type:"revolver_draw",from:c.familyA,to:c.familyB,
-        amount:0,field:"remis",status:"accepted",ts:Date.now(),shotLine}]);
+    if(c.winner&&winAmt>0){var loser=c.winner===c.familyA?c.familyB:c.familyA;
+      setFd(fd2=>{var n={...fd2};n[c.winner]={...n[c.winner],cash:n[c.winner].cash+winAmt};n[loser]={...n[loser],cash:n[loser].cash-winAmt};return n;});
+      setTxs(p=>[...p,{id:ci(),type:"revolver",from:loser,to:c.winner,amount:winAmt,field:c.winField,status:"accepted",ts:Date.now()}]);
     }
-    setRevDuels(d=>[...d,{...c,settled:true}]);
-    setRevCurrent(null);
+    setRevDuels(d=>[...d,{...c,settled:true}]);setRevCurrent(null);
   }
 
   // === SCHEDULE STATE ===
@@ -1762,11 +1567,17 @@ function App({roomCode,role}) {
   const syncTimer=useRef(null);
   const stateRef=useRef({});
 
+  // Background per role
+  useEffect(()=>{
+    var bgFile=isSheriff?"background_szeryf":"background_"+myFamily;
+    document.body.style.backgroundImage="url('img/"+bgFile+".jpg')";
+  },[]);
+
   // Keep stateRef current (Firebase doesn't store null, use false as marker)
   useEffect(()=>{
     stateRef.current={fd,txs:txs.length?txs:[],consultations,blindFate,mapBonusClaimed,plotPenalties,
-      relations,relationsUnlocked,biznesNaBoku,bnbEnabled,bnbSettled,showResults,resultsReveal,trainerNotes,
-      revEnabled,revMaxBet,revBetSec,revRevealSec,revDuels:revDuels.length?revDuels:[],revCurrent:revCurrentToFB(revCurrent),
+      relations,relationsUnlocked,biznesNaBoku,bnbEnabled,bnbSettled,showResults,resultsReveal,
+      revEnabled,revMaxBet,revDuels:revDuels.length?revDuels:[],revCurrent:revCurrentToFB(revCurrent),
       gameStarted,stageIdx,stageDurations,
       timerRunning,timerPaused,secondsLeft,sheriffCalls:sheriffCalls.length?sheriffCalls:[]};
   });
@@ -1814,11 +1625,8 @@ function App({roomCode,role}) {
       if(s.bnbSettled!==undefined)setBnbSettled(s.bnbSettled);
       if(s.showResults!==undefined)setShowResults(s.showResults);
       if(s.resultsReveal!==undefined)setResultsReveal(s.resultsReveal);
-      if(s.trainerNotes!==undefined)setTrainerNotes(s.trainerNotes);
       if(s.revEnabled!==undefined)setRevEnabled(s.revEnabled);
       if(s.revMaxBet!==undefined)setRevMaxBet(s.revMaxBet);
-      if(s.revBetSec!==undefined)setRevBetSec(s.revBetSec);
-      if(s.revRevealSec!==undefined)setRevRevealSec(s.revRevealSec);
       if(s.revDuels)setRevDuels(Array.isArray(s.revDuels)?s.revDuels:Object.values(s.revDuels));
       setRevCurrent(revCurrentFromFB(s.revCurrent));
       if(s.gameStarted!==undefined)setGameStarted(s.gameStarted);
@@ -1839,11 +1647,10 @@ function App({roomCode,role}) {
     if(fbIncoming.current||!fbInitDone.current)return;
     syncToFB();
   },[fd,txs,consultations,blindFate,mapBonusClaimed,plotPenalties,relations,relationsUnlocked,
-    biznesNaBoku,bnbEnabled,bnbSettled,showResults,resultsReveal,trainerNotes,revEnabled,revMaxBet,revDuels,
-    revCurrent,revBetSec,revRevealSec,gameStarted,stageIdx,stageDurations,timerRunning,timerPaused,secondsLeft,sheriffCalls]);
+    biznesNaBoku,bnbEnabled,bnbSettled,showResults,resultsReveal,revEnabled,revMaxBet,revDuels,
+    revCurrent,gameStarted,stageIdx,stageDurations,timerRunning,timerPaused,secondsLeft,sheriffCalls]);
 
-  const toastTimer=useRef(null);
-  const showMsg=useCallback(m=>{setToast(m);if(toastTimer.current)clearTimeout(toastTimer.current);toastTimer.current=setTimeout(()=>setToast(null),3000);},[]);
+  const showMsg=useCallback(m=>{setToast(m);setTimeout(()=>setToast(null),3000);},[]);
 
   // === CARD LOCK (Nr 5) — check if card is in pending transaction ===
   function isCardLocked(cardId){
@@ -1953,20 +1760,6 @@ function App({roomCode,role}) {
       var hasAny=selItems.find(i=>i.bnbOrigin===item.bnbOrigin);
       if(hasAny) setSelItems(p=>p.filter(i=>i.bnbOrigin!==item.bnbOrigin));
       else setSelItems(p=>p.concat([item]));
-    } else if(item.cat===C_MAP){
-      var alreadySel=selItems.find(i=>i.id===item.id);
-      if(alreadySel){
-        setSelItems(p=>p.filter(i=>i.id!==item.id));
-      } else {
-        var mapInOffer=selItems.filter(i=>i.cat===C_MAP).length;
-        if(mapInOffer>=1){showMsg("Można zaoferować maksymalnie 1 fragment mapy w jednej transakcji.");return;}
-        if(tFam){
-          var alreadySold=txs.some(tx=>tx.status==="accepted"&&tx.from===cf&&tx.to===tFam&&
-            tx.offeredItems&&tx.offeredItems.some(i=>i.cat===C_MAP));
-          if(alreadySold){showMsg("Już sprzedałeś/aś fragment mapy rodzinie "+FM[tFam].nom+". Można sprzedać tylko 1 fragment tej samej rodzinie.");return;}
-        }
-        setSelItems(p=>p.concat([item]));
-      }
     } else {
       setSelItems(p=>p.find(i=>i.id===item.id)?p.filter(i=>i.id!==item.id):p.concat([item]));
     }
@@ -2037,7 +1830,7 @@ function App({roomCode,role}) {
         roll.rolling=false;roll.dice1=d1;roll.dice2=d2;roll.sum=sum;roll.event=ev;roll.resolved=true;roll.showDice=true;roll.showCard=false;
         var pu=roll.policyUsed,ne=0,net="";
         if(ev.type==="loss"){var base=ev.amount;if(pu===100)ne=0;else if(pu===50)ne=Math.round(base/2);else ne=base;net=ne===0?"0 $ (polisa pokryła stratę)":ne+" $";}
-        else if(ev.type==="loss_resources"){if(pu===100){ne=0;net="Utrata zasobów pokryta przez polisę";}else if(pu===50){ne=-5;net="Ślepy los — utrata 5% zasobów na koniec rozgrywki";}else{ne=-10;net="Ślepy los — utrata 10% zasobów na koniec rozgrywki";}}
+        else if(ev.type==="loss_resources"){if(pu===100){ne=0;net="0% zasobów (polisa)";}else if(pu===50){ne=-5;net="-5% zasobów";}else{ne=-10;net="-10% zasobów";}}
         else if(ev.type==="gain"){ne=ev.amount;net="+"+ev.amount+" $";}
         else if(ev.type==="gain_policy"){if(!pu){ne=0;net="0 $ (brak polisy)";}else{var pc=pu===50?30:50;ne=pc*2;net="+"+ne+" $ (2x"+pc+" $)";}}
         roll.netEffect=ne;roll.netEffectText=net;
@@ -2064,7 +1857,11 @@ function App({roomCode,role}) {
         });
         setTxs(prev2=>{
           var roll2; setBlindFate(prev3=>{roll2=(prev3[fId]||{}).rolls[rollIdx];return prev3;});
-          return [{id:Date.now().toString(),type:"fate",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:"Ślepy los: "+(roll2?roll2.netEffectText:"")},...prev2];
+          var ev3=BLIND_FATE_EVENTS[sum];
+          var desc="Rzut ["+d1+"+"+d2+"="+sum+"] — "+(ev3?ev3.text:"")+" → "+(roll2?roll2.netEffectText:"");
+          if(roll2&&roll2.policyUsed) desc+=" (polisa "+roll2.policyUsed+"%)";
+          if(ev3&&ev3.type==="loss_resources") desc="Rzut ["+d1+"+"+d2+"="+sum+"] — utrata 10% zasobów na koniec rozgrywki"+(roll2&&roll2.policyUsed?" (polisa "+roll2.policyUsed+"%)":"");
+          return [{id:Date.now().toString(),type:"fate",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:desc},...prev2];
         });
         showMsg(FM[fId].nom+": "+ev2.text);
 
@@ -2078,28 +1875,22 @@ function App({roomCode,role}) {
     },2000);
   }
 
-  useEffect(()=>{function h(e){var btn=e.target.closest("[data-roll]");if(!btn)return;var p=btn.getAttribute("data-roll").split("-");rollDice(p[0],parseInt(p[1]));}document.addEventListener("click",h);return()=>document.removeEventListener("click",h);},[]); 
-
-  useEffect(()=>{
-    var bg=isSheriff?"background_szeryf.jpg":"background_"+myFamily+".jpg";
-    document.body.style.backgroundImage="url('img/"+bg+"')";
-    return()=>{document.body.style.backgroundImage="";};
-  },[isSheriff,myFamily]);
+  useEffect(()=>{function h(e){var btn=e.target.closest("[data-roll]");if(!btn)return;var p=btn.getAttribute("data-roll").split("-");rollDice(p[0],parseInt(p[1]));}document.addEventListener("click",h);return()=>document.removeEventListener("click",h);});
 
   return (<div>
     <ConnectionIndicator online={online}/>
     <div style={{background:"#4C130F",color:"#F5F0E8",padding:"12px 20px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
-        <div style={{fontSize:10,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
-        <div style={{fontSize:11,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.1</div>
+        <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.0</div>
       </div>
     </div>
     {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
       {FO.map(fId=>{var act=!viewSheriff&&cf===fId,col=FM[fId].col;
         return (<div key={fId} onClick={()=>{setCf(fId);setViewSheriff(false);setSheriffViewFamily(null);setActiveTab("inv");}}
           style={{padding:"8px 16px",cursor:"pointer",fontWeight:act?700:400,fontSize:14,background:act?col:"transparent",color:act?"#fff":"#2C1810",borderBottom:act?"3px solid "+col:"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap"}} className="wt">
-          {FM[fId].nom} <span style={{fontSize:11,opacity:0.7,fontFamily:"'Alegreya Sans',sans-serif"}}>({FM[fId].biz})</span>
+          {FM[fId].nom} <span style={{fontSize:13,opacity:0.7,fontFamily:"'Alegreya Sans',sans-serif"}}>({FM[fId].biz})</span>
         </div>);
       })}
       <div onClick={()=>{setViewSheriff(true);setSheriffViewFamily(null);}} style={{padding:"8px 16px",cursor:"pointer",fontWeight:viewSheriff?700:400,fontSize:14,background:viewSheriff?"#8B6914":"transparent",color:viewSheriff?"#fff":"#2C1810",borderBottom:viewSheriff?"3px solid #8B6914":"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap",marginLeft:"auto"}} className="wt">
@@ -2107,17 +1898,17 @@ function App({roomCode,role}) {
       </div>
     </div>):(<div style={{background:FM[myFamily].col,padding:"8px 20px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
       <div style={{color:"#fff",fontSize:16,fontWeight:700}} className="wt">{FM[myFamily].nom} — {FM[myFamily].biz}</div>
-      <div style={{fontSize:11,color:"rgba(255,255,255,0.7)"}}>Twoja rodzina</div>
+      <div style={{fontSize:13,color:"rgba(255,255,255,0.7)"}}>Twoja rodzina</div>
     </div>)}
-    {browserWarning&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:12,color:"#664D03",textAlign:"center",display:"flex",justifyContent:"center",alignItems:"center",gap:8}}>
+    {browserWarning&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:13,color:"#664D03",textAlign:"center",display:"flex",justifyContent:"center",alignItems:"center",gap:8}}>
       Dla najlepszej jakości gry użyj przeglądarki Google Chrome
-      <button onClick={()=>setBrowserWarning(false)} style={{fontSize:10,padding:"2px 8px",background:"#D4A853",color:"#fff",border:"none",borderRadius:3,cursor:"pointer",fontFamily:"inherit"}}>OK</button>
+      <button onClick={()=>setBrowserWarning(false)} style={{fontSize:13,padding:"2px 8px",background:"#D4A853",color:"#fff",border:"none",borderRadius:3,cursor:"pointer",fontFamily:"inherit"}}>OK</button>
     </div>}
     {gameStarted&&stageIdx>=0&&stageIdx<STAGES.length&&<TimerBar stage={STAGES[stageIdx]} secondsLeft={secondsLeft} totalSeconds={stageDurations[STAGES[stageIdx].id]*60} paused={timerPaused} familyId={viewSheriff&&sheriffViewFamily?sheriffViewFamily:cf}/>}
-    {viewSheriff&&sheriffViewFamily&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:12,color:"#664D03",textAlign:"center"}}>
-      Podgląd panelu rodziny {FM[sheriffViewFamily].gen} <button style={{marginLeft:8,fontSize:11,padding:"2px 8px",cursor:"pointer",background:"#8B6914",color:"#fff",border:"none",borderRadius:3,fontFamily:"inherit"}} onClick={()=>setSheriffViewFamily(null)}>Wróć do panelu Szeryfa</button>
+    {viewSheriff&&sheriffViewFamily&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:13,color:"#664D03",textAlign:"center"}}>
+      Podgląd panelu rodziny {FM[sheriffViewFamily].gen} <button style={{marginLeft:8,fontSize:13,padding:"2px 8px",cursor:"pointer",background:"#8B6914",color:"#fff",border:"none",borderRadius:3,fontFamily:"inherit"}} onClick={()=>setSheriffViewFamily(null)}>Wróć do panelu Szeryfa</button>
     </div>}
-    {viewSheriff&&!sheriffViewFamily&&<SheriffPanel fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} resultsReveal={resultsReveal} setResultsReveal={setResultsReveal} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revBetSec={revBetSec} setRevBetSec={setRevBetSec} revRevealSec={revRevealSec} setRevRevealSec={setRevRevealSec} revCountdown={revCountdown} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle} trainerNotes={trainerNotes} setTrainerNotes={setTrainerNotes}/>}
+    {viewSheriff&&!sheriffViewFamily&&<SheriffPanel fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} resultsReveal={resultsReveal} setResultsReveal={setResultsReveal} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle}/>}
 
     {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
@@ -2139,58 +1930,31 @@ function App({roomCode,role}) {
               return <div key={t[0]} onClick={()=>setActiveTab(t[0])} style={{padding:"7px 16px",borderRadius:"4px 4px 0 0",fontSize:13,fontWeight:act?700:400,background:act?"#fff":"#F3CA82",color:act?"#842504":"#4C130F",cursor:"pointer",borderBottom:act?"2px solid #842504":"2px solid transparent"}}>{t[1]}</div>;
             })}
           </div>
-          {activeTab==="inv"&&(()=>{var sc2=calcScore(familyId,fd,plotPenalties,biznesNaBoku,bnbEnabled);return(<div>
-            <div style={{background:"rgba(255,255,255,0.75)",borderRadius:6,padding:"6px 12px",marginBottom:8,display:"inline-block"}}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504"}} className="wt">Zadanie: Pozyskanie zasobów do prowadzenia przedsiębiorstwa</div>
-            </div>
-            <div style={{display:"flex",gap:16,marginBottom:10,flexWrap:"wrap"}}>
-              <div style={{background:"rgba(255,255,255,0.6)",borderRadius:4,padding:"4px 12px",fontSize:13}}><b>Udokumentowany postęp:</b> <span style={{color:"#842504",fontWeight:700}}>{sc2.resPct}%</span></div>
-              <div style={{background:"rgba(255,255,255,0.6)",borderRadius:4,padding:"4px 12px",fontSize:13}}><b>Liczba punktów:</b> <span style={{color:"#842504",fontWeight:700}}>{sc2.resScore} / 30 pkt</span></div>
-            </div>
+          {activeTab==="inv"&&(<div>
+            <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Zasoby ({familyView.mergedRes.length})</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:12}}>
-              {familyView.mergedRes.map(({item,note})=><ResourceCard key={item.id} item={item} isSheriff={viewSheriff}/>)}
+              {familyView.mergedRes.map(({item,note})=><ResourceCard key={item.id} item={item} note={note} isSheriff={viewSheriff}/>)}
             </div>
             {familyView.orphanNR.length>0&&<div>
-              <div style={{fontSize:22,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,marginTop:4}} className="wt">Notatki dziadka — informacje o zasobach</div>
+              <div style={{fontSize:22,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,marginTop:4}} className="wt">Informacje o zasobach ({familyView.orphanNR.length})</div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,marginBottom:20}}>
                 {familyView.orphanNR.map(n=><NoteCard key={n.id} item={n} type="res"/>)}
               </div>
             </div>}
-            <div style={{background:"rgba(255,255,255,0.75)",borderRadius:6,padding:"6px 12px",marginBottom:8,marginTop:12,display:"inline-block"}}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504"}} className="wt">Zadanie: Pozyskanie kompetencji do prowadzenia przedsiębiorstwa</div>
-            </div>
-            <div style={{display:"flex",gap:16,marginBottom:10,flexWrap:"wrap"}}>
-              <div style={{background:"rgba(255,255,255,0.6)",borderRadius:4,padding:"4px 12px",fontSize:13}}><b>Udokumentowany postęp:</b> <span style={{color:"#842504",fontWeight:700}}>{sc2.compPct}%</span></div>
-              <div style={{background:"rgba(255,255,255,0.6)",borderRadius:4,padding:"4px 12px",fontSize:13}}><b>Liczba punktów:</b> <span style={{color:"#842504",fontWeight:700}}>{sc2.compScore} / 25 pkt</span></div>
-            </div>
+            <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4,marginTop:8}} className="wt">Kompetencje ({familyView.mergedComp.length})</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:12}}>
-              {familyView.mergedComp.map(({item,note})=><CompCard key={item.id} item={item} isSheriff={viewSheriff}/>)}
+              {familyView.mergedComp.map(({item,note})=><CompCard key={item.id} item={item} note={note} isSheriff={viewSheriff}/>)}
             </div>
             {familyView.orphanNK.length>0&&<div>
-              <div style={{fontSize:22,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,marginTop:4}} className="wt">Notatki dziadka — informacje o kompetencjach</div>
+              <div style={{fontSize:22,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,marginTop:4}} className="wt">Informacje o kompetencjach ({familyView.orphanNK.length})</div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,marginBottom:20}}>
                 {familyView.orphanNK.map(n=><NoteCard key={n.id} item={n} type="comp"/>)}
               </div>
             </div>}
-            <div style={{marginTop:12}}>
-              <div style={{background:"rgba(255,255,255,0.75)",borderRadius:6,padding:"6px 12px",marginBottom:8,display:"inline-block"}}>
-                <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504"}} className="wt">Zadanie: Pozyskanie prawa własności do właściwej działki</div>
-              </div>
-              <div style={{display:"flex",gap:16,marginBottom:8,flexWrap:"wrap"}}>
-                <div style={{background:"rgba(255,255,255,0.6)",borderRadius:4,padding:"4px 12px",fontSize:13}}><b>Punkty:</b> <span style={{color:"#842504",fontWeight:700}}>{sc2.plotScore} / 10 pkt</span></div>
-              </div>
-              {!sc2.plotOk&&familyView.plots.length>0&&<div style={{background:"rgba(255,220,0,0.25)",border:"1px solid #C8A800",borderRadius:4,padding:"6px 12px",marginBottom:8,fontSize:12,color:"#6B5000",fontWeight:600}}>⚠️ UWAGA! Pozostając na niewłaściwej działce ponosicie na koniec gry dodatkowy koszt w wysokości 50 $.</div>}
+            {familyView.plots.length>0&&<div>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4,marginTop:8}} className="wt">Działki ({familyView.plots.length})</div>
               <div style={{display:"flex",gap:8,marginBottom:20}}>{familyView.plots.map(p=><GenericCard key={p.id} item={p}/>)}</div>
-            </div>
-            <div style={{marginTop:4}}>
-              <div style={{background:"rgba(255,255,255,0.75)",borderRadius:6,padding:"6px 12px",marginBottom:8,display:"inline-block"}}>
-                <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504"}} className="wt">Zadanie: Pomnożenie gotówki</div>
-              </div>
-              <div style={{display:"flex",gap:16,marginBottom:12,flexWrap:"wrap"}}>
-                <div style={{background:"rgba(255,255,255,0.6)",borderRadius:4,padding:"4px 12px",fontSize:13}}><b>Posiadana gotówka:</b> <span style={{color:"#842504",fontWeight:700}}>{familyData.cash} $</span></div>
-                <div style={{background:"rgba(255,255,255,0.6)",borderRadius:4,padding:"4px 12px",fontSize:13}}><b>Punkty:</b> <span style={{color:"#842504",fontWeight:700}}>{sc2.cashScore} / 25 pkt</span></div>
-              </div>
-            </div>
+            </div>}
             {bnbEnabled&&(()=>{
               var allBnb=familyData.items.filter(i=>i.cat===C_BNB);
               var forSale=allBnb.filter(i=>i.bnbOrigin===familyId);
@@ -2202,33 +1966,33 @@ function App({roomCode,role}) {
               return(<div style={{marginTop:8}}>
                 <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Biznes na boku</div>
                 {forSale.length>0&&<div style={{marginBottom:12}}>
-                  <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#A89070",marginBottom:6}}>Na sprzedaż</div>
+                  <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#A89070",marginBottom:6}}>Na sprzedaż</div>
                   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                     <div style={cardStyle(myProduct.color)}>
-                      <div style={{position:"absolute",top:-6,right:-6,background:myProduct.color,color:"#fff",fontSize:11,fontWeight:700,borderRadius:"50%",width:24,height:24,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.3)"}}>×{forSale.length}</div>
-                      <div style={{fontSize:12,fontWeight:700,color:myProduct.color,lineHeight:1.3,marginBottom:4}}>{myProduct.name}</div>
-                      <div style={{fontSize:10,color:"#8B7355",lineHeight:1.4}}>{myProduct.effectDesc}</div>
-                      <div style={{fontSize:9,color:"#A89070",marginTop:4,fontStyle:"italic"}}>Twój produkt</div>
+                      <div style={{position:"absolute",top:-6,right:-6,background:myProduct.color,color:"#fff",fontSize:13,fontWeight:700,borderRadius:"50%",width:24,height:24,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.3)"}}>×{forSale.length}</div>
+                      <div style={{fontSize:13,fontWeight:700,color:myProduct.color,lineHeight:1.3,marginBottom:4}}>{myProduct.name}</div>
+                      <div style={{fontSize:13,color:"#8B7355",lineHeight:1.4}}>{myProduct.effectDesc}</div>
+                      <div style={{fontSize:13,color:"#A89070",marginTop:4,fontStyle:"italic"}}>Twój produkt</div>
                     </div>
                   </div>
                 </div>}
                 {Object.keys(boughtGrouped).length>0&&<div>
-                  <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#A89070",marginBottom:6}}>Zakupione</div>
+                  <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#A89070",marginBottom:6}}>Zakupione</div>
                   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                     {Object.keys(boughtGrouped).map(origin=>{var cards=boughtGrouped[origin];var prod=BNB_PRODUCTS[origin];return(
                       <div key={origin} style={cardStyle(prod.color)}>
-                        <div style={{position:"absolute",top:-6,right:-6,background:prod.color,color:"#fff",fontSize:11,fontWeight:700,borderRadius:"50%",width:24,height:24,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.3)"}}>×{cards.length}</div>
-                        <div style={{fontSize:12,fontWeight:700,color:prod.color,lineHeight:1.3,marginBottom:4}}>{prod.name}</div>
-                        <div style={{fontSize:10,color:"#8B7355",lineHeight:1.4}}>{prod.effectDesc}</div>
-                        <div style={{fontSize:9,color:"#A89070",marginTop:4,fontStyle:"italic"}}>od {FM[origin].gen}</div>
+                        <div style={{position:"absolute",top:-6,right:-6,background:prod.color,color:"#fff",fontSize:13,fontWeight:700,borderRadius:"50%",width:24,height:24,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.3)"}}>×{cards.length}</div>
+                        <div style={{fontSize:13,fontWeight:700,color:prod.color,lineHeight:1.3,marginBottom:4}}>{prod.name}</div>
+                        <div style={{fontSize:13,color:"#8B7355",lineHeight:1.4}}>{prod.effectDesc}</div>
+                        <div style={{fontSize:13,color:"#A89070",marginTop:4,fontStyle:"italic"}}>od {FM[origin].gen}</div>
                       </div>
                     );})}
                   </div>
                 </div>}
-                {forSale.length===0&&Object.keys(boughtGrouped).length===0&&<div style={{fontSize:11,color:"#A89070",fontStyle:"italic"}}>Brak produktów BnB</div>}
+                {forSale.length===0&&Object.keys(boughtGrouped).length===0&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak produktów BnB</div>}
               </div>);
             })()}
-          </div>);})()}
+          </div>)}
           {activeTab==="map"&&<MapTracker items={familyData.items} mapBonusClaimed={mapBonusClaimed}/>}
           {activeTab==="fate"&&<BlindFateFamily fId={familyId} blindFate={blindFate}/>}
           {activeTab==="rel"&&relationsUnlocked&&(()=>{
@@ -2240,15 +2004,15 @@ function App({roomCode,role}) {
             function getRating(target,cat){return (relations[familyId]&&relations[familyId][target]&&relations[familyId][target][cat])||0;}
             return (<div style={{background:"#E8F0E8",border:"1px solid #90C090",borderRadius:6,padding:16}}>
               <div style={{fontSize:16,fontWeight:700,color:"#2E5B3C",marginBottom:4}} className="wt">Budowanie długoterminowych relacji</div>
-              <div style={{fontSize:12,color:"#5C4A3A",marginBottom:16}}>Oceń współpracę z każdą z pozostałych rodzin w trzech kategoriach (1–5 gwiazdek).</div>
+              <div style={{fontSize:13,color:"#5C4A3A",marginBottom:16}}>Oceń współpracę z każdą z pozostałych rodzin w trzech kategoriach (1–5 gwiazdek).</div>
               {others.map(target=>{var f=FM[target];return (<div key={target} style={{background:"#fff",border:"1px solid "+f.col,borderRadius:6,padding:12,marginBottom:10}}>
                 <div style={{fontSize:14,fontWeight:700,color:f.col,marginBottom:8}} className="wt">{f.nom}</div>
                 {CATS.map(cat=>(<div key={cat.key} style={{marginBottom:8}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
-                    <span style={{fontSize:12,fontWeight:600,color:"#5C4A3A"}}>{cat.label}</span>
+                    <span style={{fontSize:13,fontWeight:600,color:"#5C4A3A"}}>{cat.label}</span>
                     <StarRating value={getRating(target,cat.key)} onChange={v=>setRating(target,cat.key,v)} disabled={viewSheriff}/>
                   </div>
-                  <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"#A89070"}}><span>1★ {cat.desc[0]}</span><span>5★ {cat.desc[1]}</span></div>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:13,color:"#A89070"}}><span>1★ {cat.desc[0]}</span><span>5★ {cat.desc[1]}</span></div>
                 </div>))}
               </div>);})}
             </div>);
@@ -2261,19 +2025,19 @@ function App({roomCode,role}) {
               <div style={{fontSize:16,fontWeight:700,color:"#8B7714",marginBottom:12}} className="wt">Wyniki rozgrywki</div>
               <div style={{background:"#fff",border:"1px solid #D4C4A8",borderRadius:6,padding:14,marginBottom:12}}>
                 <div style={{fontSize:14,fontWeight:700,color:"#8B7355",marginBottom:8}}>Biznes</div>
-                <div style={{fontSize:12,color:"#5C4A3A",lineHeight:2}}>
-                  <div>Zasoby: <b>{sc.resPct}%</b> \u2192 <b>{sc.resScore} pkt</b> <span style={{color:"#A89070"}}>(max 30)</span>{bnbEnabled&&sc.bnbKurier>0&&<span style={{fontSize:9,color:"#8B2500"}}> Kurier ×{sc.bnbKurier}: +{sc.bnbKurier*4}%</span>}</div>
-                  <div>Kompetencje: <b>{sc.compPct}%</b> \u2192 <b>{sc.compScore} pkt</b> <span style={{color:"#A89070"}}>(max 25)</span>{bnbEnabled&&sc.bnbMikstura>0&&<span style={{fontSize:9,color:"#8B4513"}}> Mikstura ×{sc.bnbMikstura}: +{sc.bnbMikstura*4}%</span>}</div>
-                  <div>Gotówka: <b>{sc.cash} $</b>{bnbEnabled&&sc.bnbObligacje>0?<span style={{fontSize:9,color:"#4A3B6B"}}> (Obligacje ×{sc.bnbObligacje}: +{sc.bnbObligacje*20}% → {sc.cashForScore} $)</span>:""} \u2192 <b>{sc.cashScore} pkt</b> <span style={{color:"#A89070"}}>(max 25)</span></div>
+                <div style={{fontSize:13,color:"#5C4A3A",lineHeight:2}}>
+                  <div>Zasoby: <b>{sc.resPct}%</b> \u2192 <b>{sc.resScore} pkt</b> <span style={{color:"#A89070"}}>(max 30)</span>{bnbEnabled&&sc.bnbKurier>0&&<span style={{fontSize:13,color:"#8B2500"}}> Kurier ×{sc.bnbKurier}: +{sc.bnbKurier*4}%</span>}</div>
+                  <div>Kompetencje: <b>{sc.compPct}%</b> \u2192 <b>{sc.compScore} pkt</b> <span style={{color:"#A89070"}}>(max 25)</span>{bnbEnabled&&sc.bnbMikstura>0&&<span style={{fontSize:13,color:"#8B4513"}}> Mikstura ×{sc.bnbMikstura}: +{sc.bnbMikstura*4}%</span>}</div>
+                  <div>Gotówka: <b>{sc.cash} $</b>{bnbEnabled&&sc.bnbObligacje>0?<span style={{fontSize:13,color:"#4A3B6B"}}> (Obligacje ×{sc.bnbObligacje}: +{sc.bnbObligacje*20}% → {sc.cashForScore} $)</span>:""} \u2192 <b>{sc.cashScore} pkt</b> <span style={{color:"#A89070"}}>(max 25)</span></div>
                   <div>Działka: {sc.plotOk?"właściwa":"niewłaściwa"} \u2192 <b>{sc.plotScore} pkt</b> <span style={{color:"#A89070"}}>(max 10)</span></div>
                   <div>Mapa: <b>{sc.mapScore} pkt</b> <span style={{color:"#A89070"}}>(max 10)</span></div>
-                  {sc.bnb>0&&<div>Biznes na boku: <b>{sc.bnb} pkt</b>{bnbEnabled&&sc.bnbKwatera>0&&<span style={{fontSize:9,color:"#2E5B3C"}}> (Kwatera ×{sc.bnbKwatera})</span>}</div>}
+                  {sc.bnb>0&&<div>Biznes na boku: <b>{sc.bnb} pkt</b>{bnbEnabled&&sc.bnbKwatera>0&&<span style={{fontSize:13,color:"#2E5B3C"}}> (Kwatera ×{sc.bnbKwatera})</span>}</div>}
                 </div>
                 <div style={{marginTop:8,padding:8,background:"#F0EBE0",borderRadius:4,textAlign:"center"}}><div style={{fontSize:18,fontWeight:700,color:"#5C4A3A"}}>{sc.bizTotal} pkt</div></div>
               </div>
               {resultsReveal>=2&&<div style={{background:"#fff",border:"1px solid #C4B0D8",borderRadius:6,padding:14,marginBottom:12}}>
                 <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:8}}>Budowanie długoterminowych relacji</div>
-                <div style={{fontSize:12,color:"#5C4A3A",lineHeight:2}}>
+                <div style={{fontSize:13,color:"#5C4A3A",lineHeight:2}}>
                   {FO.filter(r=>r!==familyId).map(rater=>{var r=relations[rater]&&relations[rater][familyId];var sum=r?((r.partnership||0)+(r.rules||0)+(r.communication||0)):0;
                     return <div key={rater}>Od rodziny {FM[rater].gen}: <b>{sum} \u2605</b> \u2192 <b>{Math.round(sum*2/3*10)/10} pkt</b></div>;
                   })}
@@ -2281,7 +2045,7 @@ function App({roomCode,role}) {
                 <div style={{marginTop:8,padding:8,background:"#EDE4F8",borderRadius:4,textAlign:"center"}}><div style={{fontSize:18,fontWeight:700,color:"#6B3FA0"}}>{relS} pkt</div></div>
               </div>}
               {resultsReveal>=3&&<div style={{padding:12,background:FM[familyId].col,borderRadius:6,textAlign:"center"}}>
-                <div style={{fontSize:12,color:"rgba(255,255,255,0.7)",marginBottom:4}}>WYNIK KOŃCOWY</div>
+                <div style={{fontSize:13,color:"rgba(255,255,255,0.7)",marginBottom:4}}>WYNIK KOŃCOWY</div>
                 <div style={{fontSize:28,fontWeight:700,color:"#fff"}}>{total} pkt</div>
               </div>}
             </div>);
@@ -2293,160 +2057,125 @@ function App({roomCode,role}) {
             var myAmmo=rc?(isA?rc.ammoA:rc.ammoB):0;
             var myShots=rc?(isA?rc.shotsA:rc.shotsB):null;
             var FIELDS=["WYGRANA","DOMINACJA","PRZEWAGA","POJEDYNEK","PRZEWAGA","DOMINACJA","WYGRANA"];
-
             function AmmoGrid({ammo,col,label}){
               var ammoImg=getRevImg("NABOJ_AMMO");
-              var rows=[];
-              for(var r=0;r<5;r++){var cols2=[];for(var cc=0;cc<10;cc++){var idx2=r*10+cc;var alive=idx2<ammo;
-                cols2.push(ammoImg
-                  ?<div key={cc} style={{width:14,height:28,transition:"all 0.3s",opacity:alive?1:0.15}}><img src={ammoImg} style={{width:14,height:28,objectFit:"contain"}} alt=""/></div>
-                  :<div key={cc} style={{width:14,height:28,borderRadius:3,background:alive?col:"#E8E0D0",border:"1px solid "+(alive?"rgba(0,0,0,0.2)":"#D4C4A8"),transition:"all 0.3s",opacity:alive?1:0.3}}/>
-                );}
-                rows.push(<div key={r} style={{display:"flex",gap:2,marginBottom:2}}>{cols2}</div>);
-              }
-              return(<div><div style={{fontSize:11,fontWeight:700,color:col,marginBottom:4}}>{label}: {ammo}/50</div>{rows}</div>);
+              var rows=[];for(var r=0;r<5;r++){var cols=[];for(var c=0;c<10;c++){var idx=r*10+c;var alive=idx<ammo;cols.push(ammoImg?<div key={c} style={{width:14,height:28,transition:"all 0.3s",opacity:alive?1:0.15}}><img src={ammoImg} style={{width:14,height:28,objectFit:"contain"}} alt=""/></div>:<div key={c} style={{width:14,height:28,borderRadius:3,background:alive?col:"#E8E0D0",border:"1px solid "+(alive?"rgba(0,0,0,0.2)":"#D4C4A8"),transition:"all 0.3s",opacity:alive?1:0.3}}/>);}rows.push(<div key={r} style={{display:"flex",gap:2,marginBottom:2}}>{cols}</div>);}
+              return(<div><div style={{fontSize:13,fontWeight:700,color:col,marginBottom:4}}>{label}: {ammo}/50</div>{rows}</div>);
             }
-
             return(<div style={{background:"#FFF5F0",border:"1px solid #C08060",borderRadius:6,padding:16}}>
               <div style={{fontSize:16,fontWeight:700,color:"#8B2500",marginBottom:12}} className="wt">Rewolwerowiec</div>
-
-              {/* Brak pojedynku */}
               {!rc&&<div style={{fontSize:13,color:"#8B7355",fontStyle:"italic",textAlign:"center",padding:20}}>Oczekiwanie na rozpoczęcie pojedynku przez Szeryfa...</div>}
-
-              {/* Ustalanie stawki */}
               {rc&&rc.status==="betting"&&<div style={{fontSize:13,color:"#8B7355",textAlign:"center",padding:20}}>
                 <b style={{color:"#8B2500"}}>{FM[rc.familyA].nom} vs {FM[rc.familyB].nom}</b><br/>Trwają ustalenia stawki...
               </div>}
-
-              {/* Gra / Wynik */}
               {rc&&(rc.status==="playing"||rc.status==="reveal"||rc.status==="finished")&&<div>
-                <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:8,textAlign:"center"}} className="wt">{FM[rc.familyA].nom} vs {FM[rc.familyB].nom} — stawka: {rc.bet} $</div>
-
-                {/* Timer — widoczny dla obu graczy */}
-                {revCountdown!==null&&rc.status==="playing"&&<div style={{textAlign:"center",marginBottom:10}}>
-                  <div style={{display:"inline-block",background:"#FFF3CD",border:"2px solid #D4A853",borderRadius:8,padding:"6px 24px",fontSize:20,fontWeight:700,color:revCountdown<=5?"#8B2500":"#664D03",fontFamily:"monospace",letterSpacing:"2px"}}>⏱ {revCountdown}s</div>
-                  {isPlayer&&myShots===null&&revCountdown<=5&&<div style={{fontSize:11,color:"#8B2500",marginTop:4,fontWeight:600}}>Czas dobiega końca!</div>}
-                </div>}
-
-                {/* Plansza */}
-                <div style={{display:"flex",gap:3,marginBottom:12,alignItems:"stretch"}}>
+                <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:4,textAlign:"center"}} className="wt">{FM[rc.familyA].nom} vs {FM[rc.familyB].nom} — stawka: {rc.bet} $</div>
+                {/* PLANSZA */}
+                <div style={{display:"flex",gap:3,marginBottom:16,marginTop:12,alignItems:"stretch"}}>
                   {FIELDS.map((label,idx)=>{
                     var pos=idx-3,isBullet=rc.bulletPos===pos;
                     var imgKey=label==="POJEDYNEK"?"POJEDYNEK":label==="PRZEWAGA"?"PRZEWAGA":label==="DOMINACJA"?"DOMINACJA":"WYGRANA";
                     var img=getRevImg(imgKey);
                     return(<div key={idx} style={{flex:1,position:"relative",border:isBullet?"3px solid #8B2500":"2px solid #D4C4A8",borderRadius:6,overflow:"hidden",transition:"border 0.3s",minHeight:80}}>
                       {img&&<img src={img} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt={label}/>}
-                      {!img&&<div style={{padding:"12px 6px",textAlign:"center",background:"#F5F0E8",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{fontSize:9,fontWeight:700,color:"#8B7355",textTransform:"uppercase"}}>{label}</div></div>}
+                      {!img&&<div style={{padding:"12px 6px",textAlign:"center",background:"#F5F0E8",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase"}}>{label}</div></div>}
                       {isBullet&&<div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",transition:"all 0.6s ease-in-out"}}>
-                        {getRevImg("NABOJ_ZNACZNIK")?<img src={getRevImg("NABOJ_ZNACZNIK")} style={{height:50,filter:"drop-shadow(0 2px 4px rgba(0,0,0,0.5))"}} alt="●"/>:<div style={{fontSize:28,color:"#8B2500"}}>●</div>}
+                        {getRevImg("NABOJ_ZNACZNIK")?<img src={getRevImg("NABOJ_ZNACZNIK")} style={{height:50,filter:"drop-shadow(0 2px 4px rgba(0,0,0,0.5))"}} alt="nabój"/>:<div style={{fontSize:28,color:"#8B2500"}}>●</div>}
                       </div>}
                     </div>);
                   })}
                 </div>
-
-                {/* Amunicja — gracz widzi tylko swoją */}
-                {isPlayer&&rc.status!=="finished"&&<div style={{marginBottom:12}}>
+                {/* AMUNICJA */}
+                {isPlayer&&<div style={{marginBottom:16}}>
                   <AmmoGrid ammo={myAmmo} col={FM[familyId].col} label={"Twoja amunicja"}/>
                 </div>}
-                {!isPlayer&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+                {!isPlayer&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
                   <AmmoGrid ammo={rc.ammoA} col={FM[rc.familyA].col} label={FM[rc.familyA].nom}/>
                   <AmmoGrid ammo={rc.ammoB} col={FM[rc.familyB].col} label={FM[rc.familyB].nom}/>
                 </div>}
-
-                {/* Wynik poprzedniej rundy (po odsłonięciu, przed nową deklaracją) */}
+                {/* ODSŁONIĘCIE STRZAŁÓW — pokaż po revealcie, przed następną deklaracją */}
                 {isPlayer&&(rc.rounds||[]).length>0&&myShots===null&&rc.status==="playing"&&(()=>{
-                  var lastR=(rc.rounds||[])[(rc.rounds||[]).length-1];
+                  var lastRound=(rc.rounds||[])[(rc.rounds||[]).length-1];
                   var oppName=isA?FM[rc.familyB].nom:FM[rc.familyA].nom;
                   var oppCol=isA?FM[rc.familyB].col:FM[rc.familyA].col;
-                  var myLast=isA?lastR.shotsA:lastR.shotsB;
-                  var oppLast=isA?lastR.shotsB:lastR.shotsA;
-                  var iWon=isA?(lastR.winner==="A"):(lastR.winner==="B");
-                  var draw=lastR.winner==="draw";
+                  var myLastShots=isA?lastRound.shotsA:lastRound.shotsB;
+                  var oppLastShots=isA?lastRound.shotsB:lastRound.shotsA;
+                  var iWon=isA?(lastRound.winner==="A"):(lastRound.winner==="B");
+                  var draw=lastRound.winner==="draw";
                   var oppAmmo=isA?rc.ammoB:rc.ammoA;
-                  return(<div style={{background:"#FFF8E0",border:"2px solid #D4A853",borderRadius:6,padding:12,marginBottom:12}}>
-                    <div style={{fontSize:13,fontWeight:700,color:"#842504",marginBottom:8}} className="wt">Wynik ostatniej rundy</div>
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:8}}>
+                  return(<div style={{background:"#FFF8E0",border:"2px solid #D4A853",borderRadius:6,padding:14,marginBottom:12}}>
+                    <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:8}} className="wt">Wynik ostatniej rundy</div>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:8}}>
                       <div style={{textAlign:"center",padding:8,background:"#fff",borderRadius:4,border:"1px solid "+FM[familyId].col}}>
-                        <div style={{fontSize:10,color:"#8B7355"}}>Twoje strzały</div>
-                        <div style={{fontSize:26,fontWeight:700,color:FM[familyId].col}}>{myLast}</div>
+                        <div style={{fontSize:13,color:"#8B7355"}}>Twoje strzały</div>
+                        <div style={{fontSize:24,fontWeight:700,color:FM[familyId].col}}>{myLastShots}</div>
                       </div>
                       <div style={{textAlign:"center",padding:8,background:"#fff",borderRadius:4,border:"1px solid "+oppCol}}>
-                        <div style={{fontSize:10,color:"#8B7355"}}>{oppName}</div>
-                        <div style={{fontSize:26,fontWeight:700,color:oppCol}}>{oppLast}</div>
+                        <div style={{fontSize:13,color:"#8B7355"}}>{oppName}</div>
+                        <div style={{fontSize:24,fontWeight:700,color:oppCol}}>{oppLastShots}</div>
                       </div>
                     </div>
                     <div style={{textAlign:"center",fontSize:13,fontWeight:700,color:iWon?"#2E5B3C":draw?"#8B7355":"#842504"}}>
                       {iWon?"Wygrywasz tę rundę!":draw?"Remis — nabój stoi":"Przegrywasz tę rundę"}
                     </div>
-                    <div style={{textAlign:"center",fontSize:11,color:"#8B7355",marginTop:4}}>Amunicja {oppName}: {oppAmmo}</div>
+                    <div style={{textAlign:"center",fontSize:13,color:"#8B7355",marginTop:4}}>Amunicja {oppName}: {oppAmmo} strzałów</div>
                   </div>);
                 })()}
-
-                {/* Input strzałów */}
+                {/* INPUT STRZAŁÓW — AKTYWNY GRACZ */}
                 {isPlayer&&rc.status==="playing"&&myShots===null&&<div style={{background:"#fff",border:"2px solid "+FM[familyId].col,borderRadius:6,padding:12,marginBottom:12}}>
-                  <div style={{fontSize:12,fontWeight:700,color:FM[familyId].col,marginBottom:6}}>Ile oddajesz strzałów? (0 – {myAmmo})</div>
+                  <div style={{fontSize:13,fontWeight:700,color:FM[familyId].col,marginBottom:6}}>Ile oddajesz strzałów?</div>
                   <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                    <input type="number" id="revShotInput" min={0} max={myAmmo} defaultValue={0} style={{width:70,padding:6,borderRadius:4,border:"2px solid "+FM[familyId].col,fontSize:16,fontWeight:700,textAlign:"center"}}/>
-                    <span style={{fontSize:11,color:"#8B7355"}}>/ {myAmmo}</span>
+                    <input type="number" id="revShotInput" min={0} max={myAmmo} defaultValue={1} style={{width:70,padding:6,borderRadius:4,border:"2px solid "+FM[familyId].col,fontSize:14,fontWeight:700,textAlign:"center"}}/>
+                    <span style={{fontSize:13,color:"#8B7355"}}>/ {myAmmo} dostępnych</span>
                     <button style={{...btnS("warning"),fontSize:13}} onClick={()=>{var v=parseInt(document.getElementById("revShotInput").value);if(isNaN(v)||v<0||v>myAmmo){showMsg("Podaj liczbę od 0 do "+myAmmo);return;}revSubmitShots(familyId,v);}}>Zatwierdź</button>
                   </div>
-                  <div style={{fontSize:10,color:"#A89070",marginTop:6,fontStyle:"italic"}}>Możesz oddać 0 strzałów — to też strategia.</div>
                 </div>}
-
-                {/* Czeka na przeciwnika */}
                 {isPlayer&&rc.status==="playing"&&myShots!==null&&<div style={{background:"#E8F5E8",border:"1px solid #90C090",borderRadius:6,padding:10,marginBottom:12,textAlign:"center"}}>
-                  <span style={{fontSize:12,color:"#2E5B3C",fontWeight:600}}>Zadeklarowano: <b>{myShots}</b> — oczekiwanie na przeciwnika...</span>
+                  <span style={{fontSize:13,color:"#2E5B3C",fontWeight:600}}>Zadeklarowano: <b>{myShots}</b> strzałów — oczekiwanie na przeciwnika...</span>
                 </div>}
-
-                {/* Podgląd widza (szeryf / inni) */}
+                {/* PODGLĄD KIBICA — widzi obu */}
                 {!isPlayer&&rc.status==="playing"&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
-                  <div style={{background:"#fff",border:"1px solid "+FM[rc.familyA].col,borderRadius:6,padding:8,textAlign:"center",fontSize:12}}>
-                    <b style={{color:FM[rc.familyA].col}}>{FM[rc.familyA].nom}</b><br/>{rc.shotsA!==null?<span style={{fontWeight:700}}>✓ gotowy</span>:<span style={{color:"#A89070",fontStyle:"italic"}}>czeka...</span>}
+                  <div style={{background:"#fff",border:"1px solid "+FM[rc.familyA].col,borderRadius:6,padding:8,textAlign:"center",fontSize:13}}>
+                    <b style={{color:FM[rc.familyA].col}}>{FM[rc.familyA].nom}</b>: {rc.shotsA!==null?<span style={{fontWeight:700}}>{rc.shotsA} strzałów</span>:<span style={{color:"#A89070",fontStyle:"italic"}}>czeka...</span>}
                   </div>
-                  <div style={{background:"#fff",border:"1px solid "+FM[rc.familyB].col,borderRadius:6,padding:8,textAlign:"center",fontSize:12}}>
-                    <b style={{color:FM[rc.familyB].col}}>{FM[rc.familyB].nom}</b><br/>{rc.shotsB!==null?<span style={{fontWeight:700}}>✓ gotowy</span>:<span style={{color:"#A89070",fontStyle:"italic"}}>czeka...</span>}
+                  <div style={{background:"#fff",border:"1px solid "+FM[rc.familyB].col,borderRadius:6,padding:8,textAlign:"center",fontSize:13}}>
+                    <b style={{color:FM[rc.familyB].col}}>{FM[rc.familyB].nom}</b>: {rc.shotsB!==null?<span style={{fontWeight:700}}>{rc.shotsB} strzałów</span>:<span style={{color:"#A89070",fontStyle:"italic"}}>czeka...</span>}
                   </div>
                 </div>}
-
-                {/* Historia rund */}
+                {/* HISTORIA RUND */}
                 {(rc.rounds||[]).length>0&&<div style={{background:"#fff",border:"1px solid #D4C4A8",borderRadius:6,padding:10,marginBottom:8}}>
-                  <div style={{fontSize:11,fontWeight:700,color:"#8B7355",marginBottom:4}}>Historia rund:</div>
+                  <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:4}}>Historia rund:</div>
                   {(rc.rounds||[]).map((r,i)=>{
                     var mySh=isA?r.shotsA:r.shotsB;
                     var oppSh=isA?r.shotsB:r.shotsA;
                     var oppName=isA?FM[rc.familyB].nom:FM[rc.familyA].nom;
                     var myWin=isA?(r.winner==="A"):(r.winner==="B");
                     var draw=r.winner==="draw";
-                    return isPlayer?(<div key={i} style={{fontSize:11,color:"#5C4A3A",padding:"2px 0",display:"flex",gap:8}}>
-                      <span style={{fontWeight:600,color:"#8B7355",minWidth:28}}>R{i+1}:</span>
+                    return isPlayer?(<div key={i} style={{fontSize:13,color:"#5C4A3A",padding:"2px 0",display:"flex",gap:8}}>
+                      <span style={{fontWeight:600,color:"#8B7355",minWidth:30}}>R{i+1}:</span>
                       <span>Ty: <b>{mySh}</b></span>
-                      <span>{oppName}: <b>{oppSh}</b></span>
-                      <span style={{fontWeight:600,color:myWin?"#2E5B3C":draw?"#8B7355":"#842504"}}>{myWin?"▶ Wygrana":draw?"= Remis":"▶ Przegrana"}</span>
-                    </div>):(<div key={i} style={{fontSize:11,color:"#5C4A3A",padding:"2px 0",display:"flex",gap:8}}>
-                      <span style={{fontWeight:600,color:"#8B7355",minWidth:28}}>R{i+1}:</span>
-                      <span style={{color:FM[rc.familyA].col}}>{FM[rc.familyA].nom}: <b>{r.shotsA}</b></span>
+                      <span>vs {oppName}: <b>{oppSh}</b></span>
+                      <span style={{fontWeight:600,color:myWin?"#2E5B3C":draw?"#8B7355":"#842504"}}>{myWin?"→ Wygrywasz":draw?"= Remis":"→ Przegrywasz"}</span>
+                    </div>):(<div key={i} style={{fontSize:13,color:"#5C4A3A",padding:"2px 0",display:"flex",gap:8}}>
+                      <span style={{fontWeight:600,color:"#8B7355",minWidth:30}}>R{i+1}:</span>
+                      <span style={{color:FM[rc.familyA].col}}>{FM[rc.familyA].nom} {r.shotsA}</span>
                       <span>vs</span>
-                      <span style={{color:FM[rc.familyB].col}}>{FM[rc.familyB].nom}: <b>{r.shotsB}</b></span>
+                      <span style={{color:FM[rc.familyB].col}}>{FM[rc.familyB].nom} {r.shotsB}</span>
                       <span style={{fontWeight:600}}>{r.winner==="A"?"← "+FM[rc.familyA].nom:r.winner==="B"?FM[rc.familyB].nom+" →":"= remis"}</span>
                     </div>);
                   })}
                 </div>}
-
-                {/* Koniec pojedynku */}
+                {/* WYNIK KOŃCOWY */}
                 {rc.status==="finished"&&<div style={{background:"#FFF0EC",border:"2px solid #8B2500",borderRadius:6,padding:14,textAlign:"center"}}>
-                  <div style={{fontSize:16,fontWeight:700,color:"#8B2500",marginBottom:6}} className="wt">Koniec pojedynku!</div>
-                  {rc.winner
-                    ?<div style={{fontSize:14,color:"#5C4A3A",marginBottom:4}}>Wygrywa: <b style={{color:FM[rc.winner].col,fontSize:16}}>{FM[rc.winner].nom}</b> (pole: {rc.winField})</div>
-                    :<div style={{fontSize:14,color:"#8B7355",marginBottom:4}}>Remis!</div>}
-                  <div style={{fontSize:12,color:"#8B7355",marginTop:4}}>{FM[rc.familyA].nom} wystrzelili {rc.totalShotsA||0} nabojów. {FM[rc.familyB].nom} wystrzelili {rc.totalShotsB||0} nabojów.</div>
+                  <div style={{fontSize:16,fontWeight:700,color:"#8B2500",marginBottom:4}} className="wt">Koniec pojedynku!</div>
+                  {rc.winner?<div style={{fontSize:14,color:"#5C4A3A"}}>Wygrywa: <b style={{color:FM[rc.winner].col,fontSize:16}}>{FM[rc.winner].nom}</b> (pole: {rc.winField})</div>:<div style={{fontSize:14,color:"#8B7355"}}>Remis!</div>}
                 </div>}
               </div>}
-
-              {/* Historia zakończonych */}
+              {/* HISTORIA ZAKOŃCZONYCH */}
               {(revDuels||[]).length>0&&<div style={{marginTop:16,borderTop:"1px solid #D4C4A8",paddingTop:10}}>
-                <div style={{fontSize:11,fontWeight:700,color:"#8B7355",marginBottom:4}}>Zakończone pojedynki:</div>
-                {revDuels.map((d,di)=>{var wN=d.winner?FM[d.winner].nom:"Remis";return(
-                  <div key={d.id} style={{fontSize:11,color:"#5C4A3A",padding:"2px 0"}}># {di+1} {FM[d.familyA].nom} vs {FM[d.familyB].nom} — <b>{wN}</b> ({d.winField}, {d.rounds.length} rund)</div>
+                <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:6}}>Zakończone pojedynki:</div>
+                {revDuels.map(d=>{var wN=d.winner?FM[d.winner].nom:"Remis";return(
+                  <div key={d.id} style={{fontSize:13,color:"#5C4A3A",padding:"2px 0"}}>{FM[d.familyA].nom} vs {FM[d.familyB].nom} — <b>{wN}</b> ({d.winField}, {d.rounds.length} rund)</div>
                 );})}
               </div>}
             </div>);
@@ -2459,18 +2188,16 @@ function App({roomCode,role}) {
               <div style={{fontSize:13,fontWeight:700,color:"#D4A853",marginBottom:10,textAlign:"center",letterSpacing:"0.5px"}} className="wt">PRZEBIEG ROZGRYWKI</div>
               {STAGES.filter(s=>s.type!=="end").map((s,idx)=>{
                 var isCur=idx===stageIdx,isDone=idx<stageIdx,isFuture=idx>stageIdx;
-                // Faza I starts at idx=1 (F1T1), Faza II at idx=6 (F2T1), Faza III at idx=11 (F3T1)
-                var isPhaseHeader=s.type==="turn"&&(idx===1||idx===6||idx===11);
+                var isPhaseHeader=s.type==="turn"&&(idx===1||idx===5||idx===9);
                 var partner=s.type==="turn"?getMeetingPartner(fId,s.pairingIdx):null;
                 var phLabel=s.phase?("Faza "+(s.phase===1?"I":s.phase===2?"II":"III")):null;
                 var turnInPhase=s.type==="turn"?(s.id.slice(-1)):"";
                 var showLabel=s.type==="turn"?("Tura "+turnInPhase+(partner?" — "+FM[partner].nom:"")):s.label;
-                var isKnarada=s.type==="knarada";
                 return(<React.Fragment key={s.id}>
-                  {isPhaseHeader&&<div style={{fontSize:10,fontWeight:700,color:"#D4A853",textTransform:"uppercase",letterSpacing:"1.5px",marginTop:idx>1?8:0,marginBottom:4,paddingBottom:3,borderBottom:"1px solid rgba(212,168,83,0.3)"}}>{phLabel}: {PHASE_NAMES[s.phase]}</div>}
-                  <div style={{display:"flex",alignItems:"center",gap:6,padding:"3px 6px",marginBottom:2,borderRadius:3,background:isCur?"rgba(212,168,83,0.25)":isKnarada?"rgba(80,140,80,0.08)":"transparent",opacity:isFuture?0.4:isDone?0.6:1,transition:"all 0.3s"}}>
-                    <span style={{fontSize:11,color:isCur?"#FFD700":isDone?"#6B8B6B":isKnarada?"#7AAA7A":"#C4B090",fontWeight:isCur?700:400,flex:1,fontStyle:isKnarada&&!isCur?"italic":"normal"}}>{isCur?"\u25B6 ":isDone?"\u2713 ":""}{showLabel}</span>
-                    <span style={{fontSize:10,color:isCur?"#D4A853":"#8B7355",fontWeight:600,fontFamily:"monospace",minWidth:36,textAlign:"right"}}>{stageDurations[s.id]}m</span>
+                  {isPhaseHeader&&<div style={{fontSize:13,fontWeight:700,color:"#D4A853",textTransform:"uppercase",letterSpacing:"1.5px",marginTop:idx>1?8:0,marginBottom:4,paddingBottom:3,borderBottom:"1px solid rgba(212,168,83,0.3)"}}>{phLabel}: {PHASE_NAMES[s.phase]}</div>}
+                  <div style={{display:"flex",alignItems:"center",gap:6,padding:"3px 6px",marginBottom:2,borderRadius:3,background:isCur?"rgba(212,168,83,0.25)":"transparent",opacity:isFuture?0.4:isDone?0.6:1,transition:"all 0.3s"}}>
+                    <span style={{fontSize:13,color:isCur?"#FFD700":isDone?"#6B8B6B":"#C4B090",fontWeight:isCur?700:400,flex:1}}>{isCur?"\u25B6 ":isDone?"\u2713 ":""}{showLabel}</span>
+                    <span style={{fontSize:13,color:isCur?"#D4A853":"#8B7355",fontWeight:600,fontFamily:"monospace",minWidth:36,textAlign:"right"}}>{stageDurations[s.id]}m</span>
                   </div>
                 </React.Fragment>);
               })}
@@ -2484,9 +2211,9 @@ function App({roomCode,role}) {
                   showMsg("Wezwano Szeryfa!");
                 }}>
                   <span>Wezwij Szeryfa</span>
-                  <span style={{fontSize:12,opacity:0.8}}>{myQLeft>0?myQLeft+"/"+myQTotal+" pytań":"—"}</span>
+                  <span style={{fontSize:13,opacity:0.8}}>{myQLeft>0?myQLeft+"/"+myQTotal+" pytań":"—"}</span>
                 </button>
-                {hasWaiting&&<div style={{marginTop:6,padding:8,background:"#FFF8E7",border:"1px dashed #D4A853",borderRadius:4,textAlign:"center",fontSize:12,color:"#8B6914",fontWeight:600}}>
+                {hasWaiting&&<div style={{marginTop:6,padding:8,background:"#FFF8E7",border:"1px dashed #D4A853",borderRadius:4,textAlign:"center",fontSize:13,color:"#8B6914",fontWeight:600}}>
                   Oczekiwanie na Szeryfa...
                 </div>}
               </div>);
@@ -2519,7 +2246,7 @@ function App({roomCode,role}) {
             })}
           </div>}
           {(pMode==="sale"||pMode==="barter")&&pStep===2&&<div>
-            <div style={{fontSize:12,fontWeight:700,color:"#8B7355",textTransform:"uppercase",letterSpacing:"1px",marginBottom:8}}>{pMode==="sale"?"Wybierz towar":"Wybierz co oferujesz"}</div>
+            <div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase",letterSpacing:"1px",marginBottom:8}}>{pMode==="sale"?"Wybierz towar":"Wybierz co oferujesz"}</div>
             <div style={{maxHeight:380,overflowY:"auto"}}>{my.items.filter(item=>item.cat!==C_BNB).map(item=>{var sel=!!selItems.find(i=>i.id===item.id);return <div key={item.id} style={{marginBottom:4}}>
               {item.cat===C_RES&&<ResourceCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
               {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact onClick={()=>toggleItem(item)} isSheriff={false}/>}
@@ -2528,8 +2255,8 @@ function App({roomCode,role}) {
               {item.cat===C_PLOT&&<GenericCard item={item} selected={sel} onClick={()=>toggleItem(item)}/>}
               {item.cat===C_MAP&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #D4C870"),background:sel?"#FFF8E7":"#FFFDF0",padding:"8px 10px",cursor:"pointer",position:"relative"}}>
                 {sel&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
-                <div style={{fontSize:12,fontWeight:600}}>{item.name}</div>
-                <div style={{fontSize:10,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A09020",marginTop:2}}>FRAGMENT MAPY</div>
+                <div style={{fontSize:13,fontWeight:600}}>{item.name}</div>
+                <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A09020",marginTop:2}}>FRAGMENT MAPY</div>
               </div>}
             </div>;})}
             {bnbEnabled&&(()=>{
@@ -2537,7 +2264,7 @@ function App({roomCode,role}) {
               var grouped={};bnbItems.forEach(i=>{if(!grouped[i.bnbOrigin])grouped[i.bnbOrigin]=[];grouped[i.bnbOrigin].push(i);});
               if(Object.keys(grouped).length===0)return null;
               return(<div style={{marginTop:8,borderTop:"1px solid #D4C870",paddingTop:8}}>
-                <div style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#8B7714",marginBottom:6}}>Biznes na boku</div>
+                <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#8B7714",marginBottom:6}}>Biznes na boku</div>
                 {Object.keys(grouped).map(origin=>{
                   var cards=grouped[origin],prod=BNB_PRODUCTS[origin];
                   var selCount=selItems.filter(i=>i.cat===C_BNB&&i.bnbOrigin===origin).length;
@@ -2552,14 +2279,14 @@ function App({roomCode,role}) {
                   return(<div key={origin} style={{padding:"8px 10px",marginBottom:4,borderRadius:5,border:(isSel?"2px solid #D4A853":"1px solid #D4C870"),background:isSel?"#FFF8E7":"#FFFDF0",cursor:"pointer"}} onClick={()=>{if(selCount===0)setQty(1);else setQty(0);}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                       <div>
-                        <div style={{fontSize:12,fontWeight:600,color:prod.color}}>{prod.name}</div>
-                        <div style={{fontSize:10,color:"#8B7355"}}>{prod.effectDesc}</div>
-                        <div style={{fontSize:9,color:"#A89070"}}>{origin===cf?"Twój produkt":"od "+FM[origin].gen} — dostępne: {cards.length}</div>
+                        <div style={{fontSize:13,fontWeight:600,color:prod.color}}>{prod.name}</div>
+                        <div style={{fontSize:13,color:"#8B7355"}}>{prod.effectDesc}</div>
+                        <div style={{fontSize:13,color:"#A89070"}}>{origin===cf?"Twój produkt":"od "+FM[origin].gen} — dostępne: {cards.length}</div>
                       </div>
                       {isSel&&<div style={{display:"flex",alignItems:"center",gap:4}} onClick={e=>e.stopPropagation()}>
-                        <button style={{width:22,height:22,border:"1px solid #D4C4A8",borderRadius:3,background:"#fff",cursor:"pointer",fontSize:12,fontWeight:700}} onClick={()=>setQty(selCount-1)}>−</button>
+                        <button style={{width:22,height:22,border:"1px solid #D4C4A8",borderRadius:3,background:"#fff",cursor:"pointer",fontSize:13,fontWeight:700}} onClick={()=>setQty(selCount-1)}>−</button>
                         <span style={{fontSize:13,fontWeight:700,minWidth:20,textAlign:"center"}}>{selCount}</span>
-                        <button style={{width:22,height:22,border:"1px solid #D4C4A8",borderRadius:3,background:"#fff",cursor:"pointer",fontSize:12,fontWeight:700}} onClick={()=>setQty(selCount+1)}>+</button>
+                        <button style={{width:22,height:22,border:"1px solid #D4C4A8",borderRadius:3,background:"#fff",cursor:"pointer",fontSize:13,fontWeight:700}} onClick={()=>setQty(selCount+1)}>+</button>
                       </div>}
                     </div>
                   </div>);
@@ -2568,21 +2295,21 @@ function App({roomCode,role}) {
             })()}
             </div>
             {pMode==="barter"&&<div style={{marginTop:10}}>
-              <div style={{fontSize:12,fontWeight:700,color:"#8B7355",marginBottom:4}}>Dopłata ($)</div>
+              <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:4}}>Dopłata ($)</div>
               <input type="number" min="0" max={my.cash} value={eCash} onChange={e=>setECash(Math.min(Number(e.target.value),my.cash))} style={{width:100,padding:"6px 10px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:14,fontWeight:700,fontFamily:"inherit"}}/>
             </div>}
           </div>}
           {pMode==="sale"&&pStep===3&&<div>
             <div style={{background:"#F0EBE0",padding:12,borderRadius:5,marginBottom:14,fontSize:13,lineHeight:1.5}}><b>Sprzedajesz rodzinie {FM[tFam].gen}:</b><br/>{fmtItems(selItems)}</div>
-            <div style={{fontSize:12,fontWeight:700,color:"#8B7355",marginBottom:6}}>Cena ($)</div>
+            <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:6}}>Cena ($)</div>
             <input type="number" min="1" value={price} onChange={e=>setPrice(Number(e.target.value))} style={{width:120,padding:"8px 12px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:20,fontWeight:700,fontFamily:"inherit"}}/>
           </div>}
           {pMode==="barter"&&pStep===3&&<div style={{background:"#F0EBE0",padding:12,borderRadius:5,fontSize:13,lineHeight:1.6}}>
             <b>Propozycja dla rodziny {FM[tFam].gen}:</b><br/>Oferujesz: {fmtItems(selItems)}{eCash>0?" + "+eCash+" $":""}<br/><i style={{color:"#8B7355"}}>Druga strona zaproponuje co daje w zamian.</i>
           </div>}
           {pMode==="barter_response"&&(()=>{var tx=txs.find(t=>t.id===rTx);if(!tx)return null;return <div>
-            <div style={{background:"#F0EBE0",padding:10,borderRadius:5,marginBottom:12,fontSize:12,lineHeight:1.5}}><b>Rodzina {FM[tx.from].gen} oferuje:</b> {fmtItems(tx.offeredItems)}{tx.offeredCash>0?" + "+tx.offeredCash+" $":""}</div>
-            <div style={{fontSize:12,fontWeight:700,color:"#8B7355",marginBottom:8}}>Co oferujesz w zamian?</div>
+            <div style={{background:"#F0EBE0",padding:10,borderRadius:5,marginBottom:12,fontSize:13,lineHeight:1.5}}><b>Rodzina {FM[tx.from].gen} oferuje:</b> {fmtItems(tx.offeredItems)}{tx.offeredCash>0?" + "+tx.offeredCash+" $":""}</div>
+            <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:8}}>Co oferujesz w zamian?</div>
             <div style={{maxHeight:300,overflowY:"auto"}}>{my.items.filter(item=>item.cat!==C_BNB).map(item=>{var sel=!!selItems.find(i=>i.id===item.id);return <div key={item.id} style={{marginBottom:4}}>
               {item.cat===C_RES&&<ResourceCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
               {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact onClick={()=>toggleItem(item)} isSheriff={false}/>}
@@ -2591,8 +2318,8 @@ function App({roomCode,role}) {
               {item.cat===C_PLOT&&<GenericCard item={item} selected={sel} onClick={()=>toggleItem(item)}/>}
               {item.cat===C_MAP&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #D4C870"),background:sel?"#FFF8E7":"#FFFDF0",padding:"8px 10px",cursor:"pointer",position:"relative"}}>
                 {sel&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
-                <div style={{fontSize:12,fontWeight:600}}>{item.name}</div>
-                <div style={{fontSize:10,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A09020",marginTop:2}}>FRAGMENT MAPY</div>
+                <div style={{fontSize:13,fontWeight:600}}>{item.name}</div>
+                <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A09020",marginTop:2}}>FRAGMENT MAPY</div>
               </div>}
             </div>;})}
             {bnbEnabled&&(()=>{
@@ -2600,7 +2327,7 @@ function App({roomCode,role}) {
               var grouped={};bnbItems.forEach(i=>{if(!grouped[i.bnbOrigin])grouped[i.bnbOrigin]=[];grouped[i.bnbOrigin].push(i);});
               if(Object.keys(grouped).length===0)return null;
               return(<div style={{marginTop:8,borderTop:"1px solid #D4C870",paddingTop:8}}>
-                <div style={{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#8B7714",marginBottom:6}}>Biznes na boku</div>
+                <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#8B7714",marginBottom:6}}>Biznes na boku</div>
                 {Object.keys(grouped).map(origin=>{
                   var cards=grouped[origin],prod=BNB_PRODUCTS[origin];
                   var selCount=selItems.filter(i=>i.cat===C_BNB&&i.bnbOrigin===origin).length;
@@ -2615,14 +2342,14 @@ function App({roomCode,role}) {
                   return(<div key={origin} style={{padding:"8px 10px",marginBottom:4,borderRadius:5,border:(isSel?"2px solid #D4A853":"1px solid #D4C870"),background:isSel?"#FFF8E7":"#FFFDF0",cursor:"pointer"}} onClick={()=>{if(selCount===0)setQty(1);else setQty(0);}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                       <div>
-                        <div style={{fontSize:12,fontWeight:600,color:prod.color}}>{prod.name}</div>
-                        <div style={{fontSize:10,color:"#8B7355"}}>{prod.effectDesc}</div>
-                        <div style={{fontSize:9,color:"#A89070"}}>{origin===cf?"Twój produkt":"od "+FM[origin].gen} — dostępne: {cards.length}</div>
+                        <div style={{fontSize:13,fontWeight:600,color:prod.color}}>{prod.name}</div>
+                        <div style={{fontSize:13,color:"#8B7355"}}>{prod.effectDesc}</div>
+                        <div style={{fontSize:13,color:"#A89070"}}>{origin===cf?"Twój produkt":"od "+FM[origin].gen} — dostępne: {cards.length}</div>
                       </div>
                       {isSel&&<div style={{display:"flex",alignItems:"center",gap:4}} onClick={e=>e.stopPropagation()}>
-                        <button style={{width:22,height:22,border:"1px solid #D4C4A8",borderRadius:3,background:"#fff",cursor:"pointer",fontSize:12,fontWeight:700}} onClick={()=>setQty(selCount-1)}>−</button>
+                        <button style={{width:22,height:22,border:"1px solid #D4C4A8",borderRadius:3,background:"#fff",cursor:"pointer",fontSize:13,fontWeight:700}} onClick={()=>setQty(selCount-1)}>−</button>
                         <span style={{fontSize:13,fontWeight:700,minWidth:20,textAlign:"center"}}>{selCount}</span>
-                        <button style={{width:22,height:22,border:"1px solid #D4C4A8",borderRadius:3,background:"#fff",cursor:"pointer",fontSize:12,fontWeight:700}} onClick={()=>setQty(selCount+1)}>+</button>
+                        <button style={{width:22,height:22,border:"1px solid #D4C4A8",borderRadius:3,background:"#fff",cursor:"pointer",fontSize:13,fontWeight:700}} onClick={()=>setQty(selCount+1)}>+</button>
                       </div>}
                     </div>
                   </div>);
@@ -2630,7 +2357,7 @@ function App({roomCode,role}) {
               </div>);
             })()}
             </div>
-            <div style={{marginTop:10}}><div style={{fontSize:12,fontWeight:700,color:"#8B7355",marginBottom:4}}>Dopłata ($)</div>
+            <div style={{marginTop:10}}><div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:4}}>Dopłata ($)</div>
             <input type="number" min="0" max={my.cash} value={eCash} onChange={e=>setECash(Math.min(Number(e.target.value),my.cash))} style={{width:100,padding:"6px 10px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:14,fontWeight:700,fontFamily:"inherit"}}/></div>
           </div>;})()}
         </div>
