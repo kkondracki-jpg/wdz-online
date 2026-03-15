@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WDZ Online — Platforma Sieciowa v7.0</title>
+  <title>WDZ Online — Platforma Sieciowa v7.1</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -126,10 +126,10 @@ function ConnectionIndicator({online}){
 
 /* ========== FAMILY METADATA (needed early for Lobby) ========== */
 const FM = {
-  adams:  {id:"adams",  nom:"Adamsowie",  gen:"Adamsów",  biz:"Saloon",            col:"#A75F4A", sPlot:6,  tPlot:1},
-  bennet: {id:"bennet", nom:"Bennetowie", gen:"Bennetów", biz:"Zakład Pogrzebowy", col:"#726072", sPlot:4,  tPlot:6},
-  clinton:{id:"clinton",nom:"Clintonowie",gen:"Clintonów",biz:"Bank",              col:"#5E5971", sPlot:20, tPlot:4},
-  dexter: {id:"dexter", nom:"Dexterowie", gen:"Dexterów", biz:"Ranczo",            col:"#5B7674", sPlot:1,  tPlot:20},
+  adams:  {id:"adams",  nom:"Adamsowie",  gen:"Adamsów",  biz:"Saloon",            col:"#A75F4A", sPlot:6,  tPlot:1, mapFrag:1},
+  bennet: {id:"bennet", nom:"Bennetowie", gen:"Bennetów", biz:"Zakład Pogrzebowy", col:"#726072", sPlot:4,  tPlot:6, mapFrag:2},
+  clinton:{id:"clinton",nom:"Clintonowie",gen:"Clintonów",biz:"Bank",              col:"#5E5971", sPlot:20, tPlot:4, mapFrag:3},
+  dexter: {id:"dexter", nom:"Dexterowie", gen:"Dexterów", biz:"Ranczo",            col:"#5B7674", sPlot:1,  tPlot:20,mapFrag:4},
 };
 const FO = ["adams","bennet","clinton","dexter"];
 
@@ -273,7 +273,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.1</div>
       </div>
 
       {/* Initial choice */}
@@ -375,7 +375,7 @@ function imgUrl(prefix,name){return IMG_BASE+prefix+'_'+toSlug(name)+'.jpg';}
 function mapImgUrl(n){return IMG_BASE+'map_fragment-'+n+'.jpg';}
 
 /* ========== REVOLVER IMAGES ========== */
-const REV_IMG_MAP = {POJEDYNEK:"POJEDYNEK.jpg",DOMINACJA:"DOMINACJA.jpg",PRZEWAGA:"PRZEWAGA.jpg",WYGRANA:"WYGRANA.jpg",NABOJ_ZNACZNIK:"Naboj-znacznik.png",NABOJ_AMMO:"Naboj-amunikcja.png"};
+const REV_IMG_MAP = {POJEDYNEK:"Rew_1-POJEDYNEK.jpg",DOMINACJA:"Rew_3-DOMINACJA.jpg",PRZEWAGA:"Rew_2-PRZEWAGA.jpg",WYGRANA:"Rew_4-WYGRANA.jpg",NABOJ_ZNACZNIK:"Rew_5-Naboj-znacznik.png",NABOJ_AMMO:"Rew_6-Naboj-amunicja.png"};
 function getRevImg(key){return REV_IMG_MAP[key]?IMG_BASE+REV_IMG_MAP[key]:null;}
 
 /* ========== SCHEDULE STAGES ========== */
@@ -491,7 +491,7 @@ adams:{cards:[
   NK("Biegła Obsługa Liczydła","Bank",18),
   NK("Leczenie Chorób Bydła","Ranczo",27),
   NK("Podstawy Stolarstwa","Zakład Pogrzebowy",43),
-  PL(6), MP(1),
+  PL(6), MP(1), MP(1), MP(1), MP(1),
 ]},
 bennet:{cards:[
   R("Lasso","Ranczo",30,"aby chwytać bydło i dyscyplinować stado"),
@@ -513,7 +513,7 @@ bennet:{cards:[
   NK("Szybkostrzelność i Celność Oka","Ranczo",18),
   NK("Pędzenie Szkockiej Whisky","Saloon",27),
   NK("Zapewnienie Bezpieczeństwa","Bank",43),
-  PL(4), MP(2),
+  PL(4), MP(2), MP(2), MP(2), MP(2),
 ]},
 clinton:{cards:[
   R("Stara Destylarnia","Saloon",30,"aby nigdy nie zabrakło tego, co zaspokaja pragnienia"),
@@ -537,7 +537,7 @@ clinton:{cards:[
   NK("Sztuka Balsamowania","Zakład Pogrzebowy",27),
   NK("Prowadzenie Kuchni Zbiorowej","Saloon",18),
   NK("Odnajdywanie Źródeł Wody","Ranczo",12),
-  PL(20), MP(3),
+  PL(20), MP(3), MP(3), MP(3), MP(3),
 ]},
 dexter:{cards:[
   R("Sejf","Bank",30,"aby pieniądze były bezpieczne jak w banku"),
@@ -563,7 +563,7 @@ dexter:{cards:[
   NK("Podstawy Makijażu Pośmiertnego","Zakład Pogrzebowy",18),
   NK("Obsługa Zamka Szyfrowego","Bank",27),
   NK("Organizowanie Turniejów Pokera","Saloon",43),
-  PL(1), MP(4),
+  PL(1), MP(4), MP(4), MP(4), MP(4),
 ]},
 };
 
@@ -875,12 +875,18 @@ function MapFragment({n, have}) {
 }
 
 /* ========== MAP TRACKER (full width) ========== */
-function MapTracker({items, mapBonusClaimed}) {
+function MapTracker({items, mapBonusClaimed, fId}) {
   var frags=items.filter(i=>i.cat===C_MAP);
   var uniqueNrs=[...new Set(frags.map(f=>f.fragNr))];
   var full=uniqueNrs.length>=4;
   var winnerFam=null;
-  if(mapBonusClaimed){Object.keys(mapBonusClaimed).forEach(fId=>{if(mapBonusClaimed[fId])winnerFam=fId;});}
+  if(mapBonusClaimed){Object.keys(mapBonusClaimed).forEach(fk=>{if(mapBonusClaimed[fk])winnerFam=fk;});}
+  // Fragments for sale: count own fragment type minus 1 (the one on map)
+  var myFrag=fId?FM[fId].mapFrag:null;
+  var ownFragCount=myFrag?frags.filter(f=>f.fragNr===myFrag).length:0;
+  var forSale=Math.max(0,ownFragCount-1);
+  // Points: 1 unique fragment = 2 pkt, max 10 (only if first to complete gets 5th from sheriff)
+  var mapScore=uniqueNrs.length*2; if(uniqueNrs.length>=4)mapScore=10;
   return (
     <div style={{background:"#FFFDF0",border:"1px solid #D4C870",borderRadius:6,padding:16}}>
       <div style={{fontSize:16,fontWeight:700,color:"#8B7714",marginBottom:12}} className="wt">Złotodajna Żyła</div>
@@ -891,8 +897,14 @@ function MapTracker({items, mapBonusClaimed}) {
         })}
       </div>
       <div style={{fontSize:13,color:"#A09060",marginTop:8}}>
-        Posiadane fragmenty: {uniqueNrs.length}/5
+        Posiadane fragmenty mapy: {uniqueNrs.length}/5
         {full&&<span style={{color:"#706010",fontWeight:700,marginLeft:8}}>Mapa kompletna!</span>}
+      </div>
+      {fId&&<div style={{fontSize:13,color:"#A09060",marginTop:4}}>
+        Liczba fragmentów mapy na sprzedaż: {forSale}/3
+      </div>}
+      <div style={{fontSize:14,fontWeight:700,color:"#8B7714",marginTop:8}}>
+        Liczba punktów: {mapScore} <span style={{fontWeight:400,color:"#A09060"}}>(max 10)</span>
       </div>
       {winnerFam&&<div style={{marginTop:10,padding:8,background:"#FFF8E0",border:"1px dashed #D4C870",borderRadius:4,fontSize:13,fontWeight:600,color:"#8B7714",textAlign:"center"}}>
         Wszystkie fragmenty mapy jako pierwsza zdobyła rodzina {FM[winnerFam].gen}!
@@ -1028,14 +1040,14 @@ function BlindFateFamily({fId, blindFate}) {
 }
 
 /* ========== SHERIFF PANEL ========== */
-function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,resultsReveal,setResultsReveal,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,fateEnabled,setFateEnabled,revEnabled,setRevEnabled,revMaxBet,setRevMaxBet,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle}) {
+function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setConsultNotes,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,resultsReveal,setResultsReveal,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,fateEnabled,setFateEnabled,mapEnabled,setMapEnabled,revEnabled,setRevEnabled,revMaxBet,setRevMaxBet,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle}) {
   function applyPlotPenalties(){
     FO.forEach(fId=>{
       if(plotPenalties[fId]) return;
       var f=FM[fId],d=fd[fId],plotI=d.items.find(i=>i.cat===C_PLOT),plotOk=plotI&&plotI.plotNr===f.tPlot;
       if(!plotOk){
         setFd(prev=>{var n={...prev};n[fId]={...n[fId],cash:n[fId].cash-50};return n;});
-        setTxs(prev=>[{id:Date.now().toString()+fId,type:"penalty",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:"Mandat 50 $ — pozostanie na złej działce (nr "+(plotI?plotI.plotNr:"?")+", docelowa: "+f.tPlot+")"},...prev]);
+        setTxs(prev=>[{id:Date.now().toString()+fId,type:"penalty",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:"Dodatkowy koszt 50 $ wynikający z posiadania niewłaściwej działki (nr "+(plotI?plotI.plotNr:"?")+", docelowa: "+f.tPlot+")"},...prev]);
         setPlotPenalties(prev=>({...prev,[fId]:true}));
       }
     });
@@ -1207,6 +1219,10 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
             <div style={{marginTop:4,padding:6,background:"#EDE4F8",borderRadius:4,textAlign:"center"}}><div style={{fontSize:14,fontWeight:700,color:"#6B3FA0"}}>Relacje: {relS} pkt</div></div>
             <div style={{marginTop:6,padding:8,background:f.col,borderRadius:4,textAlign:"center"}}><div style={{fontSize:22,fontWeight:700,color:"#fff"}}>{Math.round((sc.bizTotal+relS)*10)/10} pkt</div></div>
           </div>);})()}
+          {consultNotes[fId]&&<div style={{marginTop:6,padding:6,background:"#FFF8E0",border:"1px solid #D4C870",borderRadius:4}}>
+            <div style={{fontSize:13,fontWeight:700,color:"#8B6914",marginBottom:2}}>Notatki z konsultacji</div>
+            <div style={{fontSize:13,color:"#5C4A3A",whiteSpace:"pre-wrap"}}>{consultNotes[fId]}</div>
+          </div>}
         </div>);})}
       </div>
     </div>}
@@ -1252,6 +1268,20 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
           </div>);
         })}
         {Object.values(consultations).every(a=>!a||!a.length)&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak konsultacji</div>}
+        <div style={{marginTop:12}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#8B6914",marginBottom:6}}>Notatki z konsultacji</div>
+          {FO.map(fId=>(<div key={fId} style={{marginBottom:8}}>
+            <div style={{fontSize:13,fontWeight:700,color:FM[fId].col,marginBottom:2}}>{FM[fId].nom}</div>
+            <textarea value={consultNotes[fId]||""} onChange={e=>{var v=e.target.value;setConsultNotes(prev=>({...prev,[fId]:v}));}} style={{width:"100%",minHeight:50,fontSize:13,fontFamily:"inherit",border:"1px solid #D4C4A8",borderRadius:4,padding:6,resize:"vertical"}} placeholder={"Notatki dotyczące "+FM[fId].gen+"..."}/>
+          </div>))}
+        </div>
+      </div>
+    </div>
+    {/* === 3.5 ZŁOTODAJNA ŻYŁA — KONTROLA === */}
+    <div style={{background:"#FFFDF0",border:"1px solid #D4C870",borderRadius:6,padding:14,marginBottom:20}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{fontSize:14,fontWeight:700,color:"#8B7714"}} className="wt">Złotodajna Żyła</div>
+        <button style={btnS(mapEnabled?"danger":"success")} onClick={()=>{setMapEnabled(!mapEnabled);showMsg(mapEnabled?"Złotodajna Żyła — dezaktywowana":"Złotodajna Żyła — aktywowana");}}>{mapEnabled?"Dezaktywuj":"Aktywuj"} Złotodajną Żyłę</button>
       </div>
     </div>
     {/* === 4. ŚLEPY LOS — KONTROLA === */}
@@ -1484,7 +1514,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
           {fMap.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B7714"}}><b>Mapa:</b> {tx.from===fId?"Bonus 300 $ (kompletna mapa)":"Opłata 100 $ (mapa "+FM[tx.from].gen+")"}</div>))}
           {fBnb.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B7714"}}><b>BnB:</b> {tx.description}</div>))}
           {fRev.map(tx=>{var isWin=tx.to===fId;return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B2500"}}><b>Rewolwerowiec:</b> {isWin?"Wygrana":"Przegrana"} {tx.amount} $ ({tx.field}) {isWin?"\u2190 "+FM[tx.from].nom:"\u2192 "+FM[tx.to].nom}</div>);})}
-          {fPen.map(tx=>(<div key={tx.id} style={{padding:"4px 0",fontSize:13,color:"#8B2500"}}><b>Mandat:</b> {tx.description}</div>))}
+          {fPen.map(tx=>(<div key={tx.id} style={{padding:"4px 0",fontSize:13,color:"#8B2500"}}><b>Działka:</b> {tx.description}</div>))}
         </div>);
       })}
       </div>
@@ -1508,6 +1538,7 @@ function App({roomCode,role}) {
   const [txs,setTxs]=useState([]);
   const [toast,setToast]=useState(null);
   const [consultations,setConsultations]=useState({});
+  const [consultNotes,setConsultNotes]=useState({adams:"",bennet:"",clinton:"",dexter:""});
   const [blindFate,setBlindFate]=useState({});
   const [showResults,setShowResults]=useState(false);
   const [showP,setShowP]=useState(false);
@@ -1520,6 +1551,7 @@ function App({roomCode,role}) {
   const [rTx,setRTx]=useState(null);
   const [activeTab,setActiveTab]=useState("inv");
   const [mapBonusClaimed,setMapBonusClaimed]=useState({});
+  const [mapEnabled,setMapEnabled]=useState(false);
   const [plotPenalties,setPlotPenalties]=useState({});
   const [relations,setRelations]=useState({});
   const [relationsUnlocked,setRelationsUnlocked]=useState(false);
@@ -1583,7 +1615,7 @@ function App({roomCode,role}) {
 
   // Keep stateRef current (Firebase doesn't store null, use false as marker)
   useEffect(()=>{
-    stateRef.current={fd,txs:txs.length?txs:[],consultations,blindFate,mapBonusClaimed,plotPenalties,
+    stateRef.current={fd,txs:txs.length?txs:[],consultations,consultNotes,blindFate,mapBonusClaimed,mapEnabled,plotPenalties,
       relations,relationsUnlocked,biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,resultsReveal,
       revEnabled,revMaxBet,revDuels:revDuels.length?revDuels:[],revCurrent:revCurrentToFB(revCurrent),
       gameStarted,stageIdx,stageDurations,
@@ -1623,8 +1655,10 @@ function App({roomCode,role}) {
       if(s.fd)setFd(fixFdFromFirebase(s.fd));
       if(s.txs){var t=s.txs;setTxs(Array.isArray(t)?t:Object.values(t));}else setTxs([]);
       if(s.consultations)setConsultations(s.consultations);
+      if(s.consultNotes)setConsultNotes(s.consultNotes);
       if(s.blindFate)setBlindFate(s.blindFate);
       if(s.mapBonusClaimed)setMapBonusClaimed(s.mapBonusClaimed);
+      if(s.mapEnabled!==undefined)setMapEnabled(s.mapEnabled);
       if(s.plotPenalties)setPlotPenalties(s.plotPenalties);
       if(s.relations)setRelations(s.relations);
       if(s.relationsUnlocked!==undefined)setRelationsUnlocked(s.relationsUnlocked);
@@ -1655,7 +1689,7 @@ function App({roomCode,role}) {
   useEffect(()=>{
     if(fbIncoming.current||!fbInitDone.current)return;
     syncToFB();
-  },[fd,txs,consultations,blindFate,mapBonusClaimed,plotPenalties,relations,relationsUnlocked,
+  },[fd,txs,consultations,consultNotes,blindFate,mapBonusClaimed,mapEnabled,plotPenalties,relations,relationsUnlocked,
     biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,resultsReveal,revEnabled,revMaxBet,revDuels,
     revCurrent,gameStarted,stageIdx,stageDurations,timerRunning,timerPaused,secondsLeft,sheriffCalls]);
 
@@ -1892,7 +1926,7 @@ function App({roomCode,role}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.1</div>
       </div>
     </div>
     {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
@@ -1917,7 +1951,7 @@ function App({roomCode,role}) {
     {viewSheriff&&sheriffViewFamily&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:13,color:"#664D03",textAlign:"center"}}>
       Podgląd panelu rodziny {FM[sheriffViewFamily].gen} <button style={{marginLeft:8,fontSize:13,padding:"2px 8px",cursor:"pointer",background:"#8B6914",color:"#fff",border:"none",borderRadius:3,fontFamily:"inherit"}} onClick={()=>setSheriffViewFamily(null)}>Wróć do panelu Szeryfa</button>
     </div>}
-    {viewSheriff&&!sheriffViewFamily&&<SheriffPanel fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} resultsReveal={resultsReveal} setResultsReveal={setResultsReveal} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle}/>}
+    {viewSheriff&&!sheriffViewFamily&&<SheriffPanel fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} consultNotes={consultNotes} setConsultNotes={setConsultNotes} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} resultsReveal={resultsReveal} setResultsReveal={setResultsReveal} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle}/>}
 
     {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
@@ -1932,38 +1966,85 @@ function App({roomCode,role}) {
           <div style={{display:"flex",gap:4,marginBottom:14}}>
             {[["inv","Majątek"],["map","Złotodajna Żyła"],["fate","Ślepy los"],["rev","Rewolwerowiec"],["rel","Budowanie relacji"],["results","Wyniki"]].map(t=>{
               var act=activeTab===t[0];
-              var hidden=(t[0]==="rev"&&!revEnabled)||(t[0]==="fate"&&!fateEnabled);
+              var hidden=(t[0]==="rev"&&!revEnabled)||(t[0]==="fate"&&!fateEnabled)||(t[0]==="map"&&!mapEnabled);
               if(hidden) return null;
               var locked=(t[0]==="rel"&&!relationsUnlocked)||(t[0]==="results"&&resultsReveal===0);
               if(locked) return <div key={t[0]} style={{padding:"7px 16px",borderRadius:"4px 4px 0 0",fontSize:13,fontWeight:400,background:"#E8E0D0",color:"#C4B090",cursor:"not-allowed",borderBottom:"2px solid transparent",opacity:0.5}}>{t[1]}</div>;
               return <div key={t[0]} onClick={()=>setActiveTab(t[0])} style={{padding:"7px 16px",borderRadius:"4px 4px 0 0",fontSize:13,fontWeight:act?700:400,background:act?"#fff":"#F3CA82",color:act?"#842504":"#4C130F",cursor:"pointer",borderBottom:act?"2px solid #842504":"2px solid transparent"}}>{t[1]}</div>;
             })}
           </div>
-          {activeTab==="inv"&&(<div>
-            <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Zasoby ({familyView.mergedRes.length})</div>
+          {activeTab==="inv"&&(()=>{
+            var f=FM[familyId];
+            // Resources for own biz
+            var myRes=familyView.mergedRes.filter(({item})=>item.forBiz===f.biz&&!item.blind);
+            var allNR=familyView.orphanNR;
+            // Documented progress: resource + matching note both present
+            var docResPct=myRes.reduce((s,{item})=>{var hasNote=allNR.some(n=>n.name===item.name&&n.forBiz===item.forBiz);return s+(hasNote?item.weight:0);},0);
+            var resPoints=Math.round((docResPct/100)*30);
+            // Competencies for own biz
+            var myComp=familyView.mergedComp.filter(({item})=>item.forBiz===f.biz&&!item.blind);
+            var allNK=familyView.orphanNK;
+            var docCompPct=myComp.reduce((s,{item})=>{var hasNote=allNK.some(n=>n.name===item.name&&n.forBiz===item.forBiz);return s+(hasNote?item.weight:0);},0);
+            var compPoints=Math.round((docCompPct/100)*25);
+            // Plot
+            var plotItem=familyView.plots.find(p=>p.plotNr===f.tPlot);
+            var plotOk=!!plotItem;
+            // Cash
+            var cashVal=familyData.cash;
+            var cashPoints=Math.round((cashVal/600)*25); if(cashPoints<0)cashPoints=0;
+            var taskBg={background:"rgba(255,255,255,0.7)",padding:"8px 14px",borderRadius:6,marginBottom:10};
+            return (<div>
+            {/* --- ZASOBY --- */}
+            <div style={taskBg}>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Zadanie: Pozyskanie zasobów do prowadzenia przedsiębiorstwa</div>
+              <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
+                <span>Udokumentowany postęp: <b>{docResPct}%</b></span>
+                <span>Liczba punktów: <b>{resPoints}</b> <span style={{color:"#A89070"}}>(max 30)</span></span>
+              </div>
+            </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:12}}>
               {familyView.mergedRes.map(({item,note})=><ResourceCard key={item.id} item={item} note={note} isSheriff={viewSheriff}/>)}
             </div>
             {familyView.orphanNR.length>0&&<div>
-              <div style={{fontSize:22,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,marginTop:4}} className="wt">Informacje o zasobach ({familyView.orphanNR.length})</div>
+              <div style={{fontSize:22,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,marginTop:4}} className="wt">Notatki dziadka — informacje o zasobach</div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,marginBottom:20}}>
                 {familyView.orphanNR.map(n=><NoteCard key={n.id} item={n} type="res"/>)}
               </div>
             </div>}
-            <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4,marginTop:8}} className="wt">Kompetencje ({familyView.mergedComp.length})</div>
+            {/* --- KOMPETENCJE --- */}
+            <div style={taskBg}>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Zadanie: Pozyskanie kompetencji do prowadzenia przedsiębiorstwa</div>
+              <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
+                <span>Udokumentowany postęp: <b>{docCompPct}%</b></span>
+                <span>Liczba punktów: <b>{compPoints}</b> <span style={{color:"#A89070"}}>(max 25)</span></span>
+              </div>
+            </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:12}}>
               {familyView.mergedComp.map(({item,note})=><CompCard key={item.id} item={item} note={note} isSheriff={viewSheriff}/>)}
             </div>
             {familyView.orphanNK.length>0&&<div>
-              <div style={{fontSize:22,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,marginTop:4}} className="wt">Informacje o kompetencjach ({familyView.orphanNK.length})</div>
+              <div style={{fontSize:22,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,marginTop:4}} className="wt">Notatki dziadka — informacje o kompetencjach</div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,marginBottom:20}}>
                 {familyView.orphanNK.map(n=><NoteCard key={n.id} item={n} type="comp"/>)}
               </div>
             </div>}
-            {familyView.plots.length>0&&<div>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4,marginTop:8}} className="wt">Działki ({familyView.plots.length})</div>
-              <div style={{display:"flex",gap:8,marginBottom:20}}>{familyView.plots.map(p=><GenericCard key={p.id} item={p}/>)}</div>
-            </div>}
+            {/* --- DZIAŁKI --- */}
+            <div style={taskBg}>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Zadanie: Pozyskanie prawa własności do właściwej działki</div>
+              <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
+                <span>Punkty: <b>{plotOk?10:0}</b> <span style={{color:"#A89070"}}>(max 10)</span></span>
+              </div>
+              {!plotOk&&<div style={{marginTop:6,padding:"6px 10px",background:"#FFF0F0",border:"1px solid #C09090",borderRadius:4,fontSize:13,color:"#8B2500",fontWeight:600}}>UWAGA! Pozostając na niewłaściwej działce ponosicie na koniec gry dodatkowy koszt w wysokości 50 $.</div>}
+            </div>
+            <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>{familyView.plots.map(p=><GenericCard key={p.id} item={p}/>)}</div>
+            {/* --- GOTÓWKA --- */}
+            <div style={taskBg}>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Zadanie: Pomnożenie gotówki</div>
+              <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
+                <span>Posiadana gotówka: <b>{cashVal} $</b></span>
+                <span>Punkty: <b>{cashPoints}</b> <span style={{color:"#A89070"}}>(max 25)</span></span>
+              </div>
+            </div>
             {bnbEnabled&&(()=>{
               var allBnb=familyData.items.filter(i=>i.cat===C_BNB);
               var forSale=allBnb.filter(i=>i.bnbOrigin===familyId);
@@ -2001,8 +2082,9 @@ function App({roomCode,role}) {
                 {forSale.length===0&&Object.keys(boughtGrouped).length===0&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak produktów BnB</div>}
               </div>);
             })()}
-          </div>)}
-          {activeTab==="map"&&<MapTracker items={familyData.items} mapBonusClaimed={mapBonusClaimed}/>}
+          </div>);
+          })()}
+          {activeTab==="map"&&<MapTracker items={familyData.items} mapBonusClaimed={mapBonusClaimed} fId={familyId}/>}
           {activeTab==="fate"&&<BlindFateFamily fId={familyId} blindFate={blindFate}/>}
           {activeTab==="rel"&&relationsUnlocked&&(()=>{
             var CATS=[{key:"partnership",label:"Partnerstwo",desc:["\u201edbał tylko o swoje interesy\u201d","\u201edbał o interesy dwóch stron\u201d"]},{key:"rules",label:"Przestrzeganie zasad",desc:["\u201ełamał/omijał zasady\u201d","\u201eprzestrzegał i dbał o zasady\u201d"]},{key:"communication",label:"Komunikacja",desc:["\u201eduże trudności\u201d","\u201eczytelnie komunikował i słuchał uważnie\u201d"]}];
