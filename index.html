@@ -929,15 +929,19 @@ function Dice3D({value, rolling}) {
 
 /* ========== BLIND FATE FAMILY ========== */
 /* ========== FATE EVENT CARD (image with text fallback) ========== */
-function FateEventCard({sum, showEvent, animating}) {
+function FateEventCard({sum, showEvent}) {
   const [imgOk,setImgOk]=useState(true);
+  const [prevSrc,setPrevSrc]=useState(null);
   var ev=sum?BLIND_FATE_EVENTS[sum]:null;
-  var src=IMG_BASE+"los_"+(showEvent&&sum?String(sum).padStart(2,"0"):"01")+".jpg";
-  return (<div style={{flex:"0 0 auto",width:180,minHeight:180,borderRadius:6,border:"2px solid #C4B0D8",background:"#F8F6FA",overflow:"hidden",transition:"opacity 0.6s ease",opacity:animating?0:1}}>
-    {imgOk&&<img src={src} style={{width:"100%",height:"auto",display:"block"}} alt={showEvent&&ev?ev.text:"Ślepy los"} onError={()=>setImgOk(false)}/>}
-    {(!imgOk&&showEvent&&ev)&&<div style={{padding:12,textAlign:"center"}}>
-      <div style={{fontSize:14,fontWeight:600,color:"#2C1810",lineHeight:1.4}}>{ev.text}</div>
-      <div style={{fontSize:18,fontWeight:700,color:ev.amount>=0?"#2E5B3C":"#8B2500",marginTop:8}}>{ev.amount>=0?"+":""}{ev.amount} $</div>
+  var fileName=showEvent&&sum?"los_"+String(sum).padStart(2,"0"):"los_01";
+  var src=IMG_BASE+fileName+".jpg";
+  // Track src changes for transition
+  useEffect(()=>{if(showEvent&&sum){setPrevSrc(src);}},[showEvent,sum]);
+  return (<div style={{flex:2,borderRadius:6,border:"2px solid #C4B0D8",background:"#F8F6FA",overflow:"hidden"}}>
+    {imgOk&&<img src={src} style={{width:"100%",height:"auto",display:"block",transition:"opacity 0.6s ease"}} alt={showEvent&&ev?ev.text:"Ślepy los"} onError={()=>setImgOk(false)}/>}
+    {(!imgOk&&showEvent&&ev)&&<div style={{padding:16,textAlign:"center"}}>
+      <div style={{fontSize:15,fontWeight:600,color:"#2C1810",lineHeight:1.5}}>{ev.text}</div>
+      <div style={{fontSize:20,fontWeight:700,color:ev.amount>=0?"#2E5B3C":"#8B2500",marginTop:8}}>{ev.amount>=0?"+":""}{ev.amount} $</div>
     </div>}
     {(!imgOk&&!showEvent)&&<div style={{padding:24,textAlign:"center",color:"#A89070",fontSize:14,fontStyle:"italic"}}>Karta zakryta</div>}
   </div>);
@@ -950,7 +954,7 @@ function PolicyCardFate({pKey, label, price, status, imgName}) {
   var statusText=status==="active"?"Aktywna":status==="used"?"Wykorzystana":"Nie wykupiona";
   var statusCol=status==="active"?"#2E5B3C":"#8B7355";
   var opa=status==="active"?1:0.5;
-  return (<div style={{flex:"0 0 auto",width:120,borderRadius:6,border:"2px solid "+borderCol,background:bgCol,opacity:opa,overflow:"hidden"}}>
+  return (<div style={{flex:1,borderRadius:6,border:"2px solid "+borderCol,background:bgCol,opacity:opa,overflow:"hidden"}}>
     {imgOk&&<img src={IMG_BASE+imgName+".jpg"} style={{width:"100%",height:"auto",display:"block"}} alt={label} onError={()=>setImgOk(false)}/>}
     <div style={{padding:6,textAlign:"center"}}>
       {!imgOk&&<div style={{fontSize:13,fontWeight:700,color:"#6B3FA0"}}>{label}</div>}
@@ -962,7 +966,6 @@ function PolicyCardFate({pKey, label, price, status, imgName}) {
 
 function BlindFateFamily({fId, blindFate}) {
   var bf=blindFate[fId]||{}, policies=bf.policies||{p50:null,p100:null}, rolls=bf.rolls||[];
-  var [animIdx,setAnimIdx]=useState(-1);
   // Format history line
   function fmtHistory(roll,idx){
     if(!roll.resolved)return null;
@@ -977,21 +980,21 @@ function BlindFateFamily({fId, blindFate}) {
     {/* — POLISY: kupno przed pierwszym losowaniem — */}
     {rolls.length===0&&<div style={{background:"#F8F4FF",border:"1px solid #C4B0D8",borderRadius:6,padding:12,marginBottom:16}}>
       <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:8}}>Polisy ubezpieczeniowe — oczekuj na sygnał Szeryfa</div>
-      <div style={{display:"flex",gap:12,justifyContent:"center"}}>
+      <div style={{display:"flex",gap:8,alignItems:"stretch"}}>
         <PolicyCardFate pKey="p100" label="Polisa 100%" price="50 $" status={policies.p100} imgName="policy_100"/>
         <PolicyCardFate pKey="p50" label="Polisa 50%" price="30 $" status={policies.p50} imgName="policy_50"/>
+        <FateEventCard sum={null} showEvent={false}/>
       </div>
     </div>}
     {/* — LOSOWANIA — */}
     {rolls.map((roll,idx)=>{
-      var ev=roll.resolved?BLIND_FATE_EVENTS[roll.sum]:null;
       return (<div key={idx} style={{marginBottom:20,background:"#F8F4FF",border:"1px solid #C4B0D8",borderRadius:8,padding:14}}>
         <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:10}}>Losowanie {idx+1}</div>
-        {/* 3 karty w linii */}
-        <div style={{display:"flex",gap:10,justifyContent:"center",alignItems:"flex-start",marginBottom:12}}>
+        {/* 3 karty w linii: polisa 100% (flex:1) + polisa 50% (flex:1) + karta zdarzenia (flex:2) */}
+        <div style={{display:"flex",gap:8,alignItems:"stretch",marginBottom:12}}>
           <PolicyCardFate pKey="p100" label="Polisa 100%" price="50 $" status={policies.p100} imgName="policy_100"/>
           <PolicyCardFate pKey="p50" label="Polisa 50%" price="30 $" status={policies.p50} imgName="policy_50"/>
-          <FateEventCard sum={roll.sum} showEvent={roll.resolved&&roll.showCard} animating={animIdx===idx}/>
+          <FateEventCard sum={roll.sum} showEvent={roll.resolved&&roll.showCard}/>
         </div>
         {/* Przycisk rzutu */}
         {!roll.diceReady&&!roll.resolved&&<div style={{textAlign:"center",padding:12,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Szeryf przygotowuje losowanie...</div>}
@@ -1025,7 +1028,7 @@ function BlindFateFamily({fId, blindFate}) {
 }
 
 /* ========== SHERIFF PANEL ========== */
-function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,resultsReveal,setResultsReveal,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,revEnabled,setRevEnabled,revMaxBet,setRevMaxBet,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle}) {
+function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,resultsReveal,setResultsReveal,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,fateEnabled,setFateEnabled,revEnabled,setRevEnabled,revMaxBet,setRevMaxBet,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle}) {
   function applyPlotPenalties(){
     FO.forEach(fId=>{
       if(plotPenalties[fId]) return;
@@ -1253,17 +1256,21 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
     </div>
     {/* === 4. ŚLEPY LOS — KONTROLA === */}
     <div style={{background:"#F8F4FF",border:"1px solid #C4B0D8",borderRadius:6,padding:14,marginBottom:20}}>
-      <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:12}} className="wt">Ślepy los — kontrola</div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+        <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0"}} className="wt">Ślepy los — kontrola</div>
+        <button style={btnS(fateEnabled?"danger":"success")} onClick={()=>{setFateEnabled(!fateEnabled);showMsg(fateEnabled?"Ślepy los — dezaktywowany":"Ślepy los — aktywowany");}}>{fateEnabled?"Dezaktywuj":"Aktywuj"} Ślepy los</button>
+      </div>
+      {!fateEnabled&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic",textAlign:"center",padding:12}}>Ślepy los jest nieaktywny. Kliknij „Aktywuj" aby udostępnić rodzinom.</div>}
+      {fateEnabled&&<div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
         {FO.map(fId=>{var f=FM[fId],bf=blindFate[fId]||{},pol=bf.policies||{p50:null,p100:null},rolls=bf.rolls||[];
           var rollsDone=rolls.filter(r=>r.resolved).length,rollsPending=rolls.filter(r=>!r.resolved).length;
           var avPol=[];if(pol.p50==="active")avPol.push({l:"50%",v:50});if(pol.p100==="active")avPol.push({l:"100%",v:100});
           return (<div key={fId} style={{background:"#fff",border:"1px solid "+f.col,borderRadius:5,padding:10}}>
             <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
             <div style={{display:"flex",gap:4,marginBottom:8,flexWrap:"wrap"}}>
-              <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px",opacity:pol.p50!==null?0.4:1}} onClick={()=>activatePolicy(fId,"p50")} disabled={pol.p50!==null}>Polisa 50% (30$)</button>
+              <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px",opacity:pol.p50?0.4:1}} onClick={()=>activatePolicy(fId,"p50")} disabled={!!pol.p50}>Polisa 50% (30$)</button>
               {pol.p50==="active"&&<button style={{fontSize:13,padding:"3px 8px",background:"#C09090",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>undoPolicy(fId,"p50")}>Cofnij 50%</button>}
-              <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px",opacity:pol.p100!==null?0.4:1}} onClick={()=>activatePolicy(fId,"p100")} disabled={pol.p100!==null}>Polisa 100% (50$)</button>
+              <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px",opacity:pol.p100?0.4:1}} onClick={()=>activatePolicy(fId,"p100")} disabled={!!pol.p100}>Polisa 100% (50$)</button>
               {pol.p100==="active"&&<button style={{fontSize:13,padding:"3px 8px",background:"#C09090",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>undoPolicy(fId,"p100")}>Cofnij 100%</button>}
             </div>
             {rollsPending===0&&rollsDone<2&&<div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
@@ -1275,7 +1282,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,setFd,showMsg,blind
             </div>))}
           </div>);
         })}
-      </div>
+      </div>}
     </div>
     {/* === 5. ŚLEPY LOS — HISTORIA ZBIORCZA === */}
     <div style={{background:"#F0ECF8",border:"1px solid #C4B0D8",borderRadius:6,padding:14,marginBottom:20}}>
@@ -1519,6 +1526,7 @@ function App({roomCode,role}) {
   const [biznesNaBoku,setBiznesNaBoku]=useState({adams:0,bennet:0,clinton:0,dexter:0});
   const [bnbEnabled,setBnbEnabled]=useState(false);
   const [bnbSettled,setBnbSettled]=useState(false);
+  const [fateEnabled,setFateEnabled]=useState(false);
   const [resultsReveal,setResultsReveal]=useState(0);
 
   // === REWOLWEROWIEC STATE ===
@@ -1576,7 +1584,7 @@ function App({roomCode,role}) {
   // Keep stateRef current (Firebase doesn't store null, use false as marker)
   useEffect(()=>{
     stateRef.current={fd,txs:txs.length?txs:[],consultations,blindFate,mapBonusClaimed,plotPenalties,
-      relations,relationsUnlocked,biznesNaBoku,bnbEnabled,bnbSettled,showResults,resultsReveal,
+      relations,relationsUnlocked,biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,resultsReveal,
       revEnabled,revMaxBet,revDuels:revDuels.length?revDuels:[],revCurrent:revCurrentToFB(revCurrent),
       gameStarted,stageIdx,stageDurations,
       timerRunning,timerPaused,secondsLeft,sheriffCalls:sheriffCalls.length?sheriffCalls:[]};
@@ -1622,6 +1630,7 @@ function App({roomCode,role}) {
       if(s.relationsUnlocked!==undefined)setRelationsUnlocked(s.relationsUnlocked);
       if(s.biznesNaBoku)setBiznesNaBoku(s.biznesNaBoku);
       if(s.bnbEnabled!==undefined)setBnbEnabled(s.bnbEnabled);
+      if(s.fateEnabled!==undefined)setFateEnabled(s.fateEnabled);
       if(s.bnbSettled!==undefined)setBnbSettled(s.bnbSettled);
       if(s.showResults!==undefined)setShowResults(s.showResults);
       if(s.resultsReveal!==undefined)setResultsReveal(s.resultsReveal);
@@ -1647,7 +1656,7 @@ function App({roomCode,role}) {
     if(fbIncoming.current||!fbInitDone.current)return;
     syncToFB();
   },[fd,txs,consultations,blindFate,mapBonusClaimed,plotPenalties,relations,relationsUnlocked,
-    biznesNaBoku,bnbEnabled,bnbSettled,showResults,resultsReveal,revEnabled,revMaxBet,revDuels,
+    biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,resultsReveal,revEnabled,revMaxBet,revDuels,
     revCurrent,gameStarted,stageIdx,stageDurations,timerRunning,timerPaused,secondsLeft,sheriffCalls]);
 
   const showMsg=useCallback(m=>{setToast(m);setTimeout(()=>setToast(null),3000);},[]);
@@ -1908,7 +1917,7 @@ function App({roomCode,role}) {
     {viewSheriff&&sheriffViewFamily&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:13,color:"#664D03",textAlign:"center"}}>
       Podgląd panelu rodziny {FM[sheriffViewFamily].gen} <button style={{marginLeft:8,fontSize:13,padding:"2px 8px",cursor:"pointer",background:"#8B6914",color:"#fff",border:"none",borderRadius:3,fontFamily:"inherit"}} onClick={()=>setSheriffViewFamily(null)}>Wróć do panelu Szeryfa</button>
     </div>}
-    {viewSheriff&&!sheriffViewFamily&&<SheriffPanel fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} resultsReveal={resultsReveal} setResultsReveal={setResultsReveal} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle}/>}
+    {viewSheriff&&!sheriffViewFamily&&<SheriffPanel fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} resultsReveal={resultsReveal} setResultsReveal={setResultsReveal} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle}/>}
 
     {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
@@ -1923,7 +1932,7 @@ function App({roomCode,role}) {
           <div style={{display:"flex",gap:4,marginBottom:14}}>
             {[["inv","Majątek"],["map","Złotodajna Żyła"],["fate","Ślepy los"],["rev","Rewolwerowiec"],["rel","Budowanie relacji"],["results","Wyniki"]].map(t=>{
               var act=activeTab===t[0];
-              var hidden=(t[0]==="rev"&&!revEnabled);
+              var hidden=(t[0]==="rev"&&!revEnabled)||(t[0]==="fate"&&!fateEnabled);
               if(hidden) return null;
               var locked=(t[0]==="rel"&&!relationsUnlocked)||(t[0]==="results"&&resultsReveal===0);
               if(locked) return <div key={t[0]} style={{padding:"7px 16px",borderRadius:"4px 4px 0 0",fontSize:13,fontWeight:400,background:"#E8E0D0",color:"#C4B090",cursor:"not-allowed",borderBottom:"2px solid transparent",opacity:0.5}}>{t[1]}</div>;
