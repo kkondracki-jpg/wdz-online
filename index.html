@@ -611,7 +611,7 @@ function buildView(items) {
 }
 
 /* ========== SCORE ========== */
-function calcScore(fId, fd, plotPenalties, biznesNaBoku, bnbEnabled) {
+function calcScore(fId, fd, plotPenalties, biznesNaBoku, bnbEnabled, blindFate) {
   var f=FM[fId], d=fd[fId], items=d.items;
   // BnB cards owned (bought from other families)
   var bnbCards=items.filter(i=>i.cat===C_BNB);
@@ -619,10 +619,14 @@ function calcScore(fId, fd, plotPenalties, biznesNaBoku, bnbEnabled) {
   var bnbMikstura=bnbCards.filter(i=>i.effect==="comp4").length; // +4% kompetencji each
   var bnbObligacje=bnbCards.filter(i=>i.effect==="cash20").length;// +20% kasy each
   var bnbKwatera=bnbCards.filter(i=>i.effect==="point1").length; // +1 pkt each
+  // Blind Fate resource penalty
+  var resPenalty=0;
+  if(blindFate&&blindFate[fId]){var rolls=(blindFate[fId].rolls||[]);rolls.forEach(function(r){if(r.resolved&&r.event&&r.event.type==="loss_resources"){resPenalty+=Math.abs(r.netEffect);}});}
   // Resources
   var resItems=items.filter(i=>i.cat===C_RES&&!i.blind&&i.forBiz===f.biz);
   var resPct=resItems.reduce((s,i)=>s+i.weight,0);
   if(bnbEnabled) resPct=Math.min(100, resPct + bnbKurier*4);
+  resPct=Math.max(0, resPct - resPenalty);
   var resScore=(resPct/100)*30;
   // Competencies
   var compItems=items.filter(i=>i.cat===C_COMP&&!i.blind&&i.forBiz===f.biz);
@@ -801,7 +805,7 @@ function TxDisplay({tx,cf,onAccept,onReject,onRespond}) {
   // Fate
   if(tx.type==="fate") {
     return (<div style={{padding:12,borderRadius:5,border:"1px solid #D4A853",background:"#FFF5F0",marginBottom:8}}>
-      <div style={{fontSize:13,color:"#842504"}}><b>Ślepy los</b> — {tx.description}</div>
+      <div style={{fontSize:13,color:"#842504"}}>{tx.description}</div>
     </div>);
   }
 
@@ -823,7 +827,7 @@ function TxDisplay({tx,cf,onAccept,onReject,onRespond}) {
   if(tx.type==="revolver") {
     var isWin=tx.to===cf;
     return (<div style={{padding:12,borderRadius:5,border:"1px solid #D4A853",background:"#FFF5F0",marginBottom:8}}>
-      <div style={{fontSize:13,color:"#8B2500"}}><b>REWOLWEROWIEC</b> — {isWin?"Wygrana":"Przegrana"}: {tx.amount} $ (pole: {tx.field}) {isWin?("od "+FM[tx.from].gen):("dla "+FM[tx.to].gen)}</div>
+      <div style={{fontSize:13,color:"#8B2500"}}><b>Rewolwerowiec</b> — {isWin?"wygrana: +"+tx.amount+" $":"przegrana: -"+tx.amount+" $"}</div>
     </div>);
   }
 
@@ -921,7 +925,7 @@ function MapTracker({items, mapBonusClaimed, fId}) {
         })}
       </div>
       <div style={{fontSize:13,color:"#A09060",marginTop:8}}>
-        Posiadane fragmenty mapy: {uniqueNrs.length}/5
+        Posiadane fragmenty mapy: {full?5:uniqueNrs.length}/5
         {full&&<span style={{color:"#706010",fontWeight:700,marginLeft:8}}>Mapa kompletna!</span>}
       </div>
       {fId&&<div style={{fontSize:13,color:"#A09060",marginTop:4}}>
@@ -1012,10 +1016,22 @@ function BlindFateFamily({fId, blindFate}) {
   function fmtHistory(roll,idx){
     if(!roll.resolved)return null;
     var ev=BLIND_FATE_EVENTS[roll.sum];
-    var polTxt=roll.policyUsed?" (polisa "+roll.policyUsed+"%)":"";
-    var effectTxt=roll.netEffect>=0?"+"+roll.netEffect+" $":roll.netEffect+" $";
-    if(roll.event&&roll.event.type==="loss_resources") effectTxt="utrata 10% zasobów na koniec rozgrywki";
-    return "Losowanie "+(idx+1)+": Rzut ["+roll.dice1+"+"+roll.dice2+"="+roll.sum+"] — "+ev.text+" → "+effectTxt+polTxt;
+    var resultTxt="";
+    if(ev.type==="loss_resources"){
+      var pct=roll.policyUsed===100?0:roll.policyUsed===50?5:10;
+      resultTxt=pct===0?"brak utraty zasobów (polisa)":"utrata "+pct+"% zasobów na koniec rozgrywki";
+    } else if(ev.type==="loss"){
+      var realLoss=Math.abs(roll.netEffect);
+      resultTxt=realLoss===0?"0 $ (polisa pokryła stratę)":"-"+realLoss+" $";
+    } else if(ev.type==="gain"){
+      resultTxt="+"+roll.netEffect+" $";
+    } else if(ev.type==="gain_policy"){
+      resultTxt=roll.netEffect>0?"+"+roll.netEffect+" $":"0 $ (brak polisy)";
+    }
+    var s="Losowanie "+(idx+1)+": Rzut ["+roll.dice1+"+"+roll.dice2+"="+roll.sum+"] — "+ev.text;
+    if(roll.policyUsed) s+=". Polisa: "+roll.policyUsed+"%";
+    s+=". Rezultat: "+resultTxt;
+    return s;
   }
   return (<div>
     <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:12,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Ślepy los</div>
@@ -1209,7 +1225,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     </div>
     {/* === 2. PODGLĄD I WYNIKI RODZIN === */}
     <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20}}>
-      {FO.map(fId=>{var f=FM[fId],d=fd[fId],sc=calcScore(fId,fd,plotPenalties,biznesNaBoku,bnbEnabled);
+      {FO.map(fId=>{var f=FM[fId],d=fd[fId],sc=calcScore(fId,fd,plotPenalties,biznesNaBoku,bnbEnabled,blindFate);
         var plotI=d.items.find(i=>i.cat===C_PLOT),plotOk=plotI&&plotI.plotNr===f.tPlot;
         return (<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:12}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
@@ -1227,7 +1243,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     {resultsReveal>=1&&<div style={{background:"#fff",border:"2px solid #D4A853",borderRadius:8,padding:20,marginBottom:20}}>
       <div style={{fontSize:18,fontWeight:700,color:"#8B6914",marginBottom:16,textAlign:"center"}} className="wt">Wyniki rozgrywki</div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
-        {FO.map(fId=>{var sc=calcScore(fId,fd,plotPenalties,biznesNaBoku,bnbEnabled),f=FM[fId];return (<div key={fId} style={{background:"#FDFAF4",border:"2px solid "+f.col,borderRadius:6,padding:14}}>
+        {FO.map(fId=>{var sc=calcScore(fId,fd,plotPenalties,biznesNaBoku,bnbEnabled,blindFate),f=FM[fId];return (<div key={fId} style={{background:"#FDFAF4",border:"2px solid "+f.col,borderRadius:6,padding:14}}>
           <div style={{fontSize:15,fontWeight:700,color:f.col,marginBottom:8,textAlign:"center"}} className="wt">{f.nom}</div>
           <div style={{fontSize:13,color:"#5C4A3A",lineHeight:2}}>
             <div>Zasoby: <b>{sc.resPct}%</b> = <b>{sc.resScore} pkt</b>{bnbEnabled&&sc.bnbKurier>0&&<span style={{fontSize:13,color:"#8B2500"}}> (w tym Kurier ×{sc.bnbKurier}: +{sc.bnbKurier*4}%)</span>}</div>
@@ -1352,7 +1368,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
           {rolls.length>0?<div style={{fontSize:13,color:"#5C4A3A"}}>
             <b>Losowania:</b>
             {rolls.map((r,i)=>(<div key={i} style={{padding:"3px 0",borderBottom:i<rolls.length-1?"1px dotted #E0D4C8":"none"}}>
-              Rzut {i+1}: {r.dice1}+{r.dice2}={r.sum} — <i>{r.event.text}</i> → <b style={{color:r.netEffect>=0?"#2E5B3C":"#8B2500"}}>{r.netEffectText}</b>{r.policyUsed?" (polisa "+r.policyUsed+"%)":""}
+              Rzut {i+1}: [{r.dice1}+{r.dice2}={r.sum}] — <i>{r.event.text}</i>{r.policyUsed?<span>. Polisa: {r.policyUsed}%</span>:""} → <b style={{color:r.netEffect>=0?"#2E5B3C":"#8B2500"}}>{r.netEffectText}</b>
             </div>))}
           </div>:<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak losowań</div>}
         </div>);
@@ -1568,10 +1584,10 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
               {tx.type==="barter"&&<span>: {fmtItems(tx.offeredItems)} \u2194 {fmtItems(tx.responseItems)}</span>}
             </div>);
           })}
-          {fFate.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#842504"}}><b>Ślepy los:</b> {tx.description}</div>))}
+          {fFate.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#842504"}}>{tx.description}</div>))}
           {fMap.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#842504"}}><b>Mapa:</b> {tx.from===fId?"Bonus 300 $ (kompletna mapa)":"Opłata 100 $ (mapa "+FM[tx.from].gen+")"}</div>))}
           {fBnb.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#842504"}}><b>BnB:</b> {tx.description}</div>))}
-          {fRev.map(tx=>{var isWin=tx.to===fId;return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B2500"}}><b>Rewolwerowiec:</b> {isWin?"Wygrana":"Przegrana"} {tx.amount} $ ({tx.field}) {isWin?"\u2190 "+FM[tx.from].nom:"\u2192 "+FM[tx.to].nom}</div>);})}
+          {fRev.map(tx=>{var isWin=tx.to===fId;return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B2500"}}><b>Rewolwerowiec</b> — {isWin?"wygrana: +"+tx.amount+" $":"przegrana: -"+tx.amount+" $"}</div>);})}
           {fPen.map(tx=>(<div key={tx.id} style={{padding:"4px 0",fontSize:13,color:"#8B2500"}}><b>Działka:</b> {tx.description}</div>))}
         </div>);
       })}
@@ -1970,6 +1986,15 @@ function App({roomCode,role}) {
   function toggleItem(item){
     // Nr 5: prevent selecting locked cards
     if(isCardLocked(item.id)){showMsg("Karta \""+item.name+"\" jest zablokowana w innej transakcji!");return;}
+    // Map fragment: must keep at least 1 of own fragment type
+    if(item.cat===C_MAP){
+      var isSelected=selItems.find(i=>i.id===item.id);
+      if(!isSelected){
+        var myMapItems=my.items.filter(i=>i.cat===C_MAP&&i.fragNr===item.fragNr);
+        var alreadySelectedSameFrag=selItems.filter(i=>i.cat===C_MAP&&i.fragNr===item.fragNr).length;
+        if(myMapItems.length-alreadySelectedSameFrag<=1){showMsg("Musisz zachować co najmniej 1 fragment mapy nr "+item.fragNr+"!");return;}
+      }
+    }
     if(item.cat===C_BNB){
       // BnB: toggle all cards with same bnbOrigin as a group
       var hasAny=selItems.find(i=>i.bnbOrigin===item.bnbOrigin);
@@ -2007,10 +2032,14 @@ function App({roomCode,role}) {
   function submitSale(){if(!tFam||!selItems.length||price<=0)return;
     var locked=selItems.filter(i=>isCardLocked(i.id));
     if(locked.length){showMsg("Karta \""+locked[0].name+"\" jest zablokowana w innej transakcji!");return;}
+    var mapDup=selItems.filter(i=>i.cat===C_MAP).find(i=>fd[tFam].items.some(ti=>ti.cat===C_MAP&&ti.fragNr===i.fragNr));
+    if(mapDup){showMsg("Rodzina "+FM[tFam].nom+" już posiada fragment mapy nr "+mapDup.fragNr+"!");return;}
     setTxs(p=>[{id:Date.now().toString(),type:"sale",from:cf,to:tFam,offeredItems:selItems.slice(),price:Number(price),status:"pending"},...p]);txSyncAfter();resetP();showMsg("Oferta sprzedaży wysłana");}
   function submitBarter(){if(!tFam||!selItems.length)return;
     var locked=selItems.filter(i=>isCardLocked(i.id));
     if(locked.length){showMsg("Karta \""+locked[0].name+"\" jest zablokowana w innej transakcji!");return;}
+    var mapDup=selItems.filter(i=>i.cat===C_MAP).find(i=>fd[tFam].items.some(ti=>ti.cat===C_MAP&&ti.fragNr===i.fragNr));
+    if(mapDup){showMsg("Rodzina "+FM[tFam].nom+" już posiada fragment mapy nr "+mapDup.fragNr+"!");return;}
     setTxs(p=>[{id:Date.now().toString(),type:"barter",from:cf,to:tFam,offeredItems:selItems.slice(),offeredCash:Number(eCash)||0,responseItems:null,responseCash:0,status:"awaiting_response"},...p]);txSyncAfter();resetP();showMsg("Propozycja barteru wysłana");}
   function submitResponse(){if(!rTx||!selItems.length)return;setTxs(p=>p.map(t=>t.id!==rTx?t:{...t,responseItems:selItems.slice(),responseCash:Number(eCash)||0,status:"pending"}));txSyncAfter();resetP();showMsg("Kontr-oferta wysłana!");}
   function acceptTx(txId){setTxs(p=>p.map(tx=>{if(tx.id!==txId)return tx;
@@ -2031,21 +2060,27 @@ function App({roomCode,role}) {
     setFd(fd2=>{var n={...fd2};var f={...n[tx.from],items:n[tx.from].items.slice(),cash:n[tx.from].cash};var t={...n[tx.to],items:n[tx.to].items.slice(),cash:n[tx.to].cash};if(tx.type==="sale"){f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);f.cash+=tx.price;t.cash-=tx.price;}else{f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);t.items=t.items.filter(i=>!tx.responseItems.find(r=>r.id===i.id));f.items=f.items.concat(tx.responseItems);if(tx.offeredCash>0){f.cash-=tx.offeredCash;t.cash+=tx.offeredCash;}if(tx.responseCash>0){t.cash-=tx.responseCash;f.cash+=tx.responseCash;}}n[tx.from]=f;n[tx.to]=t;return n;});return{...tx,status:"accepted"};}));txSyncAfter();showMsg("Operacja zrealizowana!");}
   function rejectTx(txId){setTxs(p=>p.map(t=>t.id===txId?{...t,status:"rejected"}:t));txSyncAfter();showMsg("Operacja odrzucona.");}
 
+  const rollingRef=useRef({});
   function rollDice(fId,rollIdx){
+    // Guard against double execution
+    var key=fId+"-"+rollIdx;
+    if(rollingRef.current[key])return;
+    rollingRef.current[key]=true;
     // Start rolling animation
     setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var rolls=(bf.rolls||[]).slice();
       rolls[rollIdx]={...rolls[rollIdx],rolling:true};bf.rolls=rolls;n[fId]=bf;return n;});
 
-    // After 2s animation, show dice result
+    // After 2s animation, show dice result — use crypto for proper randomness
     setTimeout(()=>{
-      var d1=Math.floor(Math.random()*6)+1,d2=Math.floor(Math.random()*6)+1,sum=d1+d2;
+      var arr=new Uint32Array(2);(window.crypto||window.msCrypto).getRandomValues(arr);
+      var d1=(arr[0]%6)+1,d2=(arr[1]%6)+1,sum=d1+d2;
       var ev=BLIND_FATE_EVENTS[sum];
       setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var rolls=(bf.rolls||[]).slice();
         var roll={...rolls[rollIdx]};
         roll.rolling=false;roll.dice1=d1;roll.dice2=d2;roll.sum=sum;roll.event=ev;roll.resolved=true;roll.showDice=true;roll.showCard=false;
         var pu=roll.policyUsed,ne=0,net="";
         if(ev.type==="loss"){var base=ev.amount;if(pu===100)ne=0;else if(pu===50)ne=Math.round(base/2);else ne=base;net=ne===0?"0 $ (polisa pokryła stratę)":ne+" $";}
-        else if(ev.type==="loss_resources"){if(pu===100){ne=0;net="0% zasobów (polisa)";}else if(pu===50){ne=-5;net="-5% zasobów";}else{ne=-10;net="-10% zasobów";}}
+        else if(ev.type==="loss_resources"){if(pu===100){ne=0;net="brak utraty zasobów (polisa)";}else if(pu===50){ne=-5;net="utrata 5% zasobów na koniec rozgrywki";}else{ne=-10;net="utrata 10% zasobów na koniec rozgrywki";}}
         else if(ev.type==="gain"){ne=ev.amount;net="+"+ev.amount+" $";}
         else if(ev.type==="gain_policy"){if(!pu){ne=0;net="0 $ (brak polisy)";}else{var pc=pu===50?30:50;ne=pc*2;net="+"+ne+" $ (2x"+pc+" $)";}}
         roll.netEffect=ne;roll.netEffectText=net;
@@ -2073,12 +2108,21 @@ function App({roomCode,role}) {
         setTxs(prev2=>{
           var roll2; setBlindFate(prev3=>{roll2=(prev3[fId]||{}).rolls[rollIdx];return prev3;});
           var ev3=BLIND_FATE_EVENTS[sum];
-          var desc="Rzut ["+d1+"+"+d2+"="+sum+"] — "+(ev3?ev3.text:"")+" → "+(roll2?roll2.netEffectText:"");
-          if(roll2&&roll2.policyUsed) desc+=" (polisa "+roll2.policyUsed+"%)";
-          if(ev3&&ev3.type==="loss_resources") desc="Rzut ["+d1+"+"+d2+"="+sum+"] — utrata 10% zasobów na koniec rozgrywki"+(roll2&&roll2.policyUsed?" (polisa "+roll2.policyUsed+"%)":"");
+          var desc="";
+          if(!roll2||!ev3){desc="Ślepy los";}
+          else if(ev3.type==="loss_resources"){
+            var pct=roll2.policyUsed===100?0:roll2.policyUsed===50?5:10;
+            desc=pct===0?"Ślepy los — brak utraty zasobów (polisa 100%)":"Ślepy los — utrata "+pct+"% zasobów na koniec rozgrywki";
+          }
+          else if(ev3.type==="gain"||ev3.type==="gain_policy"){desc="Ślepy los — zysk: +"+roll2.netEffect+" $";}
+          else if(ev3.type==="loss"){
+            var realLoss=Math.abs(roll2.netEffect);
+            desc=realLoss===0?"Ślepy los — strata: 0 $ (polisa)":"Ślepy los — strata: -"+realLoss+" $";
+          }
           return [{id:Date.now().toString(),type:"fate",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:desc},...prev2];
         });
         showMsg(FM[fId].nom+": "+ev2.text);
+        delete rollingRef.current[fId+"-"+rollIdx];
 
         // Auto-hide after 30s
         setTimeout(()=>{
@@ -2281,7 +2325,7 @@ function App({roomCode,role}) {
             </div>);
           })()}
           {activeTab==="results"&&resultsReveal>=1&&(()=>{
-            var sc=calcScore(familyId,fd,plotPenalties,biznesNaBoku,bnbEnabled);
+            var sc=calcScore(familyId,fd,plotPenalties,biznesNaBoku,bnbEnabled,blindFate);
             var relS=calcRelationScore(familyId,relations);
             var total=Math.round((sc.bizTotal+relS)*10)/10;
             return (<div style={{background:"#FFF8E0",border:"1px solid #D4A853",borderRadius:6,padding:16}}>
