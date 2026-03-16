@@ -878,6 +878,18 @@ function TxDisplay({tx,cf,onAccept,onReject,onRespond}) {
 }
 
 /* ========== MAP FRAGMENT (with image fallback) ========== */
+/* ========== AMMO GRID (with image fallback) ========== */
+function AmmoGrid({ammo,col,label,size}){
+  var sz=size||"normal";var w=sz==="small"?10:14,h=sz==="small"?20:28,g=sz==="small"?1:2;
+  const [imgOk,setImgOk]=useState(true);
+  var ammoSrc=getRevImg("NABOJ_AMMO");
+  var rows=[];for(var r=0;r<5;r++){var cols=[];for(var c=0;c<10;c++){var idx=r*10+c;var alive=idx<ammo;
+    cols.push(imgOk&&ammoSrc?<div key={c} style={{width:w,height:h,transition:"all 0.3s",opacity:alive?1:0.15}}><img src={ammoSrc} style={{width:w,height:h,objectFit:"contain"}} alt="" onError={()=>setImgOk(false)}/></div>
+    :<div key={c} style={{width:w,height:h,borderRadius:sz==="small"?2:3,background:alive?col:"#E8E0D0",border:"1px solid "+(alive?"rgba(0,0,0,0.2)":"#D4C4A8"),transition:"all 0.3s",opacity:alive?1:0.3}}/>);
+  }rows.push(<div key={r} style={{display:"flex",gap:g,marginBottom:g}}>{cols}</div>);}
+  return(<div><div style={{fontSize:13,fontWeight:700,color:col,marginBottom:4}}>{label}: {ammo}/50</div>{rows}</div>);
+}
+
 function MapFragment({n, have}) {
   const [imgOk,setImgOk]=useState(true);
   return <div style={{flex:1,borderRadius:4,overflow:"hidden",border:"2px solid "+(have?"#A09020":"#D4D0C0"),opacity:have?1:0.3,transition:"all 0.3s"}}>
@@ -961,7 +973,7 @@ function FateEventCard({sum, showEvent}) {
   var src=IMG_BASE+fileName+".jpg";
   // Track src changes for transition
   useEffect(()=>{if(showEvent&&sum){setPrevSrc(src);}},[showEvent,sum]);
-  return (<div style={{flex:2,borderRadius:6,border:"2px solid #D4A853",background:"#F8F6FA",overflow:"hidden"}}>
+  return (<div style={{flex:2,borderRadius:6,border:"2px solid #D4A853",background:"#FFF5F0",overflow:"hidden"}}>
     {imgOk&&<img src={src} style={{width:"100%",height:"auto",display:"block",transition:"opacity 0.6s ease"}} alt={showEvent&&ev?ev.text:"Ślepy los"} onError={()=>setImgOk(false)}/>}
     {(!imgOk&&showEvent&&ev)&&<div style={{padding:16,textAlign:"center"}}>
       <div style={{fontSize:15,fontWeight:600,color:"#2C1810",lineHeight:1.5}}>{ev.text}</div>
@@ -1046,7 +1058,7 @@ function BlindFateFamily({fId, blindFate}) {
 }
 
 /* ========== SHERIFF PANEL ========== */
-function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setConsultNotes,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,resultsReveal,setResultsReveal,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,manualMode,setManualMode,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,fateEnabled,setFateEnabled,mapEnabled,setMapEnabled,revEnabled,setRevEnabled,revMaxBet,setRevMaxBet,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle}) {
+function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setConsultNotes,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,resultsReveal,setResultsReveal,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,manualMode,setManualMode,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,fateEnabled,setFateEnabled,mapEnabled,setMapEnabled,revEnabled,setRevEnabled,revMaxBet,setRevMaxBet,revBidTime,setRevBidTime,revShowTime,setRevShowTime,revMode,setRevMode,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle,revSimGames,setRevSimGames}) {
   function applyPlotPenalties(){
     FO.forEach(fId=>{
       if(plotPenalties[fId]) return;
@@ -1240,7 +1252,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     {/* === 3. WEZWIJ SZERYFA + KONSULTACJE (obok siebie) === */}
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:20}}>
       {(()=>{var waiting=sheriffCalls.filter(c=>c.status==="waiting");var recent=sheriffCalls.filter(c=>c.status!=="waiting"&&c.status!=="dismissed").slice(-10);
-        return(<div style={{background:waiting.length>0?"#FFF0F0":"#F8F6FA",border:"2px solid "+(waiting.length>0?"#C09090":"#D4A853"),borderRadius:8,padding:16,transition:"all 0.3s"}}>
+        return(<div style={{background:waiting.length>0?"#FFF0F0":"#FFF5F0",border:"2px solid "+(waiting.length>0?"#C09090":"#D4A853"),borderRadius:8,padding:16,transition:"all 0.3s"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
             <div style={{fontSize:14,fontWeight:700,color:waiting.length>0?"#8B2500":"#842504"}} className="wt">
               Wezwij Szeryfa {waiting.length>0&&<span style={{background:"#8B2500",color:"#fff",padding:"2px 8px",borderRadius:10,fontSize:13,marginLeft:6}}>{waiting.length}</span>}
@@ -1255,7 +1267,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
               <button style={{fontSize:13,padding:"4px 8px",background:"#E8E0D0",color:"#5C4A3A",border:"1px solid #D4C4A8",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>dismissCall(absIdx)}>Odrzuć</button>
             </div>
           </div>);})}
-          {recent.length>0&&<div style={{marginTop:8,borderTop:"1px solid #E0D8E8",paddingTop:6}}>
+          {recent.length>0&&<div style={{marginTop:8,borderTop:"1px solid #E0D4C8",paddingTop:6}}>
             <div style={{fontSize:13,fontWeight:700,color:"#A89070",marginBottom:4}}>Ostatnie wezwania</div>
             {recent.map((call,ci)=>{var absIdx=sheriffCalls.indexOf(call);return(<div key={absIdx} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"3px 6px",fontSize:13,color:"#8B7355"}}>
               <span>{FM[call.fId].nom} — <b style={{color:call.status==="sold"?"#2E5B3C":"#8B2500"}}>{call.status==="sold"?"sprzedano":call.status==="cancelled"?"anulowano":"odrzucono"}</b></span>
@@ -1318,7 +1330,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
               <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px"}} onClick={()=>prepareRoll(fId,null)}>Bez polisy</button>
               {avPol.map(ap=><button key={ap.v} style={{...btnS("fate"),fontSize:13,padding:"3px 8px"}} onClick={()=>prepareRoll(fId,ap.v)}>Z polisą {ap.l}</button>)}
             </div>}
-            {rolls.map((roll,idx)=>(<div key={idx} style={{fontSize:13,color:"#5C4A3A",marginTop:4,padding:4,background:"#F8F6FA",borderRadius:3}}>
+            {rolls.map((roll,idx)=>(<div key={idx} style={{fontSize:13,color:"#5C4A3A",marginTop:4,padding:4,background:"#FFF5F0",borderRadius:3}}>
               <b>Rzut {idx+1}:</b> {roll.resolved?<span>{roll.dice1}+{roll.dice2}={roll.sum} &rarr; {roll.netEffectText}{roll.showCard&&<button style={{fontSize:13,padding:"1px 4px",marginLeft:4,cursor:"pointer",background:"#E8E0D0",border:"1px solid #C4B090",borderRadius:2,fontFamily:"inherit"}} onClick={()=>clearCard(fId,idx)}>Ukryj</button>}</span>:<span style={{fontStyle:"italic"}}>oczekuje...</span>}
             </div>))}
           </div>);
@@ -1326,7 +1338,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       </div>}
     </div>
     {/* === 5. ŚLEPY LOS — HISTORIA ZBIORCZA === */}
-    <div style={{background:"#F0ECF8",border:"1px solid #D4A853",borderRadius:6,padding:14,marginBottom:20}}>
+    <div style={{background:"#FFF5F0",border:"1px solid #D4A853",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:12}} className="wt">Ślepy los — historia zbiorcza</div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
       {FO.map(fId=>{var f=FM[fId],bf=blindFate[fId]||{},pol=bf.policies||{p50:null,p100:null},rolls=(bf.rolls||[]).filter(r=>r.resolved);
@@ -1339,7 +1351,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
           </div>
           {rolls.length>0?<div style={{fontSize:13,color:"#5C4A3A"}}>
             <b>Losowania:</b>
-            {rolls.map((r,i)=>(<div key={i} style={{padding:"3px 0",borderBottom:i<rolls.length-1?"1px dotted #E0D8E8":"none"}}>
+            {rolls.map((r,i)=>(<div key={i} style={{padding:"3px 0",borderBottom:i<rolls.length-1?"1px dotted #E0D4C8":"none"}}>
               Rzut {i+1}: {r.dice1}+{r.dice2}={r.sum} — <i>{r.event.text}</i> → <b style={{color:r.netEffect>=0?"#2E5B3C":"#8B2500"}}>{r.netEffectText}</b>{r.policyUsed?" (polisa "+r.policyUsed+"%)":""}
             </div>))}
           </div>:<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak losowań</div>}
@@ -1382,7 +1394,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
                 </div>
               </div>
               {soldAll&&<div style={{fontSize:13,color:"#2E5B3C",fontWeight:600,marginBottom:4}}>Sprzedano wszystko — bonifikata 100 $</div>}
-              {boughtCards.length>0&&<div style={{borderTop:"1px solid #E0D8E8",paddingTop:4,marginTop:4}}>
+              {boughtCards.length>0&&<div style={{borderTop:"1px solid #E0D4C8",paddingTop:4,marginTop:4}}>
                 <div style={{fontSize:13,fontWeight:700,color:"#A89070",marginBottom:2}}>Zakupione od innych:</div>
                 {Object.keys(boughtGrouped).map(o=><div key={o} style={{fontSize:13,color:"#5C4A3A"}}>{BNB_PRODUCTS[o].shortName} ×{boughtGrouped[o]} <span style={{color:"#A89070"}}>(od {FM[o].gen})</span></div>)}
               </div>}
@@ -1418,82 +1430,117 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
         {!revEnabled&&<button style={btnS("success")} onClick={()=>setRevEnabled(true)}>Odblokuj dodatek</button>}
         {revEnabled&&<div style={{display:"flex",gap:8,alignItems:"center"}}>
           <span style={{fontSize:13,fontWeight:700,color:"#8B2500",padding:"3px 10px",background:"#FFE8E0",borderRadius:4,border:"1px solid #D4A853"}}>Aktywny</span>
-          {!revCurrent&&<button style={btnS("danger",false)} onClick={()=>setRevEnabled(false)}>Zablokuj</button>}
+          {!revCurrent&&revSimGames.length===0&&<button style={btnS("danger",false)} onClick={()=>setRevEnabled(false)}>Zablokuj</button>}
         </div>}
       </div>
       {!revEnabled&&<div style={{fontSize:13,color:"#8B7355"}}>Mini-gra rywalizacyjna — dwie rodziny licytują strzałami o ustaloną stawkę. Odblokuj, aby uruchomić.</div>}
       {revEnabled&&<div>
-        <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:12}}>
-          <label style={{fontSize:13,color:"#5C4A3A"}}>Max stawka ($):</label>
+        {/* USTAWIENIA */}
+        <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:8,flexWrap:"wrap"}}>
+          <label style={{fontSize:13,color:"#5C4A3A"}}>Stawka ($):</label>
           <input type="number" min={1} step={1} value={revMaxBet} onChange={e=>setRevMaxBet(Math.max(1,parseInt(e.target.value)||1))} style={{width:70,padding:4,borderRadius:4,border:"1px solid #D4A853",fontSize:13}} disabled={!!revCurrent}/>
+          <label style={{fontSize:13,color:"#5C4A3A"}}>Czas licytacji (s):</label>
+          <input type="number" min={5} step={5} value={revBidTime} onChange={e=>setRevBidTime(Math.max(5,parseInt(e.target.value)||30))} style={{width:60,padding:4,borderRadius:4,border:"1px solid #D4A853",fontSize:13}} disabled={!!revCurrent}/>
+          <label style={{fontSize:13,color:"#5C4A3A"}}>Ekspozycja (s):</label>
+          <input type="number" min={3} step={1} value={revShowTime} onChange={e=>setRevShowTime(Math.max(3,parseInt(e.target.value)||10))} style={{width:60,padding:4,borderRadius:4,border:"1px solid #D4A853",fontSize:13}} disabled={!!revCurrent}/>
         </div>
-        {!revCurrent&&<div>
-          <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:6}}>Wybierz parę do pojedynku:</div>
-          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-            {FO.map((a,ai)=>FO.slice(ai+1).map(b=>{
-              var played=revDuels.some(d=>(d.familyA===a&&d.familyB===b)||(d.familyA===b&&d.familyB===a));
-              return(<button key={a+b} style={{...btnS(played?"secondary":"warning",false),fontSize:13,opacity:played?0.5:1}} onClick={()=>{if(!played)revNewDuel(a,b);}} disabled={played} title={played?"Już rozegrano":""}>{FM[a].nom} vs {FM[b].nom}{played?" ✓":""}</button>);
-            }))}
-          </div>
-          {(revDuels||[]).length>0&&<div style={{marginTop:12}}>
-            <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:4}}>Historia pojedynków:</div>
-            {revDuels.map(d=>{var wN=d.winner?FM[d.winner].nom:"Remis";return(
-              <div key={d.id} style={{fontSize:13,color:"#5C4A3A",padding:"3px 0",borderBottom:"1px dotted #D4C4A8"}}>{FM[d.familyA].nom} vs {FM[d.familyB].nom} — <b>{wN}</b> ({d.winField}, {d.rounds.length} rund, stawka {d.bet} $)</div>
-            );})}
+        {/* TRYB */}
+        <div style={{display:"flex",gap:8,marginBottom:12}}>
+          <button style={{...btnS(revMode==="public"?"success":"secondary",false),fontSize:13}} onClick={()=>setRevMode("public")}>Tryb gry z publicznością</button>
+          <button style={{...btnS(revMode==="simultaneous"?"success":"secondary",false),fontSize:13}} onClick={()=>setRevMode("simultaneous")}>Tryb symultaniczny</button>
+        </div>
+        {/* ======= TRYB GRY Z PUBLICZNOŚCIĄ ======= */}
+        {revMode==="public"&&<div>
+          {!revCurrent&&<div>
+            <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:6}}>Wybierz parę do pojedynku:</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+              {FO.map((a,ai)=>FO.slice(ai+1).map(b=>{
+                var playCount=revDuels.filter(d=>(d.familyA===a&&d.familyB===b)||(d.familyA===b&&d.familyB===a)).length;
+                return(<button key={a+b} style={{...btnS("warning",false),fontSize:13}} onClick={()=>revNewDuel(a,b)}>{FM[a].nom} vs {FM[b].nom}{playCount>0?" ("+playCount+"×)":""}</button>);
+              }))}
+            </div>
+          </div>}
+          {revCurrent&&<div>
+            {revCurrent.status==="betting"&&<div style={{background:"#fff",border:"1px solid #D4A853",borderRadius:6,padding:12,marginBottom:8}}>
+              <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:8}} className="wt">{FM[revCurrent.familyA].nom} vs {FM[revCurrent.familyB].nom}</div>
+              <div style={{fontSize:13,color:"#5C4A3A",marginBottom:6}}>Ustalcie stawkę (max {revMaxBet} $):</div>
+              <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                <input type="number" id="revBetInput" min={1} max={revMaxBet} step={1} defaultValue={Math.min(30,revMaxBet)} style={{width:80,padding:4,borderRadius:4,border:"1px solid #D4A853",fontSize:13}}/>
+                <button style={btnS("success")} onClick={()=>{var v=parseInt(document.getElementById("revBetInput").value)||0;if(v<1||v>revMaxBet){showMsg("Stawka musi wynosić od 1 do "+revMaxBet+" $");return;}revSetBet(v);}}>Zatwierdź stawkę</button>
+                <button style={btnS("danger")} onClick={()=>setRevCurrent(null)}>Anuluj</button>
+              </div>
+            </div>}
+            {revCurrent.status==="playing"&&<div style={{background:"#fff",border:"1px solid #D4A853",borderRadius:6,padding:12}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                <div style={{fontSize:13,fontWeight:700,color:"#8B2500"}} className="wt">{FM[revCurrent.familyA].nom} vs {FM[revCurrent.familyB].nom} — stawka: {revCurrent.bet} $</div>
+                {revCurrent.phase&&<div style={{fontSize:20,fontWeight:700,fontFamily:"monospace",color:revCurrent.phaseTimer<=5?"#8B2500":"#842504",background:revCurrent.phase==="bidding"?"#FFF0E8":"#E8F5E8",padding:"4px 12px",borderRadius:6,border:"2px solid "+(revCurrent.phase==="bidding"?"#D4A853":"#90C090"),minWidth:50,textAlign:"center"}}>{revCurrent.phaseTimer}s<div style={{fontSize:10,fontWeight:400}}>{revCurrent.phase==="bidding"?"licytacja":"wynik"}</div></div>}
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+                <div style={{fontSize:13,color:FM[revCurrent.familyA].col}}><b>{FM[revCurrent.familyA].nom}</b>: {revCurrent.ammoA} nabojów {revCurrent.shotsA!==null?"(✓ "+revCurrent.shotsA+")":"(czeka...)"}</div>
+                <div style={{fontSize:13,color:FM[revCurrent.familyB].col}}><b>{FM[revCurrent.familyB].nom}</b>: {revCurrent.ammoB} nabojów {revCurrent.shotsB!==null?"(✓ "+revCurrent.shotsB+")":"(czeka...)"}</div>
+              </div>
+              {/* PLANSZA MINI */}
+              <div style={{display:"flex",gap:2,marginBottom:8,alignItems:"stretch"}}>
+                {["WYGRANA","DOMINACJA","PRZEWAGA","POJEDYNEK","PRZEWAGA","DOMINACJA","WYGRANA"].map((label,idx)=>{
+                  var pos=idx-3,isBullet=revCurrent.bulletPos===pos;
+                  var img=getRevImg(label==="POJEDYNEK"?"POJEDYNEK":label==="PRZEWAGA"?"PRZEWAGA":label==="DOMINACJA"?"DOMINACJA":"WYGRANA");
+                  return(<div key={idx} style={{flex:1,border:"2px solid "+(isBullet?"#8B2500":"#D4C4A8"),borderRadius:4,textAlign:"center",position:"relative",overflow:"hidden",minHeight:50}}>
+                    {img&&<img src={img} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt={label}/>}
+                    {!img&&<div style={{padding:"8px 4px"}}><div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase"}}>{label}</div></div>}
+                    {isBullet&&<div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)"}}>
+                      {getRevImg("NABOJ_ZNACZNIK")?<img src={getRevImg("NABOJ_ZNACZNIK")} style={{height:35,filter:"drop-shadow(0 2px 3px rgba(0,0,0,0.5))"}} alt="nabój"/>:<div style={{fontSize:20}}>●</div>}
+                    </div>}
+                  </div>);
+                })}
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+                <AmmoGrid ammo={revCurrent.ammoA} col={FM[revCurrent.familyA].col} label={FM[revCurrent.familyA].nom} size="small"/>
+                <AmmoGrid ammo={revCurrent.ammoB} col={FM[revCurrent.familyB].col} label={FM[revCurrent.familyB].nom} size="small"/>
+              </div>
+              {(revCurrent.rounds||[]).length>0&&<div style={{fontSize:13,color:"#8B7355",marginBottom:6}}>
+                {(revCurrent.rounds||[]).map((r,i)=><span key={i} style={{marginRight:8}}>R{i+1}: {r.shotsA} vs {r.shotsB} → {r.winner==="A"?"←":r.winner==="B"?"→":"="}</span>)}
+              </div>}
+            </div>}
+            {revCurrent.status==="finished"&&<div style={{background:"#fff",border:"2px solid #8B2500",borderRadius:6,padding:12,marginTop:8}}>
+              <div style={{fontSize:14,fontWeight:700,color:"#8B2500",marginBottom:6}} className="wt">Koniec pojedynku!</div>
+              <div style={{fontSize:13,color:"#5C4A3A",marginBottom:4}}>{revCurrent.winner?<span>Wygrywa: <b style={{color:FM[revCurrent.winner].col}}>{FM[revCurrent.winner].nom}</b> (pole: {revCurrent.winField})</span>:<span>Remis!</span>}</div>
+              <div style={{fontSize:13,color:"#8B7355",fontStyle:"italic"}}>Automatyczne rozliczenie za chwilę...</div>
+            </div>}
           </div>}
         </div>}
-        {revCurrent&&<div>
-          {revCurrent.status==="betting"&&<div style={{background:"#fff",border:"1px solid #D4A853",borderRadius:6,padding:12,marginBottom:8}}>
-            <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:8}} className="wt">{FM[revCurrent.familyA].nom} vs {FM[revCurrent.familyB].nom}</div>
-            <div style={{fontSize:13,color:"#5C4A3A",marginBottom:6}}>Ustalcie stawkę (max {revMaxBet} $):</div>
-            <div style={{display:"flex",gap:8,alignItems:"center"}}>
-              <input type="number" id="revBetInput" min={1} max={revMaxBet} step={1} defaultValue={Math.min(30,revMaxBet)} style={{width:80,padding:4,borderRadius:4,border:"1px solid #D4A853",fontSize:13}}/>
-              <button style={btnS("success")} onClick={()=>{var v=parseInt(document.getElementById("revBetInput").value)||0;if(v<1||v>revMaxBet){showMsg("Stawka musi wynosić od 1 do "+revMaxBet+" $");return;}revSetBet(v);}}>Zatwierdź stawkę</button>
-              <button style={btnS("danger")} onClick={()=>setRevCurrent(null)}>Anuluj</button>
+        {/* ======= TRYB SYMULTANICZNY ======= */}
+        {revMode==="simultaneous"&&<div>
+          {revSimGames.length<2&&<div style={{marginBottom:8}}>
+            <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:6}}>Dodaj parę (max 2 jednocześnie):</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+              {FO.map((a,ai)=>FO.slice(ai+1).map(b=>{
+                var inGame=revSimGames.some(g=>(g.familyA===a||g.familyB===a||g.familyA===b||g.familyB===b));
+                if(inGame)return null;
+                return(<button key={a+b} style={{...btnS("warning",false),fontSize:13}} onClick={()=>{
+                  var g={id:ci(),familyA:a,familyB:b,bet:revMaxBet,bulletPos:0,ammoA:50,ammoB:50,rounds:[],shotsA:null,shotsB:null,status:"playing",phase:"bidding",phaseTimer:revBidTime,winner:null,winField:null};
+                  setRevSimGames(prev=>[...prev,g]);
+                }}>{FM[a].nom} vs {FM[b].nom}</button>);
+              }))}
             </div>
           </div>}
-          {(revCurrent.status==="playing"||revCurrent.status==="reveal")&&<div style={{background:"#fff",border:"1px solid #D4A853",borderRadius:6,padding:12}}>
-            <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:4}} className="wt">{FM[revCurrent.familyA].nom} vs {FM[revCurrent.familyB].nom} — stawka: {revCurrent.bet} $</div>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-              <div style={{fontSize:13,color:FM[revCurrent.familyA].col}}><b>{FM[revCurrent.familyA].nom}</b>: {revCurrent.ammoA} strzałów {revCurrent.shotsA!==null?"(✓ gotowy)":"(czeka...)"}</div>
-              <div style={{fontSize:13,color:FM[revCurrent.familyB].col}}><b>{FM[revCurrent.familyB].nom}</b>: {revCurrent.ammoB} strzałów {revCurrent.shotsB!==null?"(✓ gotowy)":"(czeka...)"}</div>
-            </div>
-            {/* PLANSZA MINI */}
-            <div style={{display:"flex",gap:2,marginBottom:8,alignItems:"stretch"}}>
-              {["WYGRANA","DOMINACJA","PRZEWAGA","POJEDYNEK","PRZEWAGA","DOMINACJA","WYGRANA"].map((label,idx)=>{
-                var pos=idx-3,isBullet=revCurrent.bulletPos===pos;
-                var imgKey=label==="POJEDYNEK"?"POJEDYNEK":label==="PRZEWAGA"?"PRZEWAGA":label==="DOMINACJA"?"DOMINACJA":"WYGRANA";
-                var img=getRevImg(imgKey);
-                var borderCol=isBullet?"#8B2500":"#D4C4A8";
-                return(<div key={idx} style={{flex:1,border:"2px solid "+borderCol,borderRadius:4,textAlign:"center",position:"relative",overflow:"hidden",minHeight:50}}>
-                  {img&&<img src={img} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt={label}/>}
-                  {!img&&<div style={{padding:"8px 4px"}}><div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase"}}>{label}</div></div>}
-                  {isBullet&&<div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)"}}>
-                    {getRevImg("NABOJ_ZNACZNIK")?<img src={getRevImg("NABOJ_ZNACZNIK")} style={{height:35,filter:"drop-shadow(0 2px 3px rgba(0,0,0,0.5))"}} alt="nabój"/>:<div style={{fontSize:20}}>●</div>}
-                  </div>}
-                </div>);
-              })}
-            </div>
-            {/* AMUNICJA TRENERA = KIBIC */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-              {[["A",revCurrent.familyA,revCurrent.ammoA],["B",revCurrent.familyB,revCurrent.ammoB]].map(([side,fam,ammo])=>{
-                var col=FM[fam].col;var ammoImg=getRevImg("NABOJ_AMMO");var rows=[];
-                for(var r=0;r<5;r++){var cols2=[];for(var c=0;c<10;c++){var idx2=r*10+c;var alive=idx2<ammo;cols2.push(ammoImg?<div key={c} style={{width:10,height:20,transition:"all 0.3s",opacity:alive?1:0.15}}><img src={ammoImg} style={{width:10,height:20,objectFit:"contain"}} alt=""/></div>:<div key={c} style={{width:10,height:20,borderRadius:2,background:alive?col:"#E8E0D0",border:"1px solid "+(alive?"rgba(0,0,0,0.15)":"#D4C4A8"),opacity:alive?1:0.3}}/>);}rows.push(<div key={r} style={{display:"flex",gap:1,marginBottom:1}}>{cols2}</div>);}
-                return(<div key={side}><div style={{fontSize:13,fontWeight:700,color:col,marginBottom:2}}>{FM[fam].nom}: {ammo}/50</div>{rows}</div>);
-              })}
-            </div>
-            {(revCurrent.rounds||[]).length>0&&<div style={{fontSize:13,color:"#8B7355",marginBottom:6}}>
-              {(revCurrent.rounds||[]).map((r,i)=><span key={i} style={{marginRight:8}}>R{i+1}: {r.shotsA} vs {r.shotsB} → {r.winner==="A"?"←":r.winner==="B"?"→":"="}</span>)}
-            </div>}
-            {revCurrent.shotsA!==null&&revCurrent.shotsB!==null&&revCurrent.status==="playing"&&<button style={btnS("warning")} onClick={revReveal}>Odsłoń strzały</button>}
-            {revCurrent.status!=="playing"&&revCurrent.status!=="finished"&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Oczekiwanie na deklaracje obu rodzin...</div>}
+          {revSimGames.length>0&&<div style={{display:"grid",gridTemplateColumns:revSimGames.length>1?"1fr 1fr":"1fr",gap:12}}>
+            {revSimGames.map(g=>{var phTimer=g.phaseTimer||0;return(<div key={g.id} style={{background:"#fff",border:"2px solid "+(g.status==="finished"?"#8B2500":"#D4A853"),borderRadius:6,padding:10}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                <div style={{fontSize:13,fontWeight:700,color:"#8B2500"}}>{FM[g.familyA].nom} vs {FM[g.familyB].nom}</div>
+                {g.phase&&<div style={{fontSize:16,fontWeight:700,fontFamily:"monospace",color:phTimer<=5?"#8B2500":"#842504",padding:"2px 8px",borderRadius:4,background:g.phase==="bidding"?"#FFF0E8":"#E8F5E8"}}>{phTimer}s</div>}
+              </div>
+              <div style={{fontSize:13,color:"#5C4A3A"}}>Stawka: {g.bet} $ | Runda: {(g.rounds||[]).length+1}</div>
+              {g.status==="finished"&&<div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginTop:4}}>{g.winner?"Wygrywa: "+FM[g.winner].nom+" ("+g.winField+")":"Remis!"} — rozliczanie...</div>}
+            </div>);})}
           </div>}
-          {revCurrent.status==="finished"&&<div style={{background:"#fff",border:"2px solid #8B2500",borderRadius:6,padding:12,marginTop:8}}>
-            <div style={{fontSize:14,fontWeight:700,color:"#8B2500",marginBottom:6}} className="wt">Koniec pojedynku!</div>
-            <div style={{fontSize:13,color:"#5C4A3A",marginBottom:4}}>{revCurrent.winner?<span>Wygrywa: <b style={{color:FM[revCurrent.winner].col}}>{FM[revCurrent.winner].nom}</b> (pole: {revCurrent.winField})</span>:<span>Remis!</span>}</div>
-            {revCurrent.winner&&<div style={{fontSize:13,color:"#5C4A3A",marginBottom:8}}>Transfer: {Math.round(revCurrent.bet*(revCurrent.winField==="wygrana"?1:revCurrent.winField==="dominacja"?2/3:1/3))} $ → {FM[revCurrent.winner].nom}</div>}
-            <button style={btnS("success")} onClick={revSettle}>Rozlicz i zakończ</button>
-          </div>}
+          {revSimGames.length===0&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Wybierz pary — gry ruszą automatycznie ze stawką {revMaxBet} $.</div>}
+        </div>}
+        {/* HISTORIA */}
+        {(revDuels||[]).length>0&&<div style={{marginTop:12,borderTop:"1px solid #D4C4A8",paddingTop:8}}>
+          <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:4}}>Historia pojedynków:</div>
+          {revDuels.map(d=>{var wN=d.winner?FM[d.winner].nom:"Remis";return(
+            <div key={d.id} style={{fontSize:13,color:"#5C4A3A",padding:"3px 0",borderBottom:"1px dotted #D4C4A8"}}>{FM[d.familyA].nom} vs {FM[d.familyB].nom} — <b>{wN}</b> ({d.winField}, {d.rounds.length} rund, stawka {d.bet} $)</div>
+          );})}
         </div>}
       </div>}
     </div>
@@ -1577,11 +1624,17 @@ function App({roomCode,role}) {
   const [revMaxBet,setRevMaxBet]=useState(60);
   const [revDuels,setRevDuels]=useState([]);
   const [revCurrent,setRevCurrent]=useState(null);
-  // revCurrent shape: {id, familyA, familyB, bet:0, bulletPos:0, ammoA:50, ammoB:50, rounds:[], shotsA:null, shotsB:null, status:'betting'|'playing'|'reveal'|'finished', winner:null, winField:null}
-  function revNewDuel(fA,fB){setRevCurrent({id:ci(),familyA:fA,familyB:fB,bet:0,bulletPos:0,ammoA:50,ammoB:50,rounds:[],shotsA:null,shotsB:null,status:"betting",winner:null,winField:null});}
-  function revSetBet(amt){setRevCurrent(c=>c?{...c,bet:amt,status:"playing"}:c);}
-  function revSubmitShots(fId,n){setRevCurrent(c=>{if(!c)return c;if(fId===c.familyA)return{...c,shotsA:n};if(fId===c.familyB)return{...c,shotsB:n};return c;});}
-  function revReveal(){setRevCurrent(c=>{if(!c||c.shotsA===null||c.shotsB===null)return c;var sA=c.shotsA,sB=c.shotsB,newPos=c.bulletPos,aA=c.ammoA-sA,aB=c.ammoB-sB;
+  const [revBidTime,setRevBidTime]=useState(30);
+  const [revShowTime,setRevShowTime]=useState(10);
+  const [revMode,setRevMode]=useState("public"); // "public" | "simultaneous"
+  const [revSimGames,setRevSimGames]=useState([]); // for simultaneous mode
+  const revTimerRef=useRef(null);
+  // revCurrent shape: {id, familyA, familyB, bet:0, bulletPos:0, ammoA:50, ammoB:50, rounds:[], shotsA:null, shotsB:null, status:'betting'|'playing'|'finished', phase:'bidding'|'showing'|null, phaseTimer:0, winner:null, winField:null}
+  function revNewDuel(fA,fB){setRevCurrent({id:ci(),familyA:fA,familyB:fB,bet:0,bulletPos:0,ammoA:50,ammoB:50,rounds:[],shotsA:null,shotsB:null,status:"betting",phase:null,phaseTimer:0,winner:null,winField:null});}
+  function revSetBet(amt){setRevCurrent(c=>c?{...c,bet:amt,status:"playing",phase:"bidding",phaseTimer:revBidTime,shotsA:null,shotsB:null}:c);}
+  function revSubmitShots(fId,n){setRevCurrent(c=>{if(!c||c.phase!=="bidding")return c;if(fId===c.familyA)return{...c,shotsA:n};if(fId===c.familyB)return{...c,shotsB:n};return c;});}
+  function revDoReveal(c){if(!c)return c;
+    var sA=c.shotsA!==null?c.shotsA:0, sB=c.shotsB!==null?c.shotsB:0, newPos=c.bulletPos, aA=c.ammoA-sA, aB=c.ammoB-sB;
     if(sA>sB)newPos=Math.max(-3,c.bulletPos-1);else if(sB>sA)newPos=Math.min(3,c.bulletPos+1);
     var round={shotsA:sA,shotsB:sB,winner:sA>sB?"A":sB>sA?"B":"draw",bulletAfter:newPos};
     var rounds=[...(c.rounds||[]),round];var status="playing",winner=null,winField=null;
@@ -1589,17 +1642,113 @@ function App({roomCode,role}) {
     winField=fields[newPos+3];
     if(Math.abs(newPos)===3){status="finished";winner=newPos<0?c.familyA:c.familyB;}
     else if(aA<=0&&aB<=0){status="finished";winner=newPos<0?c.familyA:newPos>0?c.familyB:null;}
-    return{...c,bulletPos:newPos,ammoA:aA,ammoB:aB,rounds:rounds,shotsA:null,shotsB:null,status:status,winner:winner,winField:winField};
-  });}
-  function revSettle(){if(!revCurrent||revCurrent.status!=="finished")return;var c=revCurrent;
+    return{...c,bulletPos:newPos,ammoA:aA,ammoB:aB,rounds:rounds,shotsA:null,shotsB:null,status:status,phase:status==="finished"?null:"showing",phaseTimer:status==="finished"?0:revShowTime,winner:winner,winField:winField};
+  }
+  function revReveal(){setRevCurrent(c=>revDoReveal(c));}
+  function revAutoSettle(c){if(!c||c.status!=="finished")return;
     var payFrac=c.winField==="wygrana"?1:c.winField==="dominacja"?2/3:c.winField==="przewaga"?1/3:0;
     var winAmt=Math.round(c.bet*payFrac);
     if(c.winner&&winAmt>0){var loser=c.winner===c.familyA?c.familyB:c.familyA;
       setFd(fd2=>{var n={...fd2};n[c.winner]={...n[c.winner],cash:n[c.winner].cash+winAmt};n[loser]={...n[loser],cash:n[loser].cash-winAmt};return n;});
-      setTxs(p=>[...p,{id:ci(),type:"revolver",from:loser,to:c.winner,amount:winAmt,field:c.winField,status:"accepted",ts:Date.now()}]);
+      setTxs(p=>[{id:ci(),type:"revolver",from:loser,to:c.winner,amount:winAmt,field:c.winField,status:"accepted",ts:Date.now()},...p]);
+    } else if(!c.winner) {
+      // Draw on edge — record 0$ transfer
+      setTxs(p=>[{id:ci(),type:"revolver",from:c.familyA,to:c.familyB,amount:0,field:c.winField||"pojedynek",status:"accepted",ts:Date.now()},...p]);
     }
     setRevDuels(d=>[...d,{...c,settled:true}]);setRevCurrent(null);
   }
+  function revSettle(){revAutoSettle(revCurrent);}
+  // Revolver timer effect — only sheriff runs it
+  useEffect(()=>{
+    if(!isSheriff)return;
+    if(revTimerRef.current)clearInterval(revTimerRef.current);
+    if(!revCurrent||!revCurrent.phase||revCurrent.phaseTimer<=0)return;
+    revTimerRef.current=setInterval(()=>{
+      setRevCurrent(c=>{
+        if(!c||!c.phase||c.phaseTimer<=0){clearInterval(revTimerRef.current);return c;}
+        var newT=c.phaseTimer-1;
+        if(c.phase==="bidding"&&newT<=0){
+          // Time's up for bidding: auto-reveal with current shots (null = 0)
+          return revDoReveal({...c,phaseTimer:0});
+        }
+        if(c.phase==="showing"&&newT<=0){
+          // Showing time's up: start next bidding round
+          return{...c,phase:"bidding",phaseTimer:revBidTime,shotsA:null,shotsB:null};
+        }
+        return{...c,phaseTimer:newT};
+      });
+    },1000);
+    return()=>{if(revTimerRef.current)clearInterval(revTimerRef.current);};
+  },[revCurrent&&revCurrent.phase,revCurrent&&revCurrent.phaseTimer,revCurrent&&revCurrent.status]);
+  // Auto-reveal when both players submit
+  useEffect(()=>{
+    if(!revCurrent||revCurrent.phase!=="bidding")return;
+    if(revCurrent.shotsA!==null&&revCurrent.shotsB!==null){
+      // Both submitted — reveal immediately
+      if(isSheriff){setRevCurrent(c=>revDoReveal(c));}
+    }
+  },[revCurrent&&revCurrent.shotsA,revCurrent&&revCurrent.shotsB,revCurrent&&revCurrent.phase]);
+  // Auto-settle when finished
+  useEffect(()=>{
+    if(!revCurrent||revCurrent.status!=="finished")return;
+    if(isSheriff){var t=setTimeout(()=>revAutoSettle(revCurrent),1500);return()=>clearTimeout(t);}
+  },[revCurrent&&revCurrent.status]);
+  // === SIMULTANEOUS MODE ===
+  function revSimDoReveal(g){return revDoReveal(g);}
+  function revSimTick(){
+    setRevSimGames(prev=>prev.map(g=>{
+      if(!g.phase||g.phaseTimer<=0||g.status==="finished")return g;
+      var newT=g.phaseTimer-1;
+      if(g.phase==="bidding"&&newT<=0)return revSimDoReveal({...g,phaseTimer:0});
+      if(g.phase==="showing"&&newT<=0)return{...g,phase:"bidding",phaseTimer:revBidTime,shotsA:null,shotsB:null};
+      return{...g,phaseTimer:newT};
+    }));
+  }
+  function revSimCheckAutoReveal(){
+    setRevSimGames(prev=>prev.map(g=>{
+      if(g.phase==="bidding"&&g.shotsA!==null&&g.shotsB!==null)return revSimDoReveal(g);
+      return g;
+    }));
+  }
+  function revSimSubmitShots(gameId,fId,n){
+    setRevSimGames(prev=>prev.map(g=>{
+      if(g.id!==gameId||g.phase!=="bidding")return g;
+      if(fId===g.familyA)return{...g,shotsA:n};
+      if(fId===g.familyB)return{...g,shotsB:n};
+      return g;
+    }));
+  }
+  function revSimSettle(g){
+    var payFrac=g.winField==="wygrana"?1:g.winField==="dominacja"?2/3:g.winField==="przewaga"?1/3:0;
+    var winAmt=Math.round(g.bet*payFrac);
+    if(g.winner&&winAmt>0){var loser=g.winner===g.familyA?g.familyB:g.familyA;
+      setFd(fd2=>{var n={...fd2};n[g.winner]={...n[g.winner],cash:n[g.winner].cash+winAmt};n[loser]={...n[loser],cash:n[loser].cash-winAmt};return n;});
+      setTxs(p=>[{id:ci(),type:"revolver",from:loser,to:g.winner,amount:winAmt,field:g.winField,status:"accepted",ts:Date.now()},...p]);
+    }
+    setRevDuels(d=>[...d,{...g,settled:true}]);
+    setRevSimGames(prev=>prev.filter(sg=>sg.id!==g.id));
+  }
+  // Sim timer effect
+  useEffect(()=>{
+    if(!isSheriff||revSimGames.length===0)return;
+    var active=revSimGames.some(g=>g.phase&&g.phaseTimer>0);
+    if(!active)return;
+    var iv=setInterval(()=>{revSimTick();},1000);
+    return()=>clearInterval(iv);
+  },[revSimGames]);
+  // Sim auto-reveal check
+  useEffect(()=>{
+    if(revSimGames.some(g=>g.phase==="bidding"&&g.shotsA!==null&&g.shotsB!==null)){
+      if(isSheriff)revSimCheckAutoReveal();
+    }
+  },[revSimGames]);
+  // Sim auto-settle
+  useEffect(()=>{
+    var finished=revSimGames.filter(g=>g.status==="finished");
+    if(finished.length>0&&isSheriff){
+      finished.forEach(g=>{setTimeout(()=>revSimSettle(g),1500);});
+    }
+  },[revSimGames]);
 
   // === SCHEDULE STATE ===
   const [gameStarted,setGameStarted]=useState(false);
@@ -1630,7 +1779,8 @@ function App({roomCode,role}) {
   useEffect(()=>{
     stateRef.current={fd,txs:txs.length?txs:[],consultations,consultNotes,blindFate,mapBonusClaimed,mapEnabled,plotPenalties,
       relations,relationsUnlocked,biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,resultsReveal,
-      revEnabled,revMaxBet,revDuels:revDuels.length?revDuels:[],revCurrent:revCurrentToFB(revCurrent),
+      revEnabled,revMaxBet,revBidTime,revShowTime,revMode,revDuels:revDuels.length?revDuels:[],revCurrent:revCurrentToFB(revCurrent),
+      revSimGames:revSimGames.length?revSimGames.map(g=>revCurrentToFB(g)):[],
       gameStarted,stageIdx,stageDurations,
       timerRunning,timerPaused,secondsLeft,sheriffCalls:sheriffCalls.length?sheriffCalls:[]};
   });
@@ -1683,8 +1833,12 @@ function App({roomCode,role}) {
       if(s.resultsReveal!==undefined)setResultsReveal(s.resultsReveal);
       if(s.revEnabled!==undefined)setRevEnabled(s.revEnabled);
       if(s.revMaxBet!==undefined)setRevMaxBet(s.revMaxBet);
+      if(s.revBidTime!==undefined)setRevBidTime(s.revBidTime);
+      if(s.revShowTime!==undefined)setRevShowTime(s.revShowTime);
+      if(s.revMode)setRevMode(s.revMode);
       if(s.revDuels)setRevDuels(Array.isArray(s.revDuels)?s.revDuels:Object.values(s.revDuels));
       setRevCurrent(revCurrentFromFB(s.revCurrent));
+      if(s.revSimGames){var sg=Array.isArray(s.revSimGames)?s.revSimGames:Object.values(s.revSimGames);setRevSimGames(sg.map(g=>revCurrentFromFB(g)));}
       if(s.gameStarted!==undefined)setGameStarted(s.gameStarted);
       if(s.stageIdx!==undefined)setStageIdx(s.stageIdx);
       if(s.stageDurations)setStageDurations(s.stageDurations);
@@ -1703,8 +1857,8 @@ function App({roomCode,role}) {
     if(fbIncoming.current||!fbInitDone.current)return;
     syncToFB();
   },[fd,txs,consultations,consultNotes,blindFate,mapBonusClaimed,mapEnabled,plotPenalties,relations,relationsUnlocked,
-    biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,resultsReveal,revEnabled,revMaxBet,revDuels,
-    revCurrent,gameStarted,stageIdx,stageDurations,timerRunning,timerPaused,secondsLeft,sheriffCalls]);
+    biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,resultsReveal,revEnabled,revMaxBet,revBidTime,revShowTime,revMode,revDuels,
+    revCurrent,revBidTime,revShowTime,revMode,revSimGames,gameStarted,stageIdx,stageDurations,timerRunning,timerPaused,secondsLeft,sheriffCalls]);
 
   const showMsg=useCallback(m=>{setToast(m);setTimeout(()=>setToast(null),3000);},[]);
 
@@ -1969,7 +2123,7 @@ function App({roomCode,role}) {
     {viewSheriff&&sheriffViewFamily&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:13,color:"#664D03",textAlign:"center"}}>
       Podgląd panelu rodziny {FM[sheriffViewFamily].gen} <button style={{marginLeft:8,fontSize:13,padding:"2px 8px",cursor:"pointer",background:"#8B6914",color:"#fff",border:"none",borderRadius:3,fontFamily:"inherit"}} onClick={()=>setSheriffViewFamily(null)}>Wróć do panelu Szeryfa</button>
     </div>}
-    {viewSheriff&&!sheriffViewFamily&&<SheriffPanel fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} consultNotes={consultNotes} setConsultNotes={setConsultNotes} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} resultsReveal={resultsReveal} setResultsReveal={setResultsReveal} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} manualMode={manualMode} setManualMode={setManualMode} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle}/>}
+    {viewSheriff&&!sheriffViewFamily&&<SheriffPanel fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} consultNotes={consultNotes} setConsultNotes={setConsultNotes} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} resultsReveal={resultsReveal} setResultsReveal={setResultsReveal} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} manualMode={manualMode} setManualMode={setManualMode} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revBidTime={revBidTime} setRevBidTime={setRevBidTime} revShowTime={revShowTime} setRevShowTime={setRevShowTime} revMode={revMode} setRevMode={setRevMode} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle} revSimGames={revSimGames} setRevSimGames={setRevSimGames}/>}
 
     {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
@@ -2160,31 +2314,35 @@ function App({roomCode,role}) {
             </div>);
           })()}
           {activeTab==="rev"&&revEnabled&&(()=>{
+            // Find active game for this family — either revCurrent (public) or revSimGames (simultaneous)
             var rc=revCurrent;
+            var simGame=revSimGames.find(g=>g.familyA===familyId||g.familyB===familyId);
+            if(simGame)rc=simGame;
             var isPlayer=rc&&(rc.familyA===familyId||rc.familyB===familyId);
             var isA=rc&&rc.familyA===familyId;
             var myAmmo=rc?(isA?rc.ammoA:rc.ammoB):0;
             var myShots=rc?(isA?rc.shotsA:rc.shotsB):null;
+            var submitFn=simGame?function(fId,n){revSimSubmitShots(simGame.id,fId,n);}:revSubmitShots;
             var FIELDS=["WYGRANA","DOMINACJA","PRZEWAGA","POJEDYNEK","PRZEWAGA","DOMINACJA","WYGRANA"];
-            function AmmoGrid({ammo,col,label}){
-              var ammoImg=getRevImg("NABOJ_AMMO");
-              var rows=[];for(var r=0;r<5;r++){var cols=[];for(var c=0;c<10;c++){var idx=r*10+c;var alive=idx<ammo;cols.push(ammoImg?<div key={c} style={{width:14,height:28,transition:"all 0.3s",opacity:alive?1:0.15}}><img src={ammoImg} style={{width:14,height:28,objectFit:"contain"}} alt=""/></div>:<div key={c} style={{width:14,height:28,borderRadius:3,background:alive?col:"#E8E0D0",border:"1px solid "+(alive?"rgba(0,0,0,0.2)":"#D4C4A8"),transition:"all 0.3s",opacity:alive?1:0.3}}/>);}rows.push(<div key={r} style={{display:"flex",gap:2,marginBottom:2}}>{cols}</div>);}
-              return(<div><div style={{fontSize:13,fontWeight:700,color:col,marginBottom:4}}>{label}: {ammo}/50</div>{rows}</div>);
-            }
             return(<div style={{background:"#FFF5F0",border:"1px solid #D4A853",borderRadius:6,padding:16}}>
               <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:12,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Rewolwerowiec</div>
               {!rc&&<div style={{fontSize:13,color:"#8B7355",fontStyle:"italic",textAlign:"center",padding:20}}>Oczekiwanie na rozpoczęcie pojedynku przez Szeryfa...</div>}
               {rc&&rc.status==="betting"&&<div style={{fontSize:13,color:"#8B7355",textAlign:"center",padding:20}}>
                 <b style={{color:"#8B2500"}}>{FM[rc.familyA].nom} vs {FM[rc.familyB].nom}</b><br/>Trwają ustalenia stawki...
               </div>}
-              {rc&&(rc.status==="playing"||rc.status==="reveal"||rc.status==="finished")&&<div>
-                <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:4,textAlign:"center"}} className="wt">{FM[rc.familyA].nom} vs {FM[rc.familyB].nom} — stawka: {rc.bet} $</div>
+              {rc&&(rc.status==="playing"||rc.status==="finished")&&<div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                  <div style={{fontSize:14,fontWeight:700,color:"#8B2500"}} className="wt">{FM[rc.familyA].nom} vs {FM[rc.familyB].nom} — stawka: {rc.bet} $</div>
+                  {rc.phase&&<div style={{fontSize:22,fontWeight:700,fontFamily:"monospace",color:rc.phaseTimer<=5?"#8B2500":"#842504",background:rc.phase==="bidding"?"#FFF0E8":"#E8F5E8",padding:"6px 14px",borderRadius:8,border:"2px solid "+(rc.phase==="bidding"?"#D4A853":"#90C090"),textAlign:"center",minWidth:60}}>
+                    {rc.phaseTimer}s
+                    <div style={{fontSize:10,fontWeight:400,letterSpacing:0}}>{rc.phase==="bidding"?"licytacja":"wynik"}</div>
+                  </div>}
+                </div>
                 {/* PLANSZA */}
-                <div style={{display:"flex",gap:3,marginBottom:16,marginTop:12,alignItems:"stretch"}}>
+                <div style={{display:"flex",gap:3,marginBottom:16,marginTop:8,alignItems:"stretch"}}>
                   {FIELDS.map((label,idx)=>{
                     var pos=idx-3,isBullet=rc.bulletPos===pos;
-                    var imgKey=label==="POJEDYNEK"?"POJEDYNEK":label==="PRZEWAGA"?"PRZEWAGA":label==="DOMINACJA"?"DOMINACJA":"WYGRANA";
-                    var img=getRevImg(imgKey);
+                    var img=getRevImg(label==="POJEDYNEK"?"POJEDYNEK":label==="PRZEWAGA"?"PRZEWAGA":label==="DOMINACJA"?"DOMINACJA":"WYGRANA");
                     return(<div key={idx} style={{flex:1,position:"relative",border:isBullet?"3px solid #8B2500":"2px solid #D4C4A8",borderRadius:6,overflow:"hidden",transition:"border 0.3s",minHeight:80}}>
                       {img&&<img src={img} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt={label}/>}
                       {!img&&<div style={{padding:"12px 6px",textAlign:"center",background:"#F5F0E8",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase"}}>{label}</div></div>}
@@ -2202,48 +2360,57 @@ function App({roomCode,role}) {
                   <AmmoGrid ammo={rc.ammoA} col={FM[rc.familyA].col} label={FM[rc.familyA].nom}/>
                   <AmmoGrid ammo={rc.ammoB} col={FM[rc.familyB].col} label={FM[rc.familyB].nom}/>
                 </div>}
-                {/* ODSŁONIĘCIE STRZAŁÓW — pokaż po revealcie, przed następną deklaracją */}
-                {isPlayer&&(rc.rounds||[]).length>0&&myShots===null&&rc.status==="playing"&&(()=>{
+                {/* FAZA SHOWING — wynik ostatniej rundy */}
+                {rc.phase==="showing"&&(rc.rounds||[]).length>0&&(()=>{
                   var lastRound=(rc.rounds||[])[(rc.rounds||[]).length-1];
                   var oppName=isA?FM[rc.familyB].nom:FM[rc.familyA].nom;
                   var oppCol=isA?FM[rc.familyB].col:FM[rc.familyA].col;
-                  var myLastShots=isA?lastRound.shotsA:lastRound.shotsB;
-                  var oppLastShots=isA?lastRound.shotsB:lastRound.shotsA;
-                  var iWon=isA?(lastRound.winner==="A"):(lastRound.winner==="B");
+                  var myLastShots=isPlayer?(isA?lastRound.shotsA:lastRound.shotsB):null;
+                  var oppLastShots=isPlayer?(isA?lastRound.shotsB:lastRound.shotsA):null;
+                  var iWon=isPlayer&&(isA?(lastRound.winner==="A"):(lastRound.winner==="B"));
                   var draw=lastRound.winner==="draw";
-                  var oppAmmo=isA?rc.ammoB:rc.ammoA;
                   return(<div style={{background:"#FFF8E0",border:"2px solid #D4A853",borderRadius:6,padding:14,marginBottom:12}}>
-                    <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:8}} className="wt">Wynik ostatniej rundy</div>
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:8}}>
-                      <div style={{textAlign:"center",padding:8,background:"#fff",borderRadius:4,border:"1px solid "+FM[familyId].col}}>
-                        <div style={{fontSize:13,color:"#8B7355"}}>Twoje strzały</div>
-                        <div style={{fontSize:24,fontWeight:700,color:FM[familyId].col}}>{myLastShots}</div>
+                    <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:8}} className="wt">Wynik rundy {(rc.rounds||[]).length}</div>
+                    {isPlayer?<div>
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:8}}>
+                        <div style={{textAlign:"center",padding:8,background:"#fff",borderRadius:4,border:"1px solid "+FM[familyId].col}}>
+                          <div style={{fontSize:13,color:"#8B7355"}}>Twoje strzały</div>
+                          <div style={{fontSize:24,fontWeight:700,color:FM[familyId].col}}>{myLastShots}</div>
+                        </div>
+                        <div style={{textAlign:"center",padding:8,background:"#fff",borderRadius:4,border:"1px solid "+oppCol}}>
+                          <div style={{fontSize:13,color:"#8B7355"}}>{oppName}</div>
+                          <div style={{fontSize:24,fontWeight:700,color:oppCol}}>{oppLastShots}</div>
+                        </div>
                       </div>
-                      <div style={{textAlign:"center",padding:8,background:"#fff",borderRadius:4,border:"1px solid "+oppCol}}>
-                        <div style={{fontSize:13,color:"#8B7355"}}>{oppName}</div>
-                        <div style={{fontSize:24,fontWeight:700,color:oppCol}}>{oppLastShots}</div>
+                      <div style={{textAlign:"center",fontSize:14,fontWeight:700,color:iWon?"#2E5B3C":draw?"#8B7355":"#842504"}}>
+                        {iWon?"Wygrywasz tę rundę!":draw?"Remis — nabój stoi":"Przegrywasz tę rundę"}
                       </div>
-                    </div>
-                    <div style={{textAlign:"center",fontSize:13,fontWeight:700,color:iWon?"#2E5B3C":draw?"#8B7355":"#842504"}}>
-                      {iWon?"Wygrywasz tę rundę!":draw?"Remis — nabój stoi":"Przegrywasz tę rundę"}
-                    </div>
-                    <div style={{textAlign:"center",fontSize:13,color:"#8B7355",marginTop:4}}>Amunicja {oppName}: {oppAmmo} strzałów</div>
+                    </div>:<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                      <div style={{textAlign:"center",padding:8,background:"#fff",borderRadius:4,border:"1px solid "+FM[rc.familyA].col}}>
+                        <div style={{fontSize:13,color:"#8B7355"}}>{FM[rc.familyA].nom}</div>
+                        <div style={{fontSize:24,fontWeight:700,color:FM[rc.familyA].col}}>{lastRound.shotsA}</div>
+                      </div>
+                      <div style={{textAlign:"center",padding:8,background:"#fff",borderRadius:4,border:"1px solid "+FM[rc.familyB].col}}>
+                        <div style={{fontSize:13,color:"#8B7355"}}>{FM[rc.familyB].nom}</div>
+                        <div style={{fontSize:24,fontWeight:700,color:FM[rc.familyB].col}}>{lastRound.shotsB}</div>
+                      </div>
+                    </div>}
                   </div>);
                 })()}
-                {/* INPUT STRZAŁÓW — AKTYWNY GRACZ */}
-                {isPlayer&&rc.status==="playing"&&myShots===null&&<div style={{background:"#fff",border:"2px solid "+FM[familyId].col,borderRadius:6,padding:12,marginBottom:12}}>
-                  <div style={{fontSize:13,fontWeight:700,color:FM[familyId].col,marginBottom:6}}>Ile oddajesz strzałów?</div>
+                {/* INPUT STRZAŁÓW — AKTYWNY GRACZ (faza bidding) */}
+                {isPlayer&&rc.phase==="bidding"&&myShots===null&&<div style={{background:"#fff",border:"2px solid "+FM[familyId].col,borderRadius:6,padding:12,marginBottom:12}}>
+                  <div style={{fontSize:14,fontWeight:700,color:FM[familyId].col,marginBottom:6}}>Ile oddajesz strzałów? (0–{myAmmo})</div>
                   <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                    <input type="number" id="revShotInput" min={0} max={myAmmo} defaultValue={1} style={{width:70,padding:6,borderRadius:4,border:"2px solid "+FM[familyId].col,fontSize:14,fontWeight:700,textAlign:"center"}}/>
-                    <span style={{fontSize:13,color:"#8B7355"}}>/ {myAmmo} dostępnych</span>
-                    <button style={{...btnS("warning"),fontSize:13}} onClick={()=>{var v=parseInt(document.getElementById("revShotInput").value);if(isNaN(v)||v<0||v>myAmmo){showMsg("Podaj liczbę od 0 do "+myAmmo);return;}revSubmitShots(familyId,v);}}>Zatwierdź</button>
+                    <input type="number" id="revShotInput" min={0} max={myAmmo} defaultValue={0} style={{width:70,padding:6,borderRadius:4,border:"2px solid "+FM[familyId].col,fontSize:16,fontWeight:700,textAlign:"center"}}/>
+                    <span style={{fontSize:14,color:"#8B7355"}}>/ {myAmmo} dostępnych</span>
+                    <button style={{...btnS("warning"),fontSize:14,padding:"8px 16px"}} onClick={()=>{var v=parseInt(document.getElementById("revShotInput").value);if(isNaN(v)||v<0||v>myAmmo){showMsg("Podaj liczbę od 0 do "+myAmmo);return;}submitFn(familyId,v);}}>Zatwierdź</button>
                   </div>
                 </div>}
-                {isPlayer&&rc.status==="playing"&&myShots!==null&&<div style={{background:"#E8F5E8",border:"1px solid #90C090",borderRadius:6,padding:10,marginBottom:12,textAlign:"center"}}>
-                  <span style={{fontSize:13,color:"#2E5B3C",fontWeight:600}}>Zadeklarowano: <b>{myShots}</b> strzałów — oczekiwanie na przeciwnika...</span>
+                {isPlayer&&rc.phase==="bidding"&&myShots!==null&&<div style={{background:"#E8F5E8",border:"1px solid #90C090",borderRadius:6,padding:10,marginBottom:12,textAlign:"center"}}>
+                  <span style={{fontSize:14,color:"#2E5B3C",fontWeight:600}}>Zadeklarowano: <b>{myShots}</b> strzałów — oczekiwanie na przeciwnika...</span>
                 </div>}
-                {/* PODGLĄD KIBICA — widzi obu */}
-                {!isPlayer&&rc.status==="playing"&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+                {/* PODGLĄD KIBICA — widzi obu (faza bidding) */}
+                {!isPlayer&&rc.phase==="bidding"&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
                   <div style={{background:"#fff",border:"1px solid "+FM[rc.familyA].col,borderRadius:6,padding:8,textAlign:"center",fontSize:13}}>
                     <b style={{color:FM[rc.familyA].col}}>{FM[rc.familyA].nom}</b>: {rc.shotsA!==null?<span style={{fontWeight:700}}>{rc.shotsA} strzałów</span>:<span style={{color:"#A89070",fontStyle:"italic"}}>czeka...</span>}
                   </div>
@@ -2278,6 +2445,7 @@ function App({roomCode,role}) {
                 {rc.status==="finished"&&<div style={{background:"#FFF0EC",border:"2px solid #8B2500",borderRadius:6,padding:14,textAlign:"center"}}>
                   <div style={{fontSize:16,fontWeight:700,color:"#8B2500",marginBottom:4}} className="wt">Koniec pojedynku!</div>
                   {rc.winner?<div style={{fontSize:14,color:"#5C4A3A"}}>Wygrywa: <b style={{color:FM[rc.winner].col,fontSize:16}}>{FM[rc.winner].nom}</b> (pole: {rc.winField})</div>:<div style={{fontSize:14,color:"#8B7355"}}>Remis!</div>}
+                  <div style={{fontSize:13,color:"#8B7355",fontStyle:"italic",marginTop:4}}>Automatyczne rozliczenie za chwilę...</div>
                 </div>}
               </div>}
               {/* HISTORIA ZAKOŃCZONYCH */}
@@ -2310,8 +2478,8 @@ function App({roomCode,role}) {
           {(()=>{
             var fId=familyId;
             var notStarted=!gameStarted||stageIdx<0;
-            return(<div style={{background:"#842504",border:"2px solid #D4A853",borderRadius:6,padding:12,marginBottom:16,boxShadow:"inset 0 0 12px rgba(0,0,0,0.3)"}}>
-              <div style={{fontSize:13,fontWeight:700,color:"#F5F0E8",marginBottom:10,textAlign:"center",letterSpacing:"0.5px"}} className="wt">PRZEBIEG ROZGRYWKI</div>
+            return(<div style={{background:"#4C130F",border:"2px solid #D4A853",borderRadius:6,padding:12,marginBottom:16,boxShadow:"inset 0 0 12px rgba(0,0,0,0.3)"}}>
+              <div style={{fontSize:13,fontWeight:700,color:"#F3CA82",marginBottom:10,textAlign:"center",letterSpacing:"0.5px"}} className="wt">PRZEBIEG ROZGRYWKI</div>
               {notStarted&&<div style={{fontSize:12,color:"#F3CA82",textAlign:"center",marginBottom:8,fontStyle:"italic"}}>Oczekiwanie na start gry</div>}
               {STAGES.filter(s=>s.type!=="end").map((s,idx)=>{
                 var realIdx=STAGES.indexOf(s);
@@ -2323,8 +2491,8 @@ function App({roomCode,role}) {
                 var showLabel=s.type==="turn"?("Tura "+turnInPhase+(partner?" — "+FM[partner].nom:"")):s.type==="kn"?"Kr\u00f3tka narada":s.label;
                 return(<React.Fragment key={s.id}>
                   {isPhaseHeader&&<div style={{fontSize:13,fontWeight:700,color:"#F3CA82",textTransform:"uppercase",letterSpacing:"1.5px",marginTop:idx>1?8:0,marginBottom:4,paddingBottom:3,borderBottom:"1px solid rgba(243,202,130,0.4)"}}>{phLabel}: {PHASE_NAMES[s.phase]}</div>}
-                  <div style={{display:"flex",alignItems:"center",gap:6,padding:"3px 6px",marginBottom:2,borderRadius:3,background:isCur?"rgba(255,255,255,0.2)":"transparent",opacity:isFuture?0.45:isDone?0.65:1,transition:"all 0.3s"}}>
-                    <span style={{fontSize:13,color:isCur?"#FFD700":isDone?"#A8D4A8":"#F5F0E8",fontWeight:isCur?700:400,flex:1}}>{isCur?"\u25B6 ":isDone?"\u2713 ":""}{showLabel}</span>
+                  <div style={{display:"flex",alignItems:"center",gap:6,padding:"3px 6px",marginBottom:2,borderRadius:3,background:isCur?"rgba(255,255,255,0.15)":"transparent",opacity:isFuture?0.5:isDone?0.7:1,transition:"all 0.3s"}}>
+                    <span style={{fontSize:13,color:isCur?"#FFD700":isDone?"#90D090":"#fff",fontWeight:isCur?700:400,flex:1}}>{isCur?"\u25B6 ":isDone?"\u2713 ":""}{showLabel}</span>
                     <span style={{fontSize:13,color:isCur?"#FFD700":"#F3CA82",fontWeight:600,fontFamily:"monospace",minWidth:36,textAlign:"right"}}>{stageDurations[s.id]}m</span>
                   </div>
                 </React.Fragment>);
