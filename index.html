@@ -62,7 +62,7 @@
       Ta wersja gry wymaga uruchomienia z internetu (GitHub Pages).<br>
       Otwarcie pliku bezpośrednio z dysku nie pozwala na połączenie z Firebase.
     </div>
-    <div style="background:#FFF8E0;border:1px solid #D4C870;border-radius:8px;padding:16px;text-align:left;font-size:13px;color:#5C4A3A;line-height:1.8">
+    <div style="background:#FFF8E0;border:1px solid #D4A853;border-radius:8px;padding:16px;text-align:left;font-size:13px;color:#5C4A3A;line-height:1.8">
       <b>Co zrobić:</b><br>
       1. Wgraj ten plik na GitHub (jako <code>index.html</code>)<br>
       2. Otwórz adres: <code>https://kkondracki-jpg.github.io/wdz-online/</code><br>
@@ -358,8 +358,8 @@ function Lobby({onJoin}){
             </div>);
           })}
         </div>
-        <div style={{textAlign:"center",padding:14,background:"#FFF8E0",borderRadius:6,border:"1px solid #D4C870"}}>
-          <div style={{fontSize:13,color:"#8B7714",fontWeight:600}}>Oczekiwanie na start gry...</div>
+        <div style={{textAlign:"center",padding:14,background:"#FFF8E0",borderRadius:6,border:"1px solid #D4A853"}}>
+          <div style={{fontSize:13,color:"#842504",fontWeight:600}}>Oczekiwanie na start gry...</div>
           <div style={{fontSize:13,color:"#A89070",marginTop:4}}>Szeryf rozpocznie grę, gdy wszyscy będą gotowi</div>
         </div>
       </div>}
@@ -672,13 +672,13 @@ function calcRelationScore(fId, relations) {
 function StarRating({value, onChange, disabled}) {
   return (<div style={{display:"inline-flex",gap:2}}>
     {[1,2,3,4,5].map(n=>(
-      <span key={n} onClick={()=>!disabled&&onChange&&onChange(n)} style={{cursor:disabled?"default":"pointer",fontSize:20,color:n<=value?"#D4A853":"#D4D0C0",transition:"color 0.15s",userSelect:"none"}}>{n<=value?"\u2605":"\u2606"}</span>
+      <span key={n} onClick={()=>!disabled&&onChange&&onChange(n)} style={{cursor:disabled?"default":"pointer",fontSize:28,color:n<=value?"#D4A853":"#D4D0C0",transition:"color 0.15s",userSelect:"none"}}>{n<=value?"\u2605":"\u2606"}</span>
     ))}
   </div>);
 }
 function btnS(v,dis) {
   var b={padding:"10px 18px",borderRadius:"4px",border:"none",fontSize:"14px",fontWeight:700,cursor:dis?"not-allowed":"pointer",fontFamily:"inherit",letterSpacing:"0.3px",transition:"all 0.15s",opacity:dis?0.5:1};
-  var m={primary:{background:"#D4A853",color:"#4C130F"},success:{background:"#5B7674",color:"#fff"},danger:{background:"#842504",color:"#fff"},barter:{background:"#5E5971",color:"#fff"},sheriff:{background:"#B14A2A",color:"#fff"},fate:{background:"#6B3FA0",color:"#fff"}};
+  var m={primary:{background:"#842504",color:"#fff"},success:{background:"#842504",color:"#fff"},danger:{background:"#4C130F",color:"#fff"},barter:{background:"#5E5971",color:"#fff"},sheriff:{background:"#842504",color:"#fff"},fate:{background:"#842504",color:"#fff"},warning:{background:"#D4A853",color:"#4C130F"},secondary:{background:"#D4A853",color:"#4C130F"}};
   return Object.assign({},b,m[v]||{background:"#E8E0D0",color:"#2C1810"});
 }
 
@@ -789,8 +789,8 @@ function TxDisplay({tx,cf,onAccept,onReject,onRespond}) {
   // Map bonus
   if(tx.type==="map_bonus") {
     var isWinner=tx.from===cf;
-    return (<div style={{padding:12,borderRadius:5,border:"1px solid #D4C870",background:"#FFFDF0",marginBottom:8}}>
-      <div style={{fontSize:13,fontWeight:700,color:"#8B7714"}}>
+    return (<div style={{padding:12,borderRadius:5,border:"1px solid #D4A853",background:"#FFFDF0",marginBottom:8}}>
+      <div style={{fontSize:13,fontWeight:700,color:"#842504"}}>
         {isWinner
           ? "BONUS 300 $ za zdobycie wszystkich fragmentów mapy"
           : "WYDATEK: 100 $ dla rodziny "+FM[tx.from].gen+", która jako pierwsza zdobyła wszystkie fragmenty mapy"}
@@ -800,8 +800,8 @@ function TxDisplay({tx,cf,onAccept,onReject,onRespond}) {
 
   // Fate
   if(tx.type==="fate") {
-    return (<div style={{padding:12,borderRadius:5,border:"1px solid #C4B0D8",background:"#F8F4FF",marginBottom:8}}>
-      <div style={{fontSize:13,color:"#6B3FA0"}}><b>Ślepy los</b> — {tx.description}</div>
+    return (<div style={{padding:12,borderRadius:5,border:"1px solid #D4A853",background:"#FFF5F0",marginBottom:8}}>
+      <div style={{fontSize:13,color:"#842504"}}><b>Ślepy los</b> — {tx.description}</div>
     </div>);
   }
 
@@ -814,15 +814,15 @@ function TxDisplay({tx,cf,onAccept,onReject,onRespond}) {
 
   // BnB settlement
   if(tx.type==="bnb_settle") {
-    return (<div style={{padding:12,borderRadius:5,border:"1px solid #D4C870",background:"#FFF8E0",marginBottom:8}}>
-      <div style={{fontSize:13,color:"#8B7714"}}><b>BIZNES NA BOKU</b> — {tx.description}</div>
+    return (<div style={{padding:12,borderRadius:5,border:"1px solid #D4A853",background:"#FFF8E0",marginBottom:8}}>
+      <div style={{fontSize:13,color:"#842504"}}><b>BIZNES NA BOKU</b> — {tx.description}</div>
     </div>);
   }
 
   // Rewolwerowiec
   if(tx.type==="revolver") {
     var isWin=tx.to===cf;
-    return (<div style={{padding:12,borderRadius:5,border:"1px solid #C08060",background:"#FFF5F0",marginBottom:8}}>
+    return (<div style={{padding:12,borderRadius:5,border:"1px solid #D4A853",background:"#FFF5F0",marginBottom:8}}>
       <div style={{fontSize:13,color:"#8B2500"}}><b>REWOLWEROWIEC</b> — {isWin?"Wygrana":"Przegrana"}: {tx.amount} $ (pole: {tx.field}) {isWin?("od "+FM[tx.from].gen):("dla "+FM[tx.to].gen)}</div>
     </div>);
   }
@@ -900,8 +900,8 @@ function MapTracker({items, mapBonusClaimed, fId}) {
   // Points: 1 unique fragment = 2 pkt, max 10 (only if first to complete gets 5th from sheriff)
   var mapScore=uniqueNrs.length*2; if(uniqueNrs.length>=4)mapScore=10;
   return (
-    <div style={{background:"#FFFDF0",border:"1px solid #D4C870",borderRadius:6,padding:16}}>
-      <div style={{fontSize:16,fontWeight:700,color:"#8B7714",marginBottom:12}} className="wt">Złotodajna Żyła</div>
+    <div style={{background:"#FFF5F0",border:"1px solid #D4A853",borderRadius:6,padding:16}}>
+      <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:12,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Złotodajna Żyła</div>
       <div style={{display:"flex",gap:3}}>
         {[5,4,3,2,1].map(n=>{
           var have=n<=4?uniqueNrs.indexOf(n)>=0:full;
@@ -915,10 +915,10 @@ function MapTracker({items, mapBonusClaimed, fId}) {
       {fId&&<div style={{fontSize:13,color:"#A09060",marginTop:4}}>
         Liczba fragmentów mapy na sprzedaż: {forSale}/3
       </div>}
-      <div style={{fontSize:14,fontWeight:700,color:"#8B7714",marginTop:8}}>
+      <div style={{fontSize:14,fontWeight:700,color:"#842504",marginTop:8}}>
         Liczba punktów: {mapScore} <span style={{fontWeight:400,color:"#A09060"}}>(max 10)</span>
       </div>
-      {winnerFam&&<div style={{marginTop:10,padding:8,background:"#FFF8E0",border:"1px dashed #D4C870",borderRadius:4,fontSize:13,fontWeight:600,color:"#8B7714",textAlign:"center"}}>
+      {winnerFam&&<div style={{marginTop:10,padding:8,background:"#FFF8E0",border:"1px dashed #D4A853",borderRadius:4,fontSize:13,fontWeight:600,color:"#842504",textAlign:"center"}}>
         Wszystkie fragmenty mapy jako pierwsza zdobyła rodzina {FM[winnerFam].gen}!
       </div>}
     </div>
@@ -961,7 +961,7 @@ function FateEventCard({sum, showEvent}) {
   var src=IMG_BASE+fileName+".jpg";
   // Track src changes for transition
   useEffect(()=>{if(showEvent&&sum){setPrevSrc(src);}},[showEvent,sum]);
-  return (<div style={{flex:2,borderRadius:6,border:"2px solid #C4B0D8",background:"#F8F6FA",overflow:"hidden"}}>
+  return (<div style={{flex:2,borderRadius:6,border:"2px solid #D4A853",background:"#F8F6FA",overflow:"hidden"}}>
     {imgOk&&<img src={src} style={{width:"100%",height:"auto",display:"block",transition:"opacity 0.6s ease"}} alt={showEvent&&ev?ev.text:"Ślepy los"} onError={()=>setImgOk(false)}/>}
     {(!imgOk&&showEvent&&ev)&&<div style={{padding:16,textAlign:"center"}}>
       <div style={{fontSize:15,fontWeight:600,color:"#2C1810",lineHeight:1.5}}>{ev.text}</div>
@@ -975,15 +975,15 @@ function PolicyCardFate({pKey, label, price, status, imgName, activeForRoll}) {
   const [imgOk,setImgOk]=useState(true);
   // States: null=nie wykupiona, "owned"=w posiadaniu, "used"=wykorzystana, activeForRoll=aktywna w losowaniu
   var isActive=activeForRoll;
-  var borderCol=isActive?"#6B3FA0":status==="owned"?"#C4B0D8":"#C4B0D8";
-  var bgCol=isActive?"#EDE4F8":"#F0EDE4";
+  var borderCol=isActive?"#842504":status==="owned"?"#D4A853":"#D4A853";
+  var bgCol=isActive?"#FFF0E8":"#F0EDE4";
   var statusText=isActive?"Aktywna":status==="owned"?"W posiadaniu":status==="used"?"Wykorzystana":"Nie wykupiona";
   var statusCol=isActive?"#2E5B3C":status==="used"?"#8B7355":"#8B7355";
   var opa=isActive?1:0.5;
   return (<div style={{flex:1,borderRadius:6,border:"2px solid "+borderCol,background:bgCol,opacity:opa,overflow:"hidden",position:"relative"}}>
     {imgOk&&<img src={IMG_BASE+imgName+".jpg"} style={{width:"100%",height:"auto",display:"block"}} alt={label} onError={()=>setImgOk(false)}/>}
     <div style={{padding:6,textAlign:"center"}}>
-      {!imgOk&&<div style={{fontSize:13,fontWeight:700,color:"#6B3FA0"}}>{label}</div>}
+      {!imgOk&&<div style={{fontSize:13,fontWeight:700,color:"#842504"}}>{label}</div>}
       {!imgOk&&<div style={{fontSize:13,color:"#8B7355"}}>Cena: {price}</div>}
       <div style={{fontSize:13,fontWeight:600,color:statusCol}}>{statusText}</div>
     </div>
@@ -1007,8 +1007,8 @@ function BlindFateFamily({fId, blindFate}) {
   }
   return (<div>
     <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:12,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Ślepy los</div>
-    <div style={{background:"#F8F4FF",border:"1px solid #C4B0D8",borderRadius:8,padding:14,marginBottom:16}}>
-      <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:10}}>{rolls.length===0?"Oczekuj na sygnał Szeryfa":"Losowanie "+(currentRollIdx+1)}</div>
+    <div style={{background:"#FFF5F0",border:"1px solid #D4A853",borderRadius:8,padding:14,marginBottom:16}}>
+      <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:10}}>{rolls.length===0?"Oczekuj na sygnał Szeryfa":"Losowanie "+(currentRollIdx+1)}</div>
       {/* 3 karty w linii: polisa 100% (flex:1) + polisa 50% (flex:1) + karta zdarzenia (flex:2) */}
       <div style={{display:"flex",gap:8,alignItems:"stretch",marginBottom:12}}>
         <PolicyCardFate pKey="p100" label="Polisa 100%" price="50 $" status={policies.p100} imgName="policy_100" activeForRoll={activePolicy===100}/>
@@ -1026,20 +1026,20 @@ function BlindFateFamily({fId, blindFate}) {
           <Dice3D rolling={currentRoll.rolling} value={currentRoll.resolved?currentRoll.dice1:null}/>
           <Dice3D rolling={currentRoll.rolling} value={currentRoll.resolved?currentRoll.dice2:null}/>
         </div>
-        {currentRoll.rolling&&<div style={{fontSize:14,color:"#6B3FA0",fontWeight:600}}>Kości w powietrzu...</div>}
+        {currentRoll.rolling&&<div style={{fontSize:14,color:"#842504",fontWeight:600}}>Kości w powietrzu...</div>}
         {currentRoll.resolved&&currentRoll.showDice&&<div style={{fontSize:16,fontWeight:700,color:"#2C1810"}}>{currentRoll.dice1} + {currentRoll.dice2} = {currentRoll.sum}</div>}
       </div>}
       {/* Rozliczenie */}
       {currentRoll&&currentRoll.resolved&&currentRoll.showCard&&<div className="card-reveal" style={{background:currentRoll.netEffect>=0?"#E8F5E8":"#FFF0F0",border:"1px solid "+(currentRoll.netEffect>=0?"#90C090":"#C09090"),borderRadius:6,padding:14,textAlign:"center",marginTop:8}}>
         <div style={{fontSize:16,fontWeight:700,color:"#2C1810",marginBottom:4}}>ROZLICZENIE:</div>
         <div style={{fontSize:24,fontWeight:700,color:currentRoll.netEffect>=0?"#2E5B3C":"#8B2500"}}>{currentRoll.netEffectText}</div>
-        {currentRoll.policyUsed&&currentRoll.event&&currentRoll.event.type!=="gain"&&currentRoll.event.type!=="gain_policy"&&<div style={{fontSize:14,color:"#6B3FA0",marginTop:4}}>Polisa zmniejsza stratę o {currentRoll.policyUsed}%</div>}
+        {currentRoll.policyUsed&&currentRoll.event&&currentRoll.event.type!=="gain"&&currentRoll.event.type!=="gain_policy"&&<div style={{fontSize:14,color:"#842504",marginTop:4}}>Polisa zmniejsza stratę o {currentRoll.policyUsed}%</div>}
       </div>}
       {!currentRoll&&<div style={{textAlign:"center",padding:12,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Oczekuj na sygnał Szeryfa do losowania...</div>}
     </div>
     {/* — HISTORIA LOSOWAŃ (widoczna dla rodziny) — */}
     {rolls.filter(r=>r.resolved).length>0&&<div style={{background:"#F0EDE4",border:"1px solid #D4C4A8",borderRadius:6,padding:12}}>
-      <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:8}}>Historia losowań</div>
+      <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:8}}>Historia losowań</div>
       {rolls.map((r,i)=>{var h=fmtHistory(r,i);return h?<div key={i} style={{fontSize:13,color:"#5C4A3A",padding:"4px 0",borderBottom:"1px solid #E0D8D0",lineHeight:1.5}}>{h}</div>:null;})}
     </div>}
   </div>);
@@ -1158,13 +1158,13 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
         {(()=>{
           var grouped=[
             [{key:"PREP",label:"Przygotowanie",ids:["PREP"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-             {key:"F1",label:"Tury Fazy I (wymiana informacji)",ids:["F1T1","F1T2","F1T3"],color:"#6B3FA0",bg:"#F8F4FF",border:"#C4B0D8",multi:"×3 tury"},
+             {key:"F1",label:"Tury Fazy I (wymiana informacji)",ids:["F1T1","F1T2","F1T3"],color:"#842504",bg:"#FFF5F0",border:"#D4A853",multi:"×3 tury"},
              {key:"KN1",label:"Faza I \u2014 Kr\u00f3tka narada",ids:["KN1A","KN1B"],color:"#5E5971",bg:"#F0EEF4",border:"#B0A8C0",multi:"×2"}],
             [{key:"NAR1",label:"Narada rodzinna 1",ids:["NAR1"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-             {key:"F2",label:"Tury Fazy II (pierwsze transakcje)",ids:["F2T1","F2T2","F2T3"],color:"#6B3FA0",bg:"#F8F4FF",border:"#C4B0D8",multi:"×3 tury"},
+             {key:"F2",label:"Tury Fazy II (pierwsze transakcje)",ids:["F2T1","F2T2","F2T3"],color:"#842504",bg:"#FFF5F0",border:"#D4A853",multi:"×3 tury"},
              {key:"KN2",label:"Faza II \u2014 Kr\u00f3tka narada",ids:["KN2A","KN2B"],color:"#5E5971",bg:"#F0EEF4",border:"#B0A8C0",multi:"×2"}],
             [{key:"NAR2",label:"Narada rodzinna 2",ids:["NAR2"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-             {key:"F3",label:"Tury Fazy III (fina\u0142)",ids:["F3T1","F3T2","F3T3"],color:"#6B3FA0",bg:"#F8F4FF",border:"#C4B0D8",multi:"×3 tury"},
+             {key:"F3",label:"Tury Fazy III (fina\u0142)",ids:["F3T1","F3T2","F3T3"],color:"#842504",bg:"#FFF5F0",border:"#D4A853",multi:"×3 tury"},
              {key:"KN3",label:"Faza III \u2014 Kr\u00f3tka narada",ids:["KN3A","KN3B"],color:"#5E5971",bg:"#F0EEF4",border:"#B0A8C0",multi:"×2"}],
           ];
           function setGrouped(g,val){setStageDurations(prev=>{var n={...prev};g.ids.forEach(id=>{n[id]=val;});return n;});}
@@ -1227,10 +1227,10 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
           </div>
           <div style={{marginTop:6,padding:6,background:"#F0EBE0",borderRadius:4,textAlign:"center"}}><div style={{fontSize:14,fontWeight:700,color:"#5C4A3A"}}>Biznes: {sc.bizTotal} pkt</div></div>
           {(()=>{var relS=calcRelationScore(fId,relations);return (<div>
-            <div style={{marginTop:4,padding:6,background:"#EDE4F8",borderRadius:4,textAlign:"center"}}><div style={{fontSize:14,fontWeight:700,color:"#6B3FA0"}}>Relacje: {relS} pkt</div></div>
+            <div style={{marginTop:4,padding:6,background:"#FFF0E8",borderRadius:4,textAlign:"center"}}><div style={{fontSize:14,fontWeight:700,color:"#842504"}}>Relacje: {relS} pkt</div></div>
             <div style={{marginTop:6,padding:8,background:f.col,borderRadius:4,textAlign:"center"}}><div style={{fontSize:22,fontWeight:700,color:"#fff"}}>{Math.round((sc.bizTotal+relS)*10)/10} pkt</div></div>
           </div>);})()}
-          {consultNotes[fId]&&<div style={{marginTop:6,padding:6,background:"#FFF8E0",border:"1px solid #D4C870",borderRadius:4}}>
+          {consultNotes[fId]&&<div style={{marginTop:6,padding:6,background:"#FFF8E0",border:"1px solid #D4A853",borderRadius:4}}>
             <div style={{fontSize:13,fontWeight:700,color:"#8B6914",marginBottom:2}}>Notatki z konsultacji</div>
             <div style={{fontSize:13,color:"#5C4A3A",whiteSpace:"pre-wrap"}}>{consultNotes[fId]}</div>
           </div>}
@@ -1240,9 +1240,9 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     {/* === 3. WEZWIJ SZERYFA + KONSULTACJE (obok siebie) === */}
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:20}}>
       {(()=>{var waiting=sheriffCalls.filter(c=>c.status==="waiting");var recent=sheriffCalls.filter(c=>c.status!=="waiting"&&c.status!=="dismissed").slice(-10);
-        return(<div style={{background:waiting.length>0?"#FFF0F0":"#F8F6FA",border:"2px solid "+(waiting.length>0?"#C09090":"#C4B0D8"),borderRadius:8,padding:16,transition:"all 0.3s"}}>
+        return(<div style={{background:waiting.length>0?"#FFF0F0":"#F8F6FA",border:"2px solid "+(waiting.length>0?"#C09090":"#D4A853"),borderRadius:8,padding:16,transition:"all 0.3s"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-            <div style={{fontSize:14,fontWeight:700,color:waiting.length>0?"#8B2500":"#6B3FA0"}} className="wt">
+            <div style={{fontSize:14,fontWeight:700,color:waiting.length>0?"#8B2500":"#842504"}} className="wt">
               Wezwij Szeryfa {waiting.length>0&&<span style={{background:"#8B2500",color:"#fff",padding:"2px 8px",borderRadius:10,fontSize:13,marginLeft:6}}>{waiting.length}</span>}
             </div>
           </div>
@@ -1289,16 +1289,16 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       </div>
     </div>
     {/* === 3.5 ZŁOTODAJNA ŻYŁA — KONTROLA === */}
-    <div style={{background:"#FFFDF0",border:"1px solid #D4C870",borderRadius:6,padding:14,marginBottom:20}}>
+    <div style={{background:"#FFF5F0",border:"1px solid #D4A853",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div style={{fontSize:14,fontWeight:700,color:"#8B7714"}} className="wt">Złotodajna Żyła</div>
+        <div style={{fontSize:14,fontWeight:700,color:"#842504"}} className="wt">Złotodajna Żyła</div>
         <button style={btnS(mapEnabled?"danger":"success")} onClick={()=>{setMapEnabled(!mapEnabled);showMsg(mapEnabled?"Złotodajna Żyła — zablokowana":"Złotodajna Żyła — odblokowana");}}>{mapEnabled?"Zablokuj":"Odblokuj"} Złotodajną Żyłę</button>
       </div>
     </div>
     {/* === 4. ŚLEPY LOS — KONTROLA === */}
-    <div style={{background:"#F8F4FF",border:"1px solid #C4B0D8",borderRadius:6,padding:14,marginBottom:20}}>
+    <div style={{background:"#FFF5F0",border:"1px solid #D4A853",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-        <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0"}} className="wt">Ślepy los — kontrola</div>
+        <div style={{fontSize:14,fontWeight:700,color:"#842504"}} className="wt">Ślepy los — kontrola</div>
         <button style={btnS(fateEnabled?"danger":"success")} onClick={()=>{setFateEnabled(!fateEnabled);showMsg(fateEnabled?"Ślepy los — zablokowany":"Ślepy los — odblokowany");}}>{fateEnabled?"Zablokuj":"Odblokuj"} Ślepy los</button>
       </div>
       {!fateEnabled&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic",textAlign:"center",padding:12}}>Ślepy los jest zablokowany. Kliknij „Odblokuj" aby udostępnić rodzinom.</div>}
@@ -1326,8 +1326,8 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       </div>}
     </div>
     {/* === 5. ŚLEPY LOS — HISTORIA ZBIORCZA === */}
-    <div style={{background:"#F0ECF8",border:"1px solid #C4B0D8",borderRadius:6,padding:14,marginBottom:20}}>
-      <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:12}} className="wt">Ślepy los — historia zbiorcza</div>
+    <div style={{background:"#F0ECF8",border:"1px solid #D4A853",borderRadius:6,padding:14,marginBottom:20}}>
+      <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:12}} className="wt">Ślepy los — historia zbiorcza</div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
       {FO.map(fId=>{var f=FM[fId],bf=blindFate[fId]||{},pol=bf.policies||{p50:null,p100:null},rolls=(bf.rolls||[]).filter(r=>r.resolved);
         return (<div key={fId} style={{background:"#FDFAF4",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
@@ -1348,12 +1348,12 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       </div>
     </div>
     {/* === 6. BIZNES NA BOKU === */}
-    <div style={{background:"#FFF8E0",border:"1px solid #D4C870",borderRadius:6,padding:14,marginBottom:20}}>
+    <div style={{background:"#FFF5F0",border:"1px solid #D4A853",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-        <div style={{fontSize:14,fontWeight:700,color:"#8B7714"}} className="wt">Biznes na boku</div>
+        <div style={{fontSize:14,fontWeight:700,color:"#842504"}} className="wt">Biznes na boku</div>
         {!bnbEnabled&&<button style={btnS("success")} onClick={activateBnb}>Odblokuj dodatek</button>}
         {bnbEnabled&&<div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <span style={{fontSize:13,fontWeight:700,color:bnbSettled?"#2E5B3C":"#8B7714",padding:"3px 10px",background:bnbSettled?"#E8F5E8":"#FFF8E7",borderRadius:4,border:"1px solid "+(bnbSettled?"#90C090":"#D4C870")}}>{bnbSettled?"Rozliczono":"Aktywny"}</span>
+          <span style={{fontSize:13,fontWeight:700,color:bnbSettled?"#2E5B3C":"#842504",padding:"3px 10px",background:bnbSettled?"#E8F5E8":"#FFF8E7",borderRadius:4,border:"1px solid "+(bnbSettled?"#90C090":"#D4A853")}}>{bnbSettled?"Rozliczono":"Aktywny"}</span>
           {!bnbSettled&&!gameStarted&&<button style={btnS("danger",false)} onClick={()=>{setFd(prev=>{var n={...prev};FO.forEach(fId=>{n[fId]={...n[fId],items:n[fId].items.filter(i=>i.cat!==C_BNB)};});return n;});setBnbEnabled(false);showMsg("Biznes na boku — zablokowany");}}>Zablokuj</button>}
         </div>}
       </div>
@@ -1393,9 +1393,9 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       </div>}
     </div>
     {/* === 7. BUDOWANIE RELACJI === */}
-    <div style={{background:"#E8F0E8",border:"1px solid #90C090",borderRadius:6,padding:14,marginBottom:20}}>
+    <div style={{background:"#FFF5F0",border:"1px solid #D4A853",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-        <div style={{fontSize:14,fontWeight:700,color:"#2E5B3C"}} className="wt">Budowanie relacji</div>
+        <div style={{fontSize:14,fontWeight:700,color:"#842504"}} className="wt">Budowanie relacji</div>
         <button style={btnS(relationsUnlocked?"danger":"success",false)} onClick={()=>setRelationsUnlocked(!relationsUnlocked)}>{relationsUnlocked?"Zablokuj zakładkę":"Odblokuj zakładkę"}</button>
       </div>
       <div style={{fontSize:13,color:"#5C4A3A",marginBottom:8}}>{relationsUnlocked?"Zakładka \u201eBudowanie relacji\u201d jest odblokowana — rodziny mogą wystawiać oceny.":"Zakładka zablokowana — rodziny nie widzą jej jeszcze."}</div>
@@ -1412,12 +1412,12 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       </div>}
     </div>
     {/* === 7b. REWOLWEROWIEC === */}
-    <div style={{background:"#FFF5F0",border:"1px solid #C08060",borderRadius:6,padding:14,marginBottom:20}}>
+    <div style={{background:"#FFF5F0",border:"1px solid #D4A853",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{fontSize:14,fontWeight:700,color:"#8B2500"}} className="wt">Rewolwerowiec</div>
         {!revEnabled&&<button style={btnS("success")} onClick={()=>setRevEnabled(true)}>Odblokuj dodatek</button>}
         {revEnabled&&<div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <span style={{fontSize:13,fontWeight:700,color:"#8B2500",padding:"3px 10px",background:"#FFE8E0",borderRadius:4,border:"1px solid #C08060"}}>Aktywny</span>
+          <span style={{fontSize:13,fontWeight:700,color:"#8B2500",padding:"3px 10px",background:"#FFE8E0",borderRadius:4,border:"1px solid #D4A853"}}>Aktywny</span>
           {!revCurrent&&<button style={btnS("danger",false)} onClick={()=>setRevEnabled(false)}>Zablokuj</button>}
         </div>}
       </div>
@@ -1425,7 +1425,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       {revEnabled&&<div>
         <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:12}}>
           <label style={{fontSize:13,color:"#5C4A3A"}}>Max stawka ($):</label>
-          <input type="number" min={1} step={1} value={revMaxBet} onChange={e=>setRevMaxBet(Math.max(1,parseInt(e.target.value)||1))} style={{width:70,padding:4,borderRadius:4,border:"1px solid #C08060",fontSize:13}} disabled={!!revCurrent}/>
+          <input type="number" min={1} step={1} value={revMaxBet} onChange={e=>setRevMaxBet(Math.max(1,parseInt(e.target.value)||1))} style={{width:70,padding:4,borderRadius:4,border:"1px solid #D4A853",fontSize:13}} disabled={!!revCurrent}/>
         </div>
         {!revCurrent&&<div>
           <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:6}}>Wybierz parę do pojedynku:</div>
@@ -1443,16 +1443,16 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
           </div>}
         </div>}
         {revCurrent&&<div>
-          {revCurrent.status==="betting"&&<div style={{background:"#fff",border:"1px solid #C08060",borderRadius:6,padding:12,marginBottom:8}}>
+          {revCurrent.status==="betting"&&<div style={{background:"#fff",border:"1px solid #D4A853",borderRadius:6,padding:12,marginBottom:8}}>
             <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:8}} className="wt">{FM[revCurrent.familyA].nom} vs {FM[revCurrent.familyB].nom}</div>
             <div style={{fontSize:13,color:"#5C4A3A",marginBottom:6}}>Ustalcie stawkę (max {revMaxBet} $):</div>
             <div style={{display:"flex",gap:8,alignItems:"center"}}>
-              <input type="number" id="revBetInput" min={1} max={revMaxBet} step={1} defaultValue={Math.min(30,revMaxBet)} style={{width:80,padding:4,borderRadius:4,border:"1px solid #C08060",fontSize:13}}/>
+              <input type="number" id="revBetInput" min={1} max={revMaxBet} step={1} defaultValue={Math.min(30,revMaxBet)} style={{width:80,padding:4,borderRadius:4,border:"1px solid #D4A853",fontSize:13}}/>
               <button style={btnS("success")} onClick={()=>{var v=parseInt(document.getElementById("revBetInput").value)||0;if(v<1||v>revMaxBet){showMsg("Stawka musi wynosić od 1 do "+revMaxBet+" $");return;}revSetBet(v);}}>Zatwierdź stawkę</button>
               <button style={btnS("danger")} onClick={()=>setRevCurrent(null)}>Anuluj</button>
             </div>
           </div>}
-          {(revCurrent.status==="playing"||revCurrent.status==="reveal")&&<div style={{background:"#fff",border:"1px solid #C08060",borderRadius:6,padding:12}}>
+          {(revCurrent.status==="playing"||revCurrent.status==="reveal")&&<div style={{background:"#fff",border:"1px solid #D4A853",borderRadius:6,padding:12}}>
             <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:4}} className="wt">{FM[revCurrent.familyA].nom} vs {FM[revCurrent.familyB].nom} — stawka: {revCurrent.bet} $</div>
             <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
               <div style={{fontSize:13,color:FM[revCurrent.familyA].col}}><b>{FM[revCurrent.familyA].nom}</b>: {revCurrent.ammoA} strzałów {revCurrent.shotsA!==null?"(✓ gotowy)":"(czeka...)"}</div>
@@ -1521,9 +1521,9 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
               {tx.type==="barter"&&<span>: {fmtItems(tx.offeredItems)} \u2194 {fmtItems(tx.responseItems)}</span>}
             </div>);
           })}
-          {fFate.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#6B3FA0"}}><b>Ślepy los:</b> {tx.description}</div>))}
-          {fMap.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B7714"}}><b>Mapa:</b> {tx.from===fId?"Bonus 300 $ (kompletna mapa)":"Opłata 100 $ (mapa "+FM[tx.from].gen+")"}</div>))}
-          {fBnb.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B7714"}}><b>BnB:</b> {tx.description}</div>))}
+          {fFate.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#842504"}}><b>Ślepy los:</b> {tx.description}</div>))}
+          {fMap.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#842504"}}><b>Mapa:</b> {tx.from===fId?"Bonus 300 $ (kompletna mapa)":"Opłata 100 $ (mapa "+FM[tx.from].gen+")"}</div>))}
+          {fBnb.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#842504"}}><b>BnB:</b> {tx.description}</div>))}
           {fRev.map(tx=>{var isWin=tx.to===fId;return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B2500"}}><b>Rewolwerowiec:</b> {isWin?"Wygrana":"Przegrana"} {tx.amount} $ ({tx.field}) {isWin?"\u2190 "+FM[tx.from].nom:"\u2192 "+FM[tx.to].nom}</div>);})}
           {fPen.map(tx=>(<div key={tx.id} style={{padding:"4px 0",fontSize:13,color:"#8B2500"}}><b>Działka:</b> {tx.description}</div>))}
         </div>);
@@ -2111,17 +2111,17 @@ function App({roomCode,role}) {
               setRelations(prev=>{var n={...prev};if(!n[familyId])n[familyId]={};if(!n[familyId][target])n[familyId][target]={};n[familyId][target]={...n[familyId][target],[cat]:val};return n;});
             }
             function getRating(target,cat){return (relations[familyId]&&relations[familyId][target]&&relations[familyId][target][cat])||0;}
-            return (<div style={{background:"#E8F0E8",border:"1px solid #90C090",borderRadius:6,padding:16}}>
-              <div style={{fontSize:16,fontWeight:700,color:"#2E5B3C",marginBottom:4}} className="wt">Budowanie długoterminowych relacji</div>
-              <div style={{fontSize:13,color:"#5C4A3A",marginBottom:16}}>Oceń współpracę z każdą z pozostałych rodzin w trzech kategoriach (1–5 gwiazdek).</div>
-              {others.map(target=>{var f=FM[target];return (<div key={target} style={{background:"#fff",border:"1px solid "+f.col,borderRadius:6,padding:12,marginBottom:10}}>
-                <div style={{fontSize:14,fontWeight:700,color:f.col,marginBottom:8}} className="wt">{f.nom}</div>
-                {CATS.map(cat=>(<div key={cat.key} style={{marginBottom:8}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
-                    <span style={{fontSize:13,fontWeight:600,color:"#5C4A3A"}}>{cat.label}</span>
+            return (<div style={{background:"#FFF5F0",border:"1px solid #D4A853",borderRadius:6,padding:16}}>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Budowanie długoterminowych relacji</div>
+              <div style={{fontSize:15,color:"#5C4A3A",marginBottom:16}}>Udzielcie informację zwrotną pozostałym rodzinom w trzech kategoriach (1–5 gwiazdek).</div>
+              {others.map(target=>{var f=FM[target];return (<div key={target} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:14,marginBottom:12}}>
+                <div style={{fontSize:16,fontWeight:700,color:f.col,marginBottom:10}} className="wt">{f.nom}</div>
+                {CATS.map(cat=>(<div key={cat.key} style={{marginBottom:10}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                    <span style={{fontSize:15,fontWeight:600,color:"#5C4A3A"}}>{cat.label}</span>
                     <StarRating value={getRating(target,cat.key)} onChange={v=>setRating(target,cat.key,v)} disabled={viewSheriff}/>
                   </div>
-                  <div style={{display:"flex",justifyContent:"space-between",fontSize:13,color:"#A89070"}}><span>1★ {cat.desc[0]}</span><span>5★ {cat.desc[1]}</span></div>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:14,color:"#A89070"}}><span>1★ {cat.desc[0]}</span><span>5★ {cat.desc[1]}</span></div>
                 </div>))}
               </div>);})}
             </div>);
@@ -2130,8 +2130,8 @@ function App({roomCode,role}) {
             var sc=calcScore(familyId,fd,plotPenalties,biznesNaBoku,bnbEnabled);
             var relS=calcRelationScore(familyId,relations);
             var total=Math.round((sc.bizTotal+relS)*10)/10;
-            return (<div style={{background:"#FFF8E0",border:"1px solid #D4C870",borderRadius:6,padding:16}}>
-              <div style={{fontSize:16,fontWeight:700,color:"#8B7714",marginBottom:12}} className="wt">Wyniki rozgrywki</div>
+            return (<div style={{background:"#FFF8E0",border:"1px solid #D4A853",borderRadius:6,padding:16}}>
+              <div style={{fontSize:16,fontWeight:700,color:"#842504",marginBottom:12}} className="wt">Wyniki rozgrywki</div>
               <div style={{background:"#fff",border:"1px solid #D4C4A8",borderRadius:6,padding:14,marginBottom:12}}>
                 <div style={{fontSize:14,fontWeight:700,color:"#8B7355",marginBottom:8}}>Biznes</div>
                 <div style={{fontSize:13,color:"#5C4A3A",lineHeight:2}}>
@@ -2144,14 +2144,14 @@ function App({roomCode,role}) {
                 </div>
                 <div style={{marginTop:8,padding:8,background:"#F0EBE0",borderRadius:4,textAlign:"center"}}><div style={{fontSize:18,fontWeight:700,color:"#5C4A3A"}}>{sc.bizTotal} pkt</div></div>
               </div>
-              {resultsReveal>=2&&<div style={{background:"#fff",border:"1px solid #C4B0D8",borderRadius:6,padding:14,marginBottom:12}}>
-                <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:8}}>Budowanie długoterminowych relacji</div>
+              {resultsReveal>=2&&<div style={{background:"#fff",border:"1px solid #D4A853",borderRadius:6,padding:14,marginBottom:12}}>
+                <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:8}}>Budowanie długoterminowych relacji</div>
                 <div style={{fontSize:13,color:"#5C4A3A",lineHeight:2}}>
                   {FO.filter(r=>r!==familyId).map(rater=>{var r=relations[rater]&&relations[rater][familyId];var sum=r?((r.partnership||0)+(r.rules||0)+(r.communication||0)):0;
                     return <div key={rater}>Od rodziny {FM[rater].gen}: <b>{sum} \u2605</b> \u2192 <b>{Math.round(sum*2/3*10)/10} pkt</b></div>;
                   })}
                 </div>
-                <div style={{marginTop:8,padding:8,background:"#EDE4F8",borderRadius:4,textAlign:"center"}}><div style={{fontSize:18,fontWeight:700,color:"#6B3FA0"}}>{relS} pkt</div></div>
+                <div style={{marginTop:8,padding:8,background:"#FFF0E8",borderRadius:4,textAlign:"center"}}><div style={{fontSize:18,fontWeight:700,color:"#842504"}}>{relS} pkt</div></div>
               </div>}
               {resultsReveal>=3&&<div style={{padding:12,background:FM[familyId].col,borderRadius:6,textAlign:"center"}}>
                 <div style={{fontSize:13,color:"rgba(255,255,255,0.7)",marginBottom:4}}>WYNIK KOŃCOWY</div>
@@ -2171,8 +2171,8 @@ function App({roomCode,role}) {
               var rows=[];for(var r=0;r<5;r++){var cols=[];for(var c=0;c<10;c++){var idx=r*10+c;var alive=idx<ammo;cols.push(ammoImg?<div key={c} style={{width:14,height:28,transition:"all 0.3s",opacity:alive?1:0.15}}><img src={ammoImg} style={{width:14,height:28,objectFit:"contain"}} alt=""/></div>:<div key={c} style={{width:14,height:28,borderRadius:3,background:alive?col:"#E8E0D0",border:"1px solid "+(alive?"rgba(0,0,0,0.2)":"#D4C4A8"),transition:"all 0.3s",opacity:alive?1:0.3}}/>);}rows.push(<div key={r} style={{display:"flex",gap:2,marginBottom:2}}>{cols}</div>);}
               return(<div><div style={{fontSize:13,fontWeight:700,color:col,marginBottom:4}}>{label}: {ammo}/50</div>{rows}</div>);
             }
-            return(<div style={{background:"#FFF5F0",border:"1px solid #C08060",borderRadius:6,padding:16}}>
-              <div style={{fontSize:16,fontWeight:700,color:"#8B2500",marginBottom:12}} className="wt">Rewolwerowiec</div>
+            return(<div style={{background:"#FFF5F0",border:"1px solid #D4A853",borderRadius:6,padding:16}}>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:12,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Rewolwerowiec</div>
               {!rc&&<div style={{fontSize:13,color:"#8B7355",fontStyle:"italic",textAlign:"center",padding:20}}>Oczekiwanie na rozpoczęcie pojedynku przez Szeryfa...</div>}
               {rc&&rc.status==="betting"&&<div style={{fontSize:13,color:"#8B7355",textAlign:"center",padding:20}}>
                 <b style={{color:"#8B2500"}}>{FM[rc.familyA].nom} vs {FM[rc.familyB].nom}</b><br/>Trwają ustalenia stawki...
@@ -2291,30 +2291,6 @@ function App({roomCode,role}) {
           })()}
         </div>
         <div>
-          {(()=>{
-            var fId=familyId;
-            var notStarted=!gameStarted||stageIdx<0;
-            return(<div style={{background:"#3A2415",border:"2px solid #8B6914",borderRadius:6,padding:12,marginBottom:16,boxShadow:"inset 0 0 12px rgba(0,0,0,0.3)"}}>
-              <div style={{fontSize:13,fontWeight:700,color:"#D4A853",marginBottom:10,textAlign:"center",letterSpacing:"0.5px"}} className="wt">PRZEBIEG ROZGRYWKI</div>
-              {notStarted&&<div style={{fontSize:12,color:"#C4B090",textAlign:"center",marginBottom:8,fontStyle:"italic"}}>Oczekiwanie na start gry</div>}
-              {STAGES.filter(s=>s.type!=="end").map((s,idx)=>{
-                var realIdx=STAGES.indexOf(s);
-                var isCur=!notStarted&&realIdx===stageIdx,isDone=!notStarted&&realIdx<stageIdx,isFuture=notStarted||realIdx>stageIdx;
-                var isPhaseHeader=s.type==="turn"&&(s.id==="F1T1"||s.id==="F2T1"||s.id==="F3T1");
-                var partner=s.type==="turn"?getMeetingPartner(fId,s.pairingIdx):null;
-                var phLabel=s.phase?("Faza "+(s.phase===1?"I":s.phase===2?"II":"III")):null;
-                var turnInPhase=s.type==="turn"?(s.id.slice(-1)):"";
-                var showLabel=s.type==="turn"?("Tura "+turnInPhase+(partner?" — "+FM[partner].nom:"")):s.type==="kn"?"Kr\u00f3tka narada":s.label;
-                return(<React.Fragment key={s.id}>
-                  {isPhaseHeader&&<div style={{fontSize:13,fontWeight:700,color:"#D4A853",textTransform:"uppercase",letterSpacing:"1.5px",marginTop:idx>1?8:0,marginBottom:4,paddingBottom:3,borderBottom:"1px solid rgba(212,168,83,0.3)"}}>{phLabel}: {PHASE_NAMES[s.phase]}</div>}
-                  <div style={{display:"flex",alignItems:"center",gap:6,padding:"3px 6px",marginBottom:2,borderRadius:3,background:isCur?"rgba(212,168,83,0.25)":"transparent",opacity:isFuture?0.4:isDone?0.6:1,transition:"all 0.3s"}}>
-                    <span style={{fontSize:13,color:isCur?"#FFD700":isDone?"#6B8B6B":"#C4B090",fontWeight:isCur?700:400,flex:1}}>{isCur?"\u25B6 ":isDone?"\u2713 ":""}{showLabel}</span>
-                    <span style={{fontSize:13,color:isCur?"#D4A853":"#8B7355",fontWeight:600,fontFamily:"monospace",minWidth:36,textAlign:"right"}}>{stageDurations[s.id]}m</span>
-                  </div>
-                </React.Fragment>);
-              })}
-            </div>);
-          })()}
           {!viewSheriff&&<div style={{marginBottom:16}}>
             {(()=>{var myWaiting=sheriffCalls.filter(c=>c.fId===cf&&c.status==="waiting");var hasWaiting=myWaiting.length>0;
               return(<div>
@@ -2331,6 +2307,30 @@ function App({roomCode,role}) {
               </div>);
             })()}
           </div>}
+          {(()=>{
+            var fId=familyId;
+            var notStarted=!gameStarted||stageIdx<0;
+            return(<div style={{background:"#842504",border:"2px solid #D4A853",borderRadius:6,padding:12,marginBottom:16,boxShadow:"inset 0 0 12px rgba(0,0,0,0.3)"}}>
+              <div style={{fontSize:13,fontWeight:700,color:"#F5F0E8",marginBottom:10,textAlign:"center",letterSpacing:"0.5px"}} className="wt">PRZEBIEG ROZGRYWKI</div>
+              {notStarted&&<div style={{fontSize:12,color:"#F3CA82",textAlign:"center",marginBottom:8,fontStyle:"italic"}}>Oczekiwanie na start gry</div>}
+              {STAGES.filter(s=>s.type!=="end").map((s,idx)=>{
+                var realIdx=STAGES.indexOf(s);
+                var isCur=!notStarted&&realIdx===stageIdx,isDone=!notStarted&&realIdx<stageIdx,isFuture=notStarted||realIdx>stageIdx;
+                var isPhaseHeader=s.type==="turn"&&(s.id==="F1T1"||s.id==="F2T1"||s.id==="F3T1");
+                var partner=s.type==="turn"?getMeetingPartner(fId,s.pairingIdx):null;
+                var phLabel=s.phase?("Faza "+(s.phase===1?"I":s.phase===2?"II":"III")):null;
+                var turnInPhase=s.type==="turn"?(s.id.slice(-1)):"";
+                var showLabel=s.type==="turn"?("Tura "+turnInPhase+(partner?" — "+FM[partner].nom:"")):s.type==="kn"?"Kr\u00f3tka narada":s.label;
+                return(<React.Fragment key={s.id}>
+                  {isPhaseHeader&&<div style={{fontSize:13,fontWeight:700,color:"#F3CA82",textTransform:"uppercase",letterSpacing:"1.5px",marginTop:idx>1?8:0,marginBottom:4,paddingBottom:3,borderBottom:"1px solid rgba(243,202,130,0.4)"}}>{phLabel}: {PHASE_NAMES[s.phase]}</div>}
+                  <div style={{display:"flex",alignItems:"center",gap:6,padding:"3px 6px",marginBottom:2,borderRadius:3,background:isCur?"rgba(255,255,255,0.2)":"transparent",opacity:isFuture?0.45:isDone?0.65:1,transition:"all 0.3s"}}>
+                    <span style={{fontSize:13,color:isCur?"#FFD700":isDone?"#A8D4A8":"#F5F0E8",fontWeight:isCur?700:400,flex:1}}>{isCur?"\u25B6 ":isDone?"\u2713 ":""}{showLabel}</span>
+                    <span style={{fontSize:13,color:isCur?"#FFD700":"#F3CA82",fontWeight:600,fontFamily:"monospace",minWidth:36,textAlign:"right"}}>{stageDurations[s.id]}m</span>
+                  </div>
+                </React.Fragment>);
+              })}
+            </div>);
+          })()}
           <div style={{background:"#fff",borderRadius:6,border:"1px solid #D4C4A8",padding:14}}>
             <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Księgowość {pendingCount>0&&<span className="badge">{pendingCount}</span>}</div>
             {familyTxs.length===0?<div style={{textAlign:"center",padding:24,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Brak wpisów</div>
@@ -2365,7 +2365,7 @@ function App({roomCode,role}) {
               {item.cat===C_NRES&&<NoteCard item={item} selected={sel} type="res" textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_NCOMP&&<NoteCard item={item} selected={sel} type="comp" textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_PLOT&&<GenericCard item={item} selected={sel} textOnly onClick={()=>toggleItem(item)}/>}
-              {item.cat===C_MAP&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #D4C870"),background:sel?"#FFF8E7":"#FFFDF0",padding:"8px 10px",cursor:"pointer",position:"relative"}}>
+              {item.cat===C_MAP&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #D4A853"),background:sel?"#FFF8E7":"#FFFDF0",padding:"8px 10px",cursor:"pointer",position:"relative"}}>
                 {sel&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
                 <div style={{fontSize:13,fontWeight:600}}>{item.name}</div>
                 <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A09020",marginTop:2}}>FRAGMENT MAPY</div>
@@ -2375,8 +2375,8 @@ function App({roomCode,role}) {
               var bnbItems=my.items.filter(i=>i.cat===C_BNB);
               var grouped={};bnbItems.forEach(i=>{if(!grouped[i.bnbOrigin])grouped[i.bnbOrigin]=[];grouped[i.bnbOrigin].push(i);});
               if(Object.keys(grouped).length===0)return null;
-              return(<div style={{marginTop:8,borderTop:"1px solid #D4C870",paddingTop:8}}>
-                <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#8B7714",marginBottom:6}}>Biznes na boku</div>
+              return(<div style={{marginTop:8,borderTop:"1px solid #D4A853",paddingTop:8}}>
+                <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#842504",marginBottom:6}}>Biznes na boku</div>
                 {Object.keys(grouped).map(origin=>{
                   var cards=grouped[origin],prod=BNB_PRODUCTS[origin];
                   var selCount=selItems.filter(i=>i.cat===C_BNB&&i.bnbOrigin===origin).length;
@@ -2388,7 +2388,7 @@ function App({roomCode,role}) {
                       return without.concat(cards.slice(0,q));
                     });
                   }
-                  return(<div key={origin} style={{padding:"8px 10px",marginBottom:4,borderRadius:5,border:(isSel?"2px solid #D4A853":"1px solid #D4C870"),background:isSel?"#FFF8E7":"#FFFDF0",cursor:"pointer"}} onClick={()=>{if(selCount===0)setQty(1);else setQty(0);}}>
+                  return(<div key={origin} style={{padding:"8px 10px",marginBottom:4,borderRadius:5,border:(isSel?"2px solid #D4A853":"1px solid #D4A853"),background:isSel?"#FFF8E7":"#FFFDF0",cursor:"pointer"}} onClick={()=>{if(selCount===0)setQty(1);else setQty(0);}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                       <div>
                         <div style={{fontSize:13,fontWeight:600,color:prod.color}}>{prod.name}</div>
@@ -2428,7 +2428,7 @@ function App({roomCode,role}) {
               {item.cat===C_NRES&&<NoteCard item={item} selected={sel} type="res" textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_NCOMP&&<NoteCard item={item} selected={sel} type="comp" textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_PLOT&&<GenericCard item={item} selected={sel} textOnly onClick={()=>toggleItem(item)}/>}
-              {item.cat===C_MAP&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #D4C870"),background:sel?"#FFF8E7":"#FFFDF0",padding:"8px 10px",cursor:"pointer",position:"relative"}}>
+              {item.cat===C_MAP&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #D4A853"),background:sel?"#FFF8E7":"#FFFDF0",padding:"8px 10px",cursor:"pointer",position:"relative"}}>
                 {sel&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
                 <div style={{fontSize:13,fontWeight:600}}>{item.name}</div>
                 <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A09020",marginTop:2}}>FRAGMENT MAPY</div>
@@ -2438,8 +2438,8 @@ function App({roomCode,role}) {
               var bnbItems=my.items.filter(i=>i.cat===C_BNB);
               var grouped={};bnbItems.forEach(i=>{if(!grouped[i.bnbOrigin])grouped[i.bnbOrigin]=[];grouped[i.bnbOrigin].push(i);});
               if(Object.keys(grouped).length===0)return null;
-              return(<div style={{marginTop:8,borderTop:"1px solid #D4C870",paddingTop:8}}>
-                <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#8B7714",marginBottom:6}}>Biznes na boku</div>
+              return(<div style={{marginTop:8,borderTop:"1px solid #D4A853",paddingTop:8}}>
+                <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#842504",marginBottom:6}}>Biznes na boku</div>
                 {Object.keys(grouped).map(origin=>{
                   var cards=grouped[origin],prod=BNB_PRODUCTS[origin];
                   var selCount=selItems.filter(i=>i.cat===C_BNB&&i.bnbOrigin===origin).length;
@@ -2451,7 +2451,7 @@ function App({roomCode,role}) {
                       return without.concat(cards.slice(0,q));
                     });
                   }
-                  return(<div key={origin} style={{padding:"8px 10px",marginBottom:4,borderRadius:5,border:(isSel?"2px solid #D4A853":"1px solid #D4C870"),background:isSel?"#FFF8E7":"#FFFDF0",cursor:"pointer"}} onClick={()=>{if(selCount===0)setQty(1);else setQty(0);}}>
+                  return(<div key={origin} style={{padding:"8px 10px",marginBottom:4,borderRadius:5,border:(isSel?"2px solid #D4A853":"1px solid #D4A853"),background:isSel?"#FFF8E7":"#FFFDF0",cursor:"pointer"}} onClick={()=>{if(selCount===0)setQty(1);else setQty(0);}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                       <div>
                         <div style={{fontSize:13,fontWeight:600,color:prod.color}}>{prod.name}</div>
