@@ -2086,25 +2086,26 @@ function App({roomCode,role}) {
       var arr=new Uint32Array(2);(window.crypto||window.msCrypto).getRandomValues(arr);
       var d1=(arr[0]%6)+1,d2=(arr[1]%6)+1,sum=d1+d2;
       var ev=BLIND_FATE_EVENTS[sum];
-      // Read policyUsed from current state
-      var pu=null;
-      setBlindFate(prev=>{pu=((prev[fId]||{}).rolls||[])[rollIdx]?((prev[fId]||{}).rolls||[])[rollIdx].policyUsed:null;return prev;});
-      // Compute net effect
-      var ne=0,net="";
-      if(ev.type==="loss"){var base=ev.amount;if(pu===100)ne=0;else if(pu===50)ne=Math.round(base/2);else ne=base;net=ne===0?"0 $ (polisa pokryła stratę)":ne+" $";}
-      else if(ev.type==="loss_resources"){if(pu===100){ne=0;net="brak utraty zasobów (polisa)";}else if(pu===50){ne=-5;net="utrata 5% zasobów na koniec rozgrywki";}else{ne=-10;net="utrata 10% zasobów na koniec rozgrywki";}}
-      else if(ev.type==="gain"){ne=ev.amount;net="+"+ev.amount+" $";}
-      else if(ev.type==="gain_policy"){if(!pu){ne=0;net="0 $ (brak polisy)";}else{var pc=pu===50?30:50;ne=pc*2;net="+"+ne+" $ (2x"+pc+" $)";}}
-      // Store in state
+      // Compute everything inside setBlindFate where we have access to current state
+      var computed={ne:0,net:"",pu:null};
       setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var rolls=(bf.rolls||[]).slice();
         var roll={...rolls[rollIdx]};
+        var pu=roll.policyUsed;
+        computed.pu=pu;
         roll.rolling=false;roll.dice1=d1;roll.dice2=d2;roll.sum=sum;roll.event=ev;roll.resolved=true;roll.showDice=true;roll.showCard=false;
+        var ne=0,net="";
+        if(ev.type==="loss"){var base=ev.amount;if(pu===100)ne=0;else if(pu===50)ne=Math.round(base/2);else ne=base;net=ne===0?"0 $ (polisa pokryła stratę)":ne+" $";}
+        else if(ev.type==="loss_resources"){if(pu===100){ne=0;net="brak utraty zasobów (polisa)";}else if(pu===50){ne=-5;net="utrata 5% zasobów na koniec rozgrywki";}else{ne=-10;net="utrata 10% zasobów na koniec rozgrywki";}}
+        else if(ev.type==="gain"){ne=ev.amount;net="+"+ev.amount+" $";}
+        else if(ev.type==="gain_policy"){if(!pu){ne=0;net="0 $ (brak polisy)";}else{var pc=pu===50?30:50;ne=pc*2;net="+"+ne+" $ (2x"+pc+" $)";}}
         roll.netEffect=ne;roll.netEffectText=net;
+        computed.ne=ne;computed.net=net;
         rolls[rollIdx]=roll;bf.rolls=rolls;n[fId]=bf;return n;
       });
 
       // After 1.5s delay, show event card and apply effects
       setTimeout(()=>{
+        var ne=computed.ne,pu=computed.pu;
         setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var rolls=(bf.rolls||[]).slice();
           rolls[rollIdx]={...rolls[rollIdx],showCard:true};bf.rolls=rolls;n[fId]=bf;return n;});
 
@@ -2113,7 +2114,7 @@ function App({roomCode,role}) {
         // Mark policy as used
         if(pu){setBlindFate(prev=>{var bfn={...(prev[fId]||{})};var pol={...(bfn.policies||{})};
           if(pu===50)pol.p50="used";if(pu===100)pol.p100="used";bfn.policies=pol;return{...prev,[fId]:bfn};});}
-        // Transaction entry — using closure variables directly
+        // Transaction entry
         var desc="";
         if(ev.type==="loss_resources"){
           var pct=pu===100?0:pu===50?5:10;
