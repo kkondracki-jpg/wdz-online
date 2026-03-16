@@ -763,12 +763,12 @@ function NoteCard({item, selected, onClick, type, textOnly}) {
 }
 
 /* ========== GENERIC CARD (plot) ========== */
-function GenericCard({item, selected, onClick}) {
+function GenericCard({item, selected, onClick, textOnly}) {
   var isPlot=item.cat===C_PLOT;
   const [imgOk,setImgOk]=useState(true);
   var borderCol=selected?"#D4A853":"#C4B090";
   var bgCol=selected?"#FFF8E7":"#FDFAF4";
-  if(isPlot&&imgOk){
+  if(isPlot&&imgOk&&!textOnly){
     return (<div onClick={onClick} className={"cw"+(selected?" sel":"")} style={{cursor:onClick?"pointer":"default"}}>
       <img src={IMG_BASE+"dzialka_"+item.plotNr+".jpg"} className="ci" alt={"Działka "+item.plotNr} onError={()=>setImgOk(false)}/>
       {selected&&<div style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700,textShadow:"0 0 3px #fff"}}>V</div>}
@@ -777,7 +777,7 @@ function GenericCard({item, selected, onClick}) {
   return (<div onClick={onClick} style={{borderRadius:"5px",border:(selected?"2px":"1px")+" solid "+borderCol,background:bgCol,padding:"10px 12px",cursor:onClick?"pointer":"default",transition:"all 0.15s",position:"relative"}}>
     {selected&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
     <div style={{fontSize:13,fontWeight:600}}>{item.name}</div>
-    <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A08050",marginTop:2}}>DZIAŁKA</div>
+    <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A08050",marginTop:2}}>DZIAŁKA nr {item.plotNr}</div>
   </div>);
 }
 
@@ -1611,6 +1611,7 @@ function App({roomCode,role}) {
   const [timerPaused,setTimerPaused]=useState(false);
   const [gunshotFired,setGunshotFired]=useState(false);
   const timerRef=useRef(null);
+  const txWriteLock=useRef(false);
   // === SHERIFF QUEUE ===
   const [sheriffCalls,setSheriffCalls]=useState([]);
 
@@ -1665,7 +1666,7 @@ function App({roomCode,role}) {
       if(!s)return;
       fbIncoming.current=true;
       if(s.fd)setFd(fixFdFromFirebase(s.fd));
-      if(s.txs){var t=s.txs;setTxs(Array.isArray(t)?t:Object.values(t));}else setTxs([]);
+      if(!txWriteLock.current){if(s.txs){var t=s.txs;setTxs(Array.isArray(t)?t:Object.values(t));}else setTxs([]);}
       if(s.consultations)setConsultations(s.consultations);
       if(s.consultNotes)setConsultNotes(s.consultNotes);
       if(s.blindFate)setBlindFate(s.blindFate);
@@ -1806,6 +1807,11 @@ function App({roomCode,role}) {
   function advanceStage(){if(timerRef.current)clearInterval(timerRef.current);setTimerRunning(false);
     if(stageIdx<STAGES.length-1)startStage(stageIdx+1);else{showMsg("Rozgrywka zako\u0144czona!");}}
 
+  // Transaction sync: lock incoming Firebase txs, wait for React to process state, sync immediately
+  function txSyncAfter(){
+    txWriteLock.current=true;
+    setTimeout(()=>{syncToFB(true);setTimeout(()=>{txWriteLock.current=false;},500);},50);
+  }
   function resetP(){setShowP(false);setPMode(null);setPStep(1);setTFam(null);setSelItems([]);setPrice(0);setECash(0);setRTx(null);}
   function toggleItem(item){
     // Nr 5: prevent selecting locked cards
@@ -1847,12 +1853,12 @@ function App({roomCode,role}) {
   function submitSale(){if(!tFam||!selItems.length||price<=0)return;
     var locked=selItems.filter(i=>isCardLocked(i.id));
     if(locked.length){showMsg("Karta \""+locked[0].name+"\" jest zablokowana w innej transakcji!");return;}
-    setTxs(p=>[{id:Date.now().toString(),type:"sale",from:cf,to:tFam,offeredItems:selItems.slice(),price:Number(price),status:"pending"},...p]);resetP();showMsg("Oferta sprzedaży wysłana");}
+    setTxs(p=>[{id:Date.now().toString(),type:"sale",from:cf,to:tFam,offeredItems:selItems.slice(),price:Number(price),status:"pending"},...p]);txSyncAfter();resetP();showMsg("Oferta sprzedaży wysłana");}
   function submitBarter(){if(!tFam||!selItems.length)return;
     var locked=selItems.filter(i=>isCardLocked(i.id));
     if(locked.length){showMsg("Karta \""+locked[0].name+"\" jest zablokowana w innej transakcji!");return;}
-    setTxs(p=>[{id:Date.now().toString(),type:"barter",from:cf,to:tFam,offeredItems:selItems.slice(),offeredCash:Number(eCash)||0,responseItems:null,responseCash:0,status:"awaiting_response"},...p]);resetP();showMsg("Propozycja barteru wysłana");}
-  function submitResponse(){if(!rTx||!selItems.length)return;setTxs(p=>p.map(t=>t.id!==rTx?t:{...t,responseItems:selItems.slice(),responseCash:Number(eCash)||0,status:"pending"}));resetP();showMsg("Kontr-oferta wysłana!");}
+    setTxs(p=>[{id:Date.now().toString(),type:"barter",from:cf,to:tFam,offeredItems:selItems.slice(),offeredCash:Number(eCash)||0,responseItems:null,responseCash:0,status:"awaiting_response"},...p]);txSyncAfter();resetP();showMsg("Propozycja barteru wysłana");}
+  function submitResponse(){if(!rTx||!selItems.length)return;setTxs(p=>p.map(t=>t.id!==rTx?t:{...t,responseItems:selItems.slice(),responseCash:Number(eCash)||0,status:"pending"}));txSyncAfter();resetP();showMsg("Kontr-oferta wysłana!");}
   function acceptTx(txId){setTxs(p=>p.map(tx=>{if(tx.id!==txId)return tx;
     // === WALIDACJA (Nr 4) ===
     var seller=fd[tx.from],buyer=fd[tx.to];
@@ -1868,8 +1874,8 @@ function App({roomCode,role}) {
       if(tx.offeredCash>0&&seller.cash<tx.offeredCash){showMsg("Błąd: brak gotówki na dopłatę!");return{...tx,status:"rejected"};}
       if(tx.responseCash>0&&buyer.cash<tx.responseCash){showMsg("Błąd: brak gotówki na dopłatę!");return{...tx,status:"rejected"};}
     }
-    setFd(fd2=>{var n={...fd2};var f={...n[tx.from],items:n[tx.from].items.slice(),cash:n[tx.from].cash};var t={...n[tx.to],items:n[tx.to].items.slice(),cash:n[tx.to].cash};if(tx.type==="sale"){f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);f.cash+=tx.price;t.cash-=tx.price;}else{f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);t.items=t.items.filter(i=>!tx.responseItems.find(r=>r.id===i.id));f.items=f.items.concat(tx.responseItems);if(tx.offeredCash>0){f.cash-=tx.offeredCash;t.cash+=tx.offeredCash;}if(tx.responseCash>0){t.cash-=tx.responseCash;f.cash+=tx.responseCash;}}n[tx.from]=f;n[tx.to]=t;return n;});return{...tx,status:"accepted"};}));showMsg("Operacja zrealizowana!");}
-  function rejectTx(txId){setTxs(p=>p.map(t=>t.id===txId?{...t,status:"rejected"}:t));showMsg("Operacja odrzucona.");}
+    setFd(fd2=>{var n={...fd2};var f={...n[tx.from],items:n[tx.from].items.slice(),cash:n[tx.from].cash};var t={...n[tx.to],items:n[tx.to].items.slice(),cash:n[tx.to].cash};if(tx.type==="sale"){f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);f.cash+=tx.price;t.cash-=tx.price;}else{f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);t.items=t.items.filter(i=>!tx.responseItems.find(r=>r.id===i.id));f.items=f.items.concat(tx.responseItems);if(tx.offeredCash>0){f.cash-=tx.offeredCash;t.cash+=tx.offeredCash;}if(tx.responseCash>0){t.cash-=tx.responseCash;f.cash+=tx.responseCash;}}n[tx.from]=f;n[tx.to]=t;return n;});return{...tx,status:"accepted"};}));txSyncAfter();showMsg("Operacja zrealizowana!");}
+  function rejectTx(txId){setTxs(p=>p.map(t=>t.id===txId?{...t,status:"rejected"}:t));txSyncAfter();showMsg("Operacja odrzucona.");}
 
   function rollDice(fId,rollIdx){
     // Start rolling animation
@@ -1941,14 +1947,14 @@ function App({roomCode,role}) {
         <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.1</div>
       </div>
     </div>
-    {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
+    {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto",background:"#842504"}}>
       {FO.map(fId=>{var act=!viewSheriff&&cf===fId,col=FM[fId].col;
         return (<div key={fId} onClick={()=>{setCf(fId);setViewSheriff(false);setSheriffViewFamily(null);setActiveTab("inv");}}
-          style={{padding:"8px 16px",cursor:"pointer",fontWeight:act?700:400,fontSize:14,background:act?col:"transparent",color:act?"#fff":"#2C1810",borderBottom:act?"3px solid "+col:"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap"}} className="wt">
+          style={{padding:"8px 16px",cursor:"pointer",fontWeight:act?700:400,fontSize:14,background:act?col:"transparent",color:"#fff",borderBottom:act?"3px solid "+col:"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap"}} className="wt">
           {FM[fId].nom} <span style={{fontSize:13,opacity:0.7,fontFamily:"'Alegreya Sans',sans-serif"}}>({FM[fId].biz})</span>
         </div>);
       })}
-      <div onClick={()=>{setViewSheriff(true);setSheriffViewFamily(null);}} style={{padding:"8px 16px",cursor:"pointer",fontWeight:viewSheriff?700:400,fontSize:14,background:viewSheriff?"#8B6914":"transparent",color:viewSheriff?"#fff":"#2C1810",borderBottom:viewSheriff?"3px solid #8B6914":"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap",marginLeft:"auto"}} className="wt">
+      <div onClick={()=>{setViewSheriff(true);setSheriffViewFamily(null);}} style={{padding:"8px 16px",cursor:"pointer",fontWeight:viewSheriff?700:400,fontSize:14,background:viewSheriff?"#8B6914":"transparent",color:"#fff",borderBottom:viewSheriff?"3px solid #8B6914":"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap",marginLeft:"auto"}} className="wt">
         Szeryf (Trener)
       </div>
     </div>):(<div style={{background:FM[myFamily].col,padding:"8px 20px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -2285,13 +2291,15 @@ function App({roomCode,role}) {
           })()}
         </div>
         <div>
-          {gameStarted&&stageIdx>=0&&(()=>{
+          {(()=>{
             var fId=familyId;
+            var notStarted=!gameStarted||stageIdx<0;
             return(<div style={{background:"#3A2415",border:"2px solid #8B6914",borderRadius:6,padding:12,marginBottom:16,boxShadow:"inset 0 0 12px rgba(0,0,0,0.3)"}}>
               <div style={{fontSize:13,fontWeight:700,color:"#D4A853",marginBottom:10,textAlign:"center",letterSpacing:"0.5px"}} className="wt">PRZEBIEG ROZGRYWKI</div>
+              {notStarted&&<div style={{fontSize:12,color:"#C4B090",textAlign:"center",marginBottom:8,fontStyle:"italic"}}>Oczekiwanie na start gry</div>}
               {STAGES.filter(s=>s.type!=="end").map((s,idx)=>{
                 var realIdx=STAGES.indexOf(s);
-                var isCur=realIdx===stageIdx,isDone=realIdx<stageIdx,isFuture=realIdx>stageIdx;
+                var isCur=!notStarted&&realIdx===stageIdx,isDone=!notStarted&&realIdx<stageIdx,isFuture=notStarted||realIdx>stageIdx;
                 var isPhaseHeader=s.type==="turn"&&(s.id==="F1T1"||s.id==="F2T1"||s.id==="F3T1");
                 var partner=s.type==="turn"?getMeetingPartner(fId,s.pairingIdx):null;
                 var phLabel=s.phase?("Faza "+(s.phase===1?"I":s.phase===2?"II":"III")):null;
@@ -2356,7 +2364,7 @@ function App({roomCode,role}) {
               {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact onClick={()=>toggleItem(item)} isSheriff={false}/>}
               {item.cat===C_NRES&&<NoteCard item={item} selected={sel} type="res" textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_NCOMP&&<NoteCard item={item} selected={sel} type="comp" textOnly onClick={()=>toggleItem(item)}/>}
-              {item.cat===C_PLOT&&<GenericCard item={item} selected={sel} onClick={()=>toggleItem(item)}/>}
+              {item.cat===C_PLOT&&<GenericCard item={item} selected={sel} textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_MAP&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #D4C870"),background:sel?"#FFF8E7":"#FFFDF0",padding:"8px 10px",cursor:"pointer",position:"relative"}}>
                 {sel&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
                 <div style={{fontSize:13,fontWeight:600}}>{item.name}</div>
@@ -2419,7 +2427,7 @@ function App({roomCode,role}) {
               {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact onClick={()=>toggleItem(item)} isSheriff={false}/>}
               {item.cat===C_NRES&&<NoteCard item={item} selected={sel} type="res" textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_NCOMP&&<NoteCard item={item} selected={sel} type="comp" textOnly onClick={()=>toggleItem(item)}/>}
-              {item.cat===C_PLOT&&<GenericCard item={item} selected={sel} onClick={()=>toggleItem(item)}/>}
+              {item.cat===C_PLOT&&<GenericCard item={item} selected={sel} textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_MAP&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #D4C870"),background:sel?"#FFF8E7":"#FFFDF0",padding:"8px 10px",cursor:"pointer",position:"relative"}}>
                 {sel&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
                 <div style={{fontSize:13,fontWeight:600}}>{item.name}</div>
