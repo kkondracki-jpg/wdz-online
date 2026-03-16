@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WDZ Online — Platforma Sieciowa v7.1</title>
+  <title>WDZ Online — Platforma Sieciowa v7.2</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -273,7 +273,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.1</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.2</div>
       </div>
 
       {/* Initial choice */}
@@ -1982,6 +1982,17 @@ function App({roomCode,role}) {
     txWriteLock.current=true;
     setTimeout(()=>{syncToFB(true);setTimeout(()=>{txWriteLock.current=false;},500);},50);
   }
+  // Items available for sale/barter: exclude 1 permanent map fragment per fragNr
+  function sellableItems(items){
+    var kept={};
+    return items.filter(function(item){
+      if(item.cat===C_BNB)return false;
+      if(item.cat===C_MAP){
+        if(!kept[item.fragNr]){kept[item.fragNr]=true;return false;} // keep first one, hide from sale
+      }
+      return true;
+    });
+  }
   function resetP(){setShowP(false);setPMode(null);setPStep(1);setTFam(null);setSelItems([]);setPrice(0);setECash(0);setRTx(null);}
   function toggleItem(item){
     // Nr 5: prevent selecting locked cards
@@ -2075,14 +2086,19 @@ function App({roomCode,role}) {
       var arr=new Uint32Array(2);(window.crypto||window.msCrypto).getRandomValues(arr);
       var d1=(arr[0]%6)+1,d2=(arr[1]%6)+1,sum=d1+d2;
       var ev=BLIND_FATE_EVENTS[sum];
+      // Read policyUsed from current state
+      var pu=null;
+      setBlindFate(prev=>{pu=((prev[fId]||{}).rolls||[])[rollIdx]?((prev[fId]||{}).rolls||[])[rollIdx].policyUsed:null;return prev;});
+      // Compute net effect
+      var ne=0,net="";
+      if(ev.type==="loss"){var base=ev.amount;if(pu===100)ne=0;else if(pu===50)ne=Math.round(base/2);else ne=base;net=ne===0?"0 $ (polisa pokryła stratę)":ne+" $";}
+      else if(ev.type==="loss_resources"){if(pu===100){ne=0;net="brak utraty zasobów (polisa)";}else if(pu===50){ne=-5;net="utrata 5% zasobów na koniec rozgrywki";}else{ne=-10;net="utrata 10% zasobów na koniec rozgrywki";}}
+      else if(ev.type==="gain"){ne=ev.amount;net="+"+ev.amount+" $";}
+      else if(ev.type==="gain_policy"){if(!pu){ne=0;net="0 $ (brak polisy)";}else{var pc=pu===50?30:50;ne=pc*2;net="+"+ne+" $ (2x"+pc+" $)";}}
+      // Store in state
       setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var rolls=(bf.rolls||[]).slice();
         var roll={...rolls[rollIdx]};
         roll.rolling=false;roll.dice1=d1;roll.dice2=d2;roll.sum=sum;roll.event=ev;roll.resolved=true;roll.showDice=true;roll.showCard=false;
-        var pu=roll.policyUsed,ne=0,net="";
-        if(ev.type==="loss"){var base=ev.amount;if(pu===100)ne=0;else if(pu===50)ne=Math.round(base/2);else ne=base;net=ne===0?"0 $ (polisa pokryła stratę)":ne+" $";}
-        else if(ev.type==="loss_resources"){if(pu===100){ne=0;net="brak utraty zasobów (polisa)";}else if(pu===50){ne=-5;net="utrata 5% zasobów na koniec rozgrywki";}else{ne=-10;net="utrata 10% zasobów na koniec rozgrywki";}}
-        else if(ev.type==="gain"){ne=ev.amount;net="+"+ev.amount+" $";}
-        else if(ev.type==="gain_policy"){if(!pu){ne=0;net="0 $ (brak polisy)";}else{var pc=pu===50?30:50;ne=pc*2;net="+"+ne+" $ (2x"+pc+" $)";}}
         roll.netEffect=ne;roll.netEffectText=net;
         rolls[rollIdx]=roll;bf.rolls=rolls;n[fId]=bf;return n;
       });
@@ -2092,35 +2108,23 @@ function App({roomCode,role}) {
         setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var rolls=(bf.rolls||[]).slice();
           rolls[rollIdx]={...rolls[rollIdx],showCard:true};bf.rolls=rolls;n[fId]=bf;return n;});
 
-        var ev2=BLIND_FATE_EVENTS[sum];
-        var pu2; setBlindFate(prev=>{pu2=(prev[fId]||{}).rolls[rollIdx].policyUsed;return prev;});
-        // Read final values from state
-        setBlindFate(prev=>{
-          var bfn={...(prev[fId]||{})};var roll=bfn.rolls[rollIdx];
-          if(ev2.type!=="loss_resources") setFd(fd3=>{var n={...fd3};n[fId]={...n[fId],cash:n[fId].cash+roll.netEffect};return n;});
-          if(roll.policyUsed){
-            var pol={...(bfn.policies||{})};
-            if(roll.policyUsed===50)pol.p50="used";if(roll.policyUsed===100)pol.p100="used";
-            bfn.policies=pol;
-          }
-          return {...prev,[fId]:bfn};
-        });
-        setTxs(prev2=>{
-          var roll2; setBlindFate(prev3=>{roll2=(prev3[fId]||{}).rolls[rollIdx];return prev3;});
-          var ev3=BLIND_FATE_EVENTS[sum];
-          var desc="";
-          if(!roll2||!ev3){desc="Ślepy los";}
-          else if(ev3.type==="loss_resources"){
-            var pct=roll2.policyUsed===100?0:roll2.policyUsed===50?5:10;
-            desc=pct===0?"Ślepy los — brak utraty zasobów (polisa 100%)":"Ślepy los — utrata "+pct+"% zasobów na koniec rozgrywki";
-          }
-          else if(ev3.type==="gain"||ev3.type==="gain_policy"){desc="Ślepy los — zysk: +"+roll2.netEffect+" $";}
-          else if(ev3.type==="loss"){
-            var realLoss=Math.abs(roll2.netEffect);
-            desc=realLoss===0?"Ślepy los — strata: 0 $ (polisa)":"Ślepy los — strata: -"+realLoss+" $";
-          }
-          return [{id:Date.now().toString(),type:"fate",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:desc},...prev2];
-        });
+        // Apply cash effect (not for loss_resources — that's applied at scoring)
+        if(ev.type!=="loss_resources") setFd(fd3=>{var n={...fd3};n[fId]={...n[fId],cash:n[fId].cash+ne};return n;});
+        // Mark policy as used
+        if(pu){setBlindFate(prev=>{var bfn={...(prev[fId]||{})};var pol={...(bfn.policies||{})};
+          if(pu===50)pol.p50="used";if(pu===100)pol.p100="used";bfn.policies=pol;return{...prev,[fId]:bfn};});}
+        // Transaction entry — using closure variables directly
+        var desc="";
+        if(ev.type==="loss_resources"){
+          var pct=pu===100?0:pu===50?5:10;
+          desc=pct===0?"Ślepy los — brak utraty zasobów (polisa 100%)":"Ślepy los — utrata "+pct+"% zasobów na koniec rozgrywki";
+        }
+        else if(ev.type==="gain"||ev.type==="gain_policy"){desc="Ślepy los — zysk: +"+ne+" $";}
+        else if(ev.type==="loss"){
+          var realLoss=Math.abs(ne);
+          desc=realLoss===0?"Ślepy los — strata: 0 $ (polisa pokryła stratę)":"Ślepy los — strata: -"+realLoss+" $";
+        }
+        setTxs(prev2=>[{id:Date.now().toString(),type:"fate",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:desc},...prev2]);
         showMsg(FM[fId].nom+": "+ev2.text);
         delete rollingRef.current[fId+"-"+rollIdx];
 
@@ -2142,7 +2146,7 @@ function App({roomCode,role}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.1</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.2</div>
       </div>
     </div>
     {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto",background:"#842504"}}>
@@ -2571,7 +2575,7 @@ function App({roomCode,role}) {
           </div>}
           {(pMode==="sale"||pMode==="barter")&&pStep===2&&<div>
             <div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase",letterSpacing:"1px",marginBottom:8}}>{pMode==="sale"?"Wybierz towar":"Wybierz co oferujesz"}</div>
-            <div style={{maxHeight:380,overflowY:"auto"}}>{my.items.filter(item=>item.cat!==C_BNB).map(item=>{var sel=!!selItems.find(i=>i.id===item.id);return <div key={item.id} style={{marginBottom:4}}>
+            <div style={{maxHeight:380,overflowY:"auto"}}>{sellableItems(my.items).map(item=>{var sel=!!selItems.find(i=>i.id===item.id);return <div key={item.id} style={{marginBottom:4}}>
               {item.cat===C_RES&&<ResourceCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
               {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact onClick={()=>toggleItem(item)} isSheriff={false}/>}
               {item.cat===C_NRES&&<NoteCard item={item} selected={sel} type="res" textOnly onClick={()=>toggleItem(item)}/>}
@@ -2634,7 +2638,7 @@ function App({roomCode,role}) {
           {pMode==="barter_response"&&(()=>{var tx=txs.find(t=>t.id===rTx);if(!tx)return null;return <div>
             <div style={{background:"#F0EBE0",padding:10,borderRadius:5,marginBottom:12,fontSize:13,lineHeight:1.5}}><b>Rodzina {FM[tx.from].gen} oferuje:</b> {fmtItems(tx.offeredItems)}{tx.offeredCash>0?" + "+tx.offeredCash+" $":""}</div>
             <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:8}}>Co oferujesz w zamian?</div>
-            <div style={{maxHeight:300,overflowY:"auto"}}>{my.items.filter(item=>item.cat!==C_BNB).map(item=>{var sel=!!selItems.find(i=>i.id===item.id);return <div key={item.id} style={{marginBottom:4}}>
+            <div style={{maxHeight:300,overflowY:"auto"}}>{sellableItems(my.items).map(item=>{var sel=!!selItems.find(i=>i.id===item.id);return <div key={item.id} style={{marginBottom:4}}>
               {item.cat===C_RES&&<ResourceCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
               {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact onClick={()=>toggleItem(item)} isSheriff={false}/>}
               {item.cat===C_NRES&&<NoteCard item={item} selected={sel} type="res" textOnly onClick={()=>toggleItem(item)}/>}
