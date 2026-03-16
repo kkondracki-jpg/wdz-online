@@ -385,19 +385,25 @@ const PAIRINGS = [
   [["adams","dexter"],["bennet","clinton"]],
 ];
 const STAGES = [
-  {id:"PREP", label:"Przygotowanie",         type:"prep",   defMin:30, pairingIdx:null, phase:null},
-  {id:"F1T1", label:"Faza I \u2014 Tura 1", type:"turn",   defMin:5,  pairingIdx:0,    phase:1},
-  {id:"F1T2", label:"Faza I \u2014 Tura 2", type:"turn",   defMin:5,  pairingIdx:1,    phase:1},
-  {id:"F1T3", label:"Faza I \u2014 Tura 3", type:"turn",   defMin:5,  pairingIdx:2,    phase:1},
-  {id:"NAR1", label:"Narada rodzinna I",      type:"narada", defMin:10, pairingIdx:null, phase:null},
-  {id:"F2T1", label:"Faza II \u2014 Tura 1",type:"turn",   defMin:10, pairingIdx:0,    phase:2},
-  {id:"F2T2", label:"Faza II \u2014 Tura 2",type:"turn",   defMin:10, pairingIdx:1,    phase:2},
-  {id:"F2T3", label:"Faza II \u2014 Tura 3",type:"turn",   defMin:10, pairingIdx:2,    phase:2},
-  {id:"NAR2", label:"Narada rodzinna II",     type:"narada", defMin:10, pairingIdx:null, phase:null},
-  {id:"F3T1", label:"Faza III \u2014 Tura 1",type:"turn",  defMin:5,  pairingIdx:0,    phase:3},
-  {id:"F3T2", label:"Faza III \u2014 Tura 2",type:"turn",  defMin:5,  pairingIdx:1,    phase:3},
-  {id:"F3T3", label:"Faza III \u2014 Tura 3",type:"turn",  defMin:5,  pairingIdx:2,    phase:3},
-  {id:"END",  label:"Zako\u0144czenie rozgrywki",type:"end",defMin:0,pairingIdx:null, phase:null},
+  {id:"PREP", label:"Przygotowanie",               type:"prep",   defMin:60, pairingIdx:null, phase:null},
+  {id:"F1T1", label:"Faza I \u2014 Tura 1",        type:"turn",   defMin:7,  pairingIdx:0,    phase:1},
+  {id:"KN1A", label:"Faza I \u2014 Kr\u00f3tka narada 1", type:"kn", defMin:5, pairingIdx:null, phase:1},
+  {id:"F1T2", label:"Faza I \u2014 Tura 2",        type:"turn",   defMin:7,  pairingIdx:1,    phase:1},
+  {id:"KN1B", label:"Faza I \u2014 Kr\u00f3tka narada 2", type:"kn", defMin:5, pairingIdx:null, phase:1},
+  {id:"F1T3", label:"Faza I \u2014 Tura 3",        type:"turn",   defMin:7,  pairingIdx:2,    phase:1},
+  {id:"NAR1", label:"Narada rodzinna I",            type:"narada", defMin:15, pairingIdx:null, phase:null},
+  {id:"F2T1", label:"Faza II \u2014 Tura 1",       type:"turn",   defMin:15, pairingIdx:0,    phase:2},
+  {id:"KN2A", label:"Faza II \u2014 Kr\u00f3tka narada 1",type:"kn", defMin:5, pairingIdx:null, phase:2},
+  {id:"F2T2", label:"Faza II \u2014 Tura 2",       type:"turn",   defMin:15, pairingIdx:1,    phase:2},
+  {id:"KN2B", label:"Faza II \u2014 Kr\u00f3tka narada 2",type:"kn", defMin:5, pairingIdx:null, phase:2},
+  {id:"F2T3", label:"Faza II \u2014 Tura 3",       type:"turn",   defMin:15, pairingIdx:2,    phase:2},
+  {id:"NAR2", label:"Narada rodzinna II",           type:"narada", defMin:15, pairingIdx:null, phase:null},
+  {id:"F3T1", label:"Faza III \u2014 Tura 1",      type:"turn",   defMin:5,  pairingIdx:0,    phase:3},
+  {id:"KN3A", label:"Faza III \u2014 Kr\u00f3tka narada 1",type:"kn", defMin:5, pairingIdx:null, phase:3},
+  {id:"F3T2", label:"Faza III \u2014 Tura 2",      type:"turn",   defMin:5,  pairingIdx:1,    phase:3},
+  {id:"KN3B", label:"Faza III \u2014 Kr\u00f3tka narada 2",type:"kn", defMin:5, pairingIdx:null, phase:3},
+  {id:"F3T3", label:"Faza III \u2014 Tura 3",      type:"turn",   defMin:5,  pairingIdx:2,    phase:3},
+  {id:"END",  label:"Zako\u0144czenie rozgrywki",  type:"end",    defMin:0,  pairingIdx:null, phase:null},
 ];
 const PHASE_NAMES = {1:"WYMIANA INFORMACJI",2:"PIERWSZE TRANSAKCJE",3:"FINA\u0141"};
 /* ========== AUDIO: GUNSHOT SYNTHESIS ========== */
@@ -431,7 +437,7 @@ function TimerBar({stage,secondsLeft,totalSeconds,paused,familyId}){
   var partner=stage.type==="turn"?getMeetingPartner(familyId,stage.pairingIdx):null;
   var stLabel=stage.label;
   if(stage.phase)stLabel="Faza "+(stage.phase===1?"I":stage.phase===2?"II":"III")+": "+PHASE_NAMES[stage.phase];
-  var meetInfo=partner?("Spotkanie: "+FM[familyId].nom+" \u2194 "+FM[partner].nom):(stage.type==="narada"?"Czas na narad\u0119 rodzinn\u0105":stage.type==="prep"?"Przygotowanie do rozgrywki":stage.type==="end"?"Zako\u0144czenie rozgrywki":"");
+  var meetInfo=partner?("Spotkanie: "+FM[familyId].nom+" \u2194 "+FM[partner].nom):(stage.type==="narada"?"Czas na narad\u0119 rodzinn\u0105":stage.type==="kn"?"Kr\u00f3tka narada":stage.type==="prep"?"Przygotowanie do rozgrywki":stage.type==="end"?"Zako\u0144czenie rozgrywki":"");
   return(<div style={{background:isCrit?"#8B2500":isLow?"#A04020":"#4C130F",padding:"10px 20px",position:"relative",overflow:"hidden",transition:"background 0.5s"}}>
     <div style={{position:"absolute",top:0,left:0,height:"100%",width:pct+"%",background:"rgba(212,168,83,0.15)",transition:"width 1s linear"}}/>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",position:"relative",zIndex:1}}>
@@ -759,13 +765,19 @@ function NoteCard({item, selected, onClick, type, textOnly}) {
 /* ========== GENERIC CARD (plot) ========== */
 function GenericCard({item, selected, onClick}) {
   var isPlot=item.cat===C_PLOT;
-  var bg=selected?"#FFF8E7":"#F0FFF0";
-  var border=selected?"#D4A853":"#90C090";
-  return (<div onClick={onClick} style={{borderRadius:"5px",border:(selected?"2px":"1px")+" solid "+border,background:bg,padding:"10px 12px",cursor:onClick?"pointer":"default",transition:"all 0.15s",position:"relative",minWidth:isPlot?160:undefined}}>
+  const [imgOk,setImgOk]=useState(true);
+  var borderCol=selected?"#D4A853":"#C4B090";
+  var bgCol=selected?"#FFF8E7":"#FDFAF4";
+  if(isPlot&&imgOk){
+    return (<div onClick={onClick} className={"cw"+(selected?" sel":"")} style={{cursor:onClick?"pointer":"default"}}>
+      <img src={IMG_BASE+"dzialka_"+item.plotNr+".jpg"} className="ci" alt={"Działka "+item.plotNr} onError={()=>setImgOk(false)}/>
+      {selected&&<div style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700,textShadow:"0 0 3px #fff"}}>V</div>}
+    </div>);
+  }
+  return (<div onClick={onClick} style={{borderRadius:"5px",border:(selected?"2px":"1px")+" solid "+borderCol,background:bgCol,padding:"10px 12px",cursor:onClick?"pointer":"default",transition:"all 0.15s",position:"relative"}}>
     {selected&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
-    {isPlot&&<img src={IMG_BASE+"dzialka_"+item.plotNr+".jpg"} alt={"Działka "+item.plotNr} style={{width:"100%",height:"auto",borderRadius:4,marginBottom:6}} onError={e=>{e.target.style.display="none"}}/>}
     <div style={{fontSize:13,fontWeight:600}}>{item.name}</div>
-    <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#408040",marginTop:2}}>DZIAŁKA</div>
+    <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A08050",marginTop:2}}>DZIAŁKA</div>
   </div>);
 }
 
@@ -959,14 +971,16 @@ function FateEventCard({sum, showEvent}) {
   </div>);
 }
 
-function PolicyCardFate({pKey, label, price, status, imgName}) {
+function PolicyCardFate({pKey, label, price, status, imgName, activeForRoll}) {
   const [imgOk,setImgOk]=useState(true);
-  var borderCol=status==="active"?"#6B3FA0":"#C4B0D8";
-  var bgCol=status==="active"?"#EDE4F8":"#F0EDE4";
-  var statusText=status==="active"?"Aktywna":status==="used"?"Wykorzystana":"Nie wykupiona";
-  var statusCol=status==="active"?"#2E5B3C":"#8B7355";
-  var opa=status==="active"?1:0.5;
-  return (<div style={{flex:1,borderRadius:6,border:"2px solid "+borderCol,background:bgCol,opacity:opa,overflow:"hidden"}}>
+  // States: null=nie wykupiona, "owned"=w posiadaniu, "used"=wykorzystana, activeForRoll=aktywna w losowaniu
+  var isActive=activeForRoll;
+  var borderCol=isActive?"#6B3FA0":status==="owned"?"#C4B0D8":"#C4B0D8";
+  var bgCol=isActive?"#EDE4F8":"#F0EDE4";
+  var statusText=isActive?"Aktywna":status==="owned"?"W posiadaniu":status==="used"?"Wykorzystana":"Nie wykupiona";
+  var statusCol=isActive?"#2E5B3C":status==="used"?"#8B7355":"#8B7355";
+  var opa=isActive?1:0.5;
+  return (<div style={{flex:1,borderRadius:6,border:"2px solid "+borderCol,background:bgCol,opacity:opa,overflow:"hidden",position:"relative"}}>
     {imgOk&&<img src={IMG_BASE+imgName+".jpg"} style={{width:"100%",height:"auto",display:"block"}} alt={label} onError={()=>setImgOk(false)}/>}
     <div style={{padding:6,textAlign:"center"}}>
       {!imgOk&&<div style={{fontSize:13,fontWeight:700,color:"#6B3FA0"}}>{label}</div>}
@@ -978,6 +992,10 @@ function PolicyCardFate({pKey, label, price, status, imgName}) {
 
 function BlindFateFamily({fId, blindFate}) {
   var bf=blindFate[fId]||{}, policies=bf.policies||{p50:null,p100:null}, rolls=bf.rolls||[];
+  var currentRollIdx=rolls.length>0?rolls.length-1:-1;
+  var currentRoll=currentRollIdx>=0?rolls[currentRollIdx]:null;
+  var showEvent=currentRoll&&currentRoll.resolved&&currentRoll.showCard;
+  var activePolicy=currentRoll?currentRoll.policyUsed:null;
   // Format history line
   function fmtHistory(roll,idx){
     if(!roll.resolved)return null;
@@ -989,50 +1007,38 @@ function BlindFateFamily({fId, blindFate}) {
   }
   return (<div>
     <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:12,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Ślepy los</div>
-    {/* — POLISY: kupno przed pierwszym losowaniem — */}
-    {rolls.length===0&&<div style={{background:"#F8F4FF",border:"1px solid #C4B0D8",borderRadius:6,padding:12,marginBottom:16}}>
-      <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:8}}>Polisy ubezpieczeniowe — oczekuj na sygnał Szeryfa</div>
-      <div style={{display:"flex",gap:8,alignItems:"stretch"}}>
-        <PolicyCardFate pKey="p100" label="Polisa 100%" price="50 $" status={policies.p100} imgName="policy_100"/>
-        <PolicyCardFate pKey="p50" label="Polisa 50%" price="30 $" status={policies.p50} imgName="policy_50"/>
-        <FateEventCard sum={null} showEvent={false}/>
+    <div style={{background:"#F8F4FF",border:"1px solid #C4B0D8",borderRadius:8,padding:14,marginBottom:16}}>
+      <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:10}}>{rolls.length===0?"Oczekuj na sygnał Szeryfa":"Losowanie "+(currentRollIdx+1)}</div>
+      {/* 3 karty w linii: polisa 100% (flex:1) + polisa 50% (flex:1) + karta zdarzenia (flex:2) */}
+      <div style={{display:"flex",gap:8,alignItems:"stretch",marginBottom:12}}>
+        <PolicyCardFate pKey="p100" label="Polisa 100%" price="50 $" status={policies.p100} imgName="policy_100" activeForRoll={activePolicy===100}/>
+        <PolicyCardFate pKey="p50" label="Polisa 50%" price="30 $" status={policies.p50} imgName="policy_50" activeForRoll={activePolicy===50}/>
+        <FateEventCard sum={currentRoll?currentRoll.sum:null} showEvent={!!showEvent}/>
       </div>
-    </div>}
-    {/* — LOSOWANIA — */}
-    {rolls.map((roll,idx)=>{
-      return (<div key={idx} style={{marginBottom:20,background:"#F8F4FF",border:"1px solid #C4B0D8",borderRadius:8,padding:14}}>
-        <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:10}}>Losowanie {idx+1}</div>
-        {/* 3 karty w linii: polisa 100% (flex:1) + polisa 50% (flex:1) + karta zdarzenia (flex:2) */}
-        <div style={{display:"flex",gap:8,alignItems:"stretch",marginBottom:12}}>
-          <PolicyCardFate pKey="p100" label="Polisa 100%" price="50 $" status={policies.p100} imgName="policy_100"/>
-          <PolicyCardFate pKey="p50" label="Polisa 50%" price="30 $" status={policies.p50} imgName="policy_50"/>
-          <FateEventCard sum={roll.sum} showEvent={roll.resolved&&roll.showCard}/>
+      {/* Przycisk rzutu */}
+      {currentRoll&&!currentRoll.diceReady&&!currentRoll.resolved&&<div style={{textAlign:"center",padding:12,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Szeryf przygotowuje losowanie...</div>}
+      {currentRoll&&currentRoll.diceReady&&!currentRoll.resolved&&!currentRoll.rolling&&<div style={{textAlign:"center",padding:12}}>
+        <button data-roll={fId+"-"+currentRollIdx} style={{...btnS("fate"),fontSize:16,padding:"14px 32px",borderRadius:8}}>Rzuć kośćmi</button>
+      </div>}
+      {/* Kości — JEDNA para */}
+      {currentRoll&&(currentRoll.rolling||(currentRoll.resolved&&currentRoll.showDice))&&<div style={{textAlign:"center",marginBottom:10}}>
+        <div style={{display:"flex",justifyContent:"center",gap:16,marginBottom:6}}>
+          <Dice3D rolling={currentRoll.rolling} value={currentRoll.resolved?currentRoll.dice1:null}/>
+          <Dice3D rolling={currentRoll.rolling} value={currentRoll.resolved?currentRoll.dice2:null}/>
         </div>
-        {/* Przycisk rzutu */}
-        {!roll.diceReady&&!roll.resolved&&<div style={{textAlign:"center",padding:12,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Szeryf przygotowuje losowanie...</div>}
-        {roll.diceReady&&!roll.resolved&&!roll.rolling&&<div style={{textAlign:"center",padding:12}}>
-          <button data-roll={fId+"-"+idx} style={{...btnS("fate"),fontSize:16,padding:"14px 32px",borderRadius:8}}>Rzuć kośćmi</button>
-        </div>}
-        {/* Kości — JEDNA para */}
-        {(roll.rolling||roll.resolved&&roll.showDice)&&<div style={{textAlign:"center",marginBottom:10}}>
-          <div style={{display:"flex",justifyContent:"center",gap:16,marginBottom:6}}>
-            <Dice3D rolling={roll.rolling} value={roll.resolved?roll.dice1:null}/>
-            <Dice3D rolling={roll.rolling} value={roll.resolved?roll.dice2:null}/>
-          </div>
-          {roll.rolling&&<div style={{fontSize:14,color:"#6B3FA0",fontWeight:600}}>Kości w powietrzu...</div>}
-          {roll.resolved&&roll.showDice&&<div style={{fontSize:16,fontWeight:700,color:"#2C1810"}}>{roll.dice1} + {roll.dice2} = {roll.sum}</div>}
-        </div>}
-        {/* Rozliczenie */}
-        {roll.resolved&&roll.showCard&&<div className="card-reveal" style={{background:roll.netEffect>=0?"#E8F5E8":"#FFF0F0",border:"1px solid "+(roll.netEffect>=0?"#90C090":"#C09090"),borderRadius:6,padding:14,textAlign:"center",marginTop:8}}>
-          <div style={{fontSize:16,fontWeight:700,color:"#2C1810",marginBottom:4}}>ROZLICZENIE:</div>
-          <div style={{fontSize:24,fontWeight:700,color:roll.netEffect>=0?"#2E5B3C":"#8B2500"}}>{roll.netEffectText}</div>
-          {roll.policyUsed&&roll.event&&roll.event.type!=="gain"&&roll.event.type!=="gain_policy"&&<div style={{fontSize:14,color:"#6B3FA0",marginTop:4}}>Polisa zmniejsza tratę o {roll.policyUsed}%</div>}
-        </div>}
-        {roll.resolved&&!roll.showDice&&!roll.showCard&&<div style={{textAlign:"center",padding:8,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Losowanie {idx+1} zakończone</div>}
-      </div>);
-    })}
+        {currentRoll.rolling&&<div style={{fontSize:14,color:"#6B3FA0",fontWeight:600}}>Kości w powietrzu...</div>}
+        {currentRoll.resolved&&currentRoll.showDice&&<div style={{fontSize:16,fontWeight:700,color:"#2C1810"}}>{currentRoll.dice1} + {currentRoll.dice2} = {currentRoll.sum}</div>}
+      </div>}
+      {/* Rozliczenie */}
+      {currentRoll&&currentRoll.resolved&&currentRoll.showCard&&<div className="card-reveal" style={{background:currentRoll.netEffect>=0?"#E8F5E8":"#FFF0F0",border:"1px solid "+(currentRoll.netEffect>=0?"#90C090":"#C09090"),borderRadius:6,padding:14,textAlign:"center",marginTop:8}}>
+        <div style={{fontSize:16,fontWeight:700,color:"#2C1810",marginBottom:4}}>ROZLICZENIE:</div>
+        <div style={{fontSize:24,fontWeight:700,color:currentRoll.netEffect>=0?"#2E5B3C":"#8B2500"}}>{currentRoll.netEffectText}</div>
+        {currentRoll.policyUsed&&currentRoll.event&&currentRoll.event.type!=="gain"&&currentRoll.event.type!=="gain_policy"&&<div style={{fontSize:14,color:"#6B3FA0",marginTop:4}}>Polisa zmniejsza stratę o {currentRoll.policyUsed}%</div>}
+      </div>}
+      {!currentRoll&&<div style={{textAlign:"center",padding:12,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Oczekuj na sygnał Szeryfa do losowania...</div>}
+    </div>
     {/* — HISTORIA LOSOWAŃ (widoczna dla rodziny) — */}
-    {rolls.filter(r=>r.resolved).length>0&&<div style={{marginTop:12,background:"#F0EDE4",border:"1px solid #D4C4A8",borderRadius:6,padding:12}}>
+    {rolls.filter(r=>r.resolved).length>0&&<div style={{background:"#F0EDE4",border:"1px solid #D4C4A8",borderRadius:6,padding:12}}>
       <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:8}}>Historia losowań</div>
       {rolls.map((r,i)=>{var h=fmtHistory(r,i);return h?<div key={i} style={{fontSize:13,color:"#5C4A3A",padding:"4px 0",borderBottom:"1px solid #E0D8D0",lineHeight:1.5}}>{h}</div>:null;})}
     </div>}
@@ -1040,7 +1046,7 @@ function BlindFateFamily({fId, blindFate}) {
 }
 
 /* ========== SHERIFF PANEL ========== */
-function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setConsultNotes,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,resultsReveal,setResultsReveal,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,fateEnabled,setFateEnabled,mapEnabled,setMapEnabled,revEnabled,setRevEnabled,revMaxBet,setRevMaxBet,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle}) {
+function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setConsultNotes,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,resultsReveal,setResultsReveal,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,manualMode,setManualMode,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,fateEnabled,setFateEnabled,mapEnabled,setMapEnabled,revEnabled,setRevEnabled,revMaxBet,setRevMaxBet,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle}) {
   function applyPlotPenalties(){
     FO.forEach(fId=>{
       if(plotPenalties[fId]) return;
@@ -1084,8 +1090,8 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     var cost=type==="p50"?30:50;
     if(fd[fId].cash<cost){showMsg("Za mało gotówki!");return;}
     setFd(prev=>{var n={...prev};n[fId]={...n[fId],cash:n[fId].cash-cost};return n;});
-    setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var pol={...(bf.policies||{p50:null,p100:null})};pol[type]="active";bf.policies=pol;n[fId]=bf;return n;});
-    showMsg("Polisa "+(type==="p50"?"50%":"100%")+" aktywowana ("+cost+" $)");
+    setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var pol={...(bf.policies||{p50:null,p100:null})};pol[type]="owned";bf.policies=pol;n[fId]=bf;return n;});
+    showMsg("Polisa "+(type==="p50"?"50%":"100%")+" wykupiona ("+cost+" $)");
   }
   function prepareRoll(fId,policyChoice){
     setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var rolls=(bf.rolls||[]).slice();
@@ -1151,18 +1157,21 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
         <div style={{fontSize:13,color:"#5C4A3A",marginBottom:10}}>Ustaw czasy trwania etapów (minuty), a następnie kliknij Start.</div>
         {(()=>{
           var grouped=[
-            {key:"PREP",label:"Przygotowanie",ids:["PREP"],defMin:30,color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-            {key:"F1",label:"Tury Fazy I (wymiana informacji)",ids:["F1T1","F1T2","F1T3"],defMin:5,color:"#6B3FA0",bg:"#F8F4FF",border:"#C4B0D8"},
-            {key:"NAR1",label:"Narada rodzinna 1",ids:["NAR1"],defMin:10,color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-            {key:"F2",label:"Tury Fazy II (pierwsze transakcje)",ids:["F2T1","F2T2","F2T3"],defMin:10,color:"#6B3FA0",bg:"#F8F4FF",border:"#C4B0D8"},
-            {key:"NAR2",label:"Narada rodzinna 2",ids:["NAR2"],defMin:10,color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-            {key:"F3",label:"Tury Fazy III (finał)",ids:["F3T1","F3T2","F3T3"],defMin:5,color:"#6B3FA0",bg:"#F8F4FF",border:"#C4B0D8"},
+            [{key:"PREP",label:"Przygotowanie",ids:["PREP"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
+             {key:"F1",label:"Tury Fazy I (wymiana informacji)",ids:["F1T1","F1T2","F1T3"],color:"#6B3FA0",bg:"#F8F4FF",border:"#C4B0D8",multi:"×3 tury"},
+             {key:"KN1",label:"Faza I \u2014 Kr\u00f3tka narada",ids:["KN1A","KN1B"],color:"#5E5971",bg:"#F0EEF4",border:"#B0A8C0",multi:"×2"}],
+            [{key:"NAR1",label:"Narada rodzinna 1",ids:["NAR1"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
+             {key:"F2",label:"Tury Fazy II (pierwsze transakcje)",ids:["F2T1","F2T2","F2T3"],color:"#6B3FA0",bg:"#F8F4FF",border:"#C4B0D8",multi:"×3 tury"},
+             {key:"KN2",label:"Faza II \u2014 Kr\u00f3tka narada",ids:["KN2A","KN2B"],color:"#5E5971",bg:"#F0EEF4",border:"#B0A8C0",multi:"×2"}],
+            [{key:"NAR2",label:"Narada rodzinna 2",ids:["NAR2"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
+             {key:"F3",label:"Tury Fazy III (fina\u0142)",ids:["F3T1","F3T2","F3T3"],color:"#6B3FA0",bg:"#F8F4FF",border:"#C4B0D8",multi:"×3 tury"},
+             {key:"KN3",label:"Faza III \u2014 Kr\u00f3tka narada",ids:["KN3A","KN3B"],color:"#5E5971",bg:"#F0EEF4",border:"#B0A8C0",multi:"×2"}],
           ];
           function setGrouped(g,val){setStageDurations(prev=>{var n={...prev};g.ids.forEach(id=>{n[id]=val;});return n;});}
-          return(<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
-            {grouped.map(g=>{var val=stageDurations[g.ids[0]];return(<div key={g.key} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:g.bg,borderRadius:4,border:"1px solid "+g.border}}>
-              <span style={{fontSize:13,flex:1,fontWeight:600,color:g.color}}>{g.label}{g.ids.length>1?<span style={{fontSize:13,fontWeight:400,color:"#A89070",marginLeft:4}}>×3 tury</span>:null}</span>
-              <input type="number" min="1" max="120" value={val} onChange={e=>setGrouped(g,Math.max(1,Number(e.target.value)||1))} style={{width:55,padding:"4px 6px",border:"1px solid #D4C4A8",borderRadius:3,fontSize:13,fontWeight:700,fontFamily:"inherit",textAlign:"center"}}/>
+          return(<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
+            {grouped.flat().map(g=>{var val=stageDurations[g.ids[0]];return(<div key={g.key} style={{display:"flex",alignItems:"center",gap:6,padding:"6px 8px",background:g.bg,borderRadius:4,border:"1px solid "+g.border}}>
+              <span style={{fontSize:13,flex:1,fontWeight:600,color:g.color}}>{g.label}{g.multi?<span style={{fontSize:13,fontWeight:400,color:"#A89070",marginLeft:3}}>{g.multi}</span>:null}</span>
+              <input type="number" min="1" max="120" value={val} onChange={e=>setGrouped(g,Math.max(1,Number(e.target.value)||1))} style={{width:45,padding:"3px 4px",border:"1px solid #D4C4A8",borderRadius:3,fontSize:13,fontWeight:700,fontFamily:"inherit",textAlign:"center"}}/>
               <span style={{fontSize:13,color:"#A89070"}}>min</span>
             </div>);})}
           </div>);
@@ -1170,14 +1179,16 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
         <button style={{...btnS("success"),fontSize:16,padding:"10px 32px"}} onClick={()=>startStage(0)}>Start rozgrywki</button>
       </div>):(<div>
         <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10,flexWrap:"wrap"}}>
-          {timerRunning&&!timerPaused&&<button style={btnS("sheriff")} onClick={pauseTimer}>Pauza</button>}
-          {timerPaused&&<button style={btnS("success")} onClick={resumeTimer}>Wznów</button>}
-          <button style={btnS("primary")} onClick={advanceStage}>{stageIdx<STAGES.length-1?"Następny etap \u2192":"Zakończ"}</button>
+          <button style={btnS(manualMode?"success":"sheriff")} onClick={()=>setManualMode(!manualMode)}>{manualMode?"Prze\u0142\u0105cz na tryb auto":"Prze\u0142\u0105cz na tryb r\u0119czny"}</button>
+          {!manualMode&&timerRunning&&!timerPaused&&<button style={btnS("sheriff")} onClick={pauseTimer}>Pauza</button>}
+          {!manualMode&&timerPaused&&<button style={btnS("success")} onClick={resumeTimer}>Wzn\u00f3w</button>}
+          {!manualMode&&<button style={btnS("primary")} onClick={advanceStage}>{stageIdx<STAGES.length-1?"Nast\u0119pny etap \u2192":"Zako\u0144cz"}</button>}
           {timerRunning&&<span style={{fontSize:14,fontWeight:700,color:"#8B6914",fontFamily:"monospace"}}>{Math.floor(secondsLeft/60)+":"+(secondsLeft%60<10?"0":"")+(secondsLeft%60)}</span>}
+          <span style={{fontSize:13,color:"#A89070",fontStyle:"italic",marginLeft:8}}>Tryb: {manualMode?"r\u0119czny":"automatyczny"}</span>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:4}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:4}}>
           {STAGES.map((s,idx)=>{var isCur=idx===stageIdx,isDone=idx<stageIdx;
-            return(<div key={s.id} style={{padding:"4px 8px",borderRadius:3,fontSize:13,fontWeight:isCur?700:400,background:isCur?"#D4A853":isDone?"#E8F0E8":"#F5F2E8",color:isCur?"#2C1810":isDone?"#2E5B3C":"#A89070",border:isCur?"2px solid #8B6914":"1px solid transparent",opacity:isDone?0.6:1}}>
+            return(<div key={s.id} onClick={manualMode?()=>startStage(idx):undefined} style={{padding:"4px 8px",borderRadius:3,fontSize:13,fontWeight:isCur?700:400,background:isCur?"#D4A853":isDone?"#E8F0E8":"#F5F2E8",color:isCur?"#2C1810":isDone?"#2E5B3C":"#A89070",border:isCur?"2px solid #8B6914":"1px solid transparent",opacity:isDone?0.6:1,cursor:manualMode?"pointer":"default"}}>
               {isCur&&"\u25B6 "}{s.label} ({stageDurations[s.id]} min){isDone&&" \u2713"}
             </div>);
           })}
@@ -1281,27 +1292,27 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     <div style={{background:"#FFFDF0",border:"1px solid #D4C870",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div style={{fontSize:14,fontWeight:700,color:"#8B7714"}} className="wt">Złotodajna Żyła</div>
-        <button style={btnS(mapEnabled?"danger":"success")} onClick={()=>{setMapEnabled(!mapEnabled);showMsg(mapEnabled?"Złotodajna Żyła — dezaktywowana":"Złotodajna Żyła — aktywowana");}}>{mapEnabled?"Dezaktywuj":"Aktywuj"} Złotodajną Żyłę</button>
+        <button style={btnS(mapEnabled?"danger":"success")} onClick={()=>{setMapEnabled(!mapEnabled);showMsg(mapEnabled?"Złotodajna Żyła — zablokowana":"Złotodajna Żyła — odblokowana");}}>{mapEnabled?"Zablokuj":"Odblokuj"} Złotodajną Żyłę</button>
       </div>
     </div>
     {/* === 4. ŚLEPY LOS — KONTROLA === */}
     <div style={{background:"#F8F4FF",border:"1px solid #C4B0D8",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
         <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0"}} className="wt">Ślepy los — kontrola</div>
-        <button style={btnS(fateEnabled?"danger":"success")} onClick={()=>{setFateEnabled(!fateEnabled);showMsg(fateEnabled?"Ślepy los — dezaktywowany":"Ślepy los — aktywowany");}}>{fateEnabled?"Dezaktywuj":"Aktywuj"} Ślepy los</button>
+        <button style={btnS(fateEnabled?"danger":"success")} onClick={()=>{setFateEnabled(!fateEnabled);showMsg(fateEnabled?"Ślepy los — zablokowany":"Ślepy los — odblokowany");}}>{fateEnabled?"Zablokuj":"Odblokuj"} Ślepy los</button>
       </div>
-      {!fateEnabled&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic",textAlign:"center",padding:12}}>Ślepy los jest nieaktywny. Kliknij „Aktywuj" aby udostępnić rodzinom.</div>}
+      {!fateEnabled&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic",textAlign:"center",padding:12}}>Ślepy los jest zablokowany. Kliknij „Odblokuj" aby udostępnić rodzinom.</div>}
       {fateEnabled&&<div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
         {FO.map(fId=>{var f=FM[fId],bf=blindFate[fId]||{},pol=bf.policies||{p50:null,p100:null},rolls=bf.rolls||[];
           var rollsDone=rolls.filter(r=>r.resolved).length,rollsPending=rolls.filter(r=>!r.resolved).length;
-          var avPol=[];if(pol.p50==="active")avPol.push({l:"50%",v:50});if(pol.p100==="active")avPol.push({l:"100%",v:100});
+          var avPol=[];if(pol.p50==="owned")avPol.push({l:"50%",v:50});if(pol.p100==="owned")avPol.push({l:"100%",v:100});
           return (<div key={fId} style={{background:"#fff",border:"1px solid "+f.col,borderRadius:5,padding:10}}>
             <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
             <div style={{display:"flex",gap:4,marginBottom:8,flexWrap:"wrap"}}>
               <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px",opacity:pol.p50?0.4:1}} onClick={()=>activatePolicy(fId,"p50")} disabled={!!pol.p50}>Polisa 50% (30$)</button>
-              {pol.p50==="active"&&<button style={{fontSize:13,padding:"3px 8px",background:"#C09090",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>undoPolicy(fId,"p50")}>Cofnij 50%</button>}
+              {pol.p50==="owned"&&<button style={{fontSize:13,padding:"3px 8px",background:"#C09090",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>undoPolicy(fId,"p50")}>Cofnij 50%</button>}
               <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px",opacity:pol.p100?0.4:1}} onClick={()=>activatePolicy(fId,"p100")} disabled={!!pol.p100}>Polisa 100% (50$)</button>
-              {pol.p100==="active"&&<button style={{fontSize:13,padding:"3px 8px",background:"#C09090",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>undoPolicy(fId,"p100")}>Cofnij 100%</button>}
+              {pol.p100==="owned"&&<button style={{fontSize:13,padding:"3px 8px",background:"#C09090",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>undoPolicy(fId,"p100")}>Cofnij 100%</button>}
             </div>
             {rollsPending===0&&rollsDone<2&&<div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
               <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px"}} onClick={()=>prepareRoll(fId,null)}>Bez polisy</button>
@@ -1323,8 +1334,8 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
           <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
           <div style={{fontSize:13,color:"#5C4A3A",marginBottom:4}}>
             <b>Polisy:</b>{" "}
-            {pol.p50==="active"?"50% aktywna":pol.p50==="used"?"50% wykorzystana":"50% —"}{" | "}
-            {pol.p100==="active"?"100% aktywna":pol.p100==="used"?"100% wykorzystana":"100% —"}
+            {pol.p50==="owned"?"50% w posiadaniu":pol.p50==="used"?"50% wykorzystana":"50% —"}{" | "}
+            {pol.p100==="owned"?"100% w posiadaniu":pol.p100==="used"?"100% wykorzystana":"100% —"}
           </div>
           {rolls.length>0?<div style={{fontSize:13,color:"#5C4A3A"}}>
             <b>Losowania:</b>
@@ -1340,7 +1351,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     <div style={{background:"#FFF8E0",border:"1px solid #D4C870",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{fontSize:14,fontWeight:700,color:"#8B7714"}} className="wt">Biznes na boku</div>
-        {!bnbEnabled&&<button style={btnS("success")} onClick={activateBnb}>Aktywuj dodatek</button>}
+        {!bnbEnabled&&<button style={btnS("success")} onClick={activateBnb}>Odblokuj dodatek</button>}
         {bnbEnabled&&<div style={{display:"flex",gap:8,alignItems:"center"}}>
           <span style={{fontSize:13,fontWeight:700,color:bnbSettled?"#2E5B3C":"#8B7714",padding:"3px 10px",background:bnbSettled?"#E8F5E8":"#FFF8E7",borderRadius:4,border:"1px solid "+(bnbSettled?"#90C090":"#D4C870")}}>{bnbSettled?"Rozliczono":"Aktywny"}</span>
           {!bnbSettled&&!gameStarted&&<button style={btnS("danger",false)} onClick={()=>{setFd(prev=>{var n={...prev};FO.forEach(fId=>{n[fId]={...n[fId],items:n[fId].items.filter(i=>i.cat!==C_BNB)};});return n;});setBnbEnabled(false);showMsg("Biznes na boku — zablokowany");}}>Zablokuj</button>}
@@ -1404,13 +1415,13 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     <div style={{background:"#FFF5F0",border:"1px solid #C08060",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{fontSize:14,fontWeight:700,color:"#8B2500"}} className="wt">Rewolwerowiec</div>
-        {!revEnabled&&<button style={btnS("success")} onClick={()=>setRevEnabled(true)}>Aktywuj dodatek</button>}
+        {!revEnabled&&<button style={btnS("success")} onClick={()=>setRevEnabled(true)}>Odblokuj dodatek</button>}
         {revEnabled&&<div style={{display:"flex",gap:8,alignItems:"center"}}>
           <span style={{fontSize:13,fontWeight:700,color:"#8B2500",padding:"3px 10px",background:"#FFE8E0",borderRadius:4,border:"1px solid #C08060"}}>Aktywny</span>
           {!revCurrent&&<button style={btnS("danger",false)} onClick={()=>setRevEnabled(false)}>Zablokuj</button>}
         </div>}
       </div>
-      {!revEnabled&&<div style={{fontSize:13,color:"#8B7355"}}>Mini-gra rywalizacyjna — dwie rodziny licytują strzałami o ustaloną stawkę. Aktywuj, aby uruchomić.</div>}
+      {!revEnabled&&<div style={{fontSize:13,color:"#8B7355"}}>Mini-gra rywalizacyjna — dwie rodziny licytują strzałami o ustaloną stawkę. Odblokuj, aby uruchomić.</div>}
       {revEnabled&&<div>
         <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:12}}>
           <label style={{fontSize:13,color:"#5C4A3A"}}>Max stawka ($):</label>
@@ -1592,6 +1603,7 @@ function App({roomCode,role}) {
 
   // === SCHEDULE STATE ===
   const [gameStarted,setGameStarted]=useState(false);
+  const [manualMode,setManualMode]=useState(false);
   const [stageIdx,setStageIdx]=useState(-1);
   const [stageDurations,setStageDurations]=useState(()=>{var d={};STAGES.forEach(s=>{d[s.id]=s.defMin;});return d;});
   const [secondsLeft,setSecondsLeft]=useState(0);
@@ -1813,7 +1825,7 @@ function App({roomCode,role}) {
 
   function activateBnb(){
     setFd(prev=>{var n={...prev};FO.forEach(fId=>{n[fId]={...n[fId],items:n[fId].items.concat(makeBnbCards(fId))};});return n;});
-    setBnbEnabled(true);showMsg("Biznes na boku — aktywowany!");
+    setBnbEnabled(true);showMsg("Biznes na boku — odblokowany!");
   }
   function settleBnb(){
     if(bnbSettled)return;
@@ -1951,7 +1963,7 @@ function App({roomCode,role}) {
     {viewSheriff&&sheriffViewFamily&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:13,color:"#664D03",textAlign:"center"}}>
       Podgląd panelu rodziny {FM[sheriffViewFamily].gen} <button style={{marginLeft:8,fontSize:13,padding:"2px 8px",cursor:"pointer",background:"#8B6914",color:"#fff",border:"none",borderRadius:3,fontFamily:"inherit"}} onClick={()=>setSheriffViewFamily(null)}>Wróć do panelu Szeryfa</button>
     </div>}
-    {viewSheriff&&!sheriffViewFamily&&<SheriffPanel fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} consultNotes={consultNotes} setConsultNotes={setConsultNotes} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} resultsReveal={resultsReveal} setResultsReveal={setResultsReveal} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle}/>}
+    {viewSheriff&&!sheriffViewFamily&&<SheriffPanel fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} consultNotes={consultNotes} setConsultNotes={setConsultNotes} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} resultsReveal={resultsReveal} setResultsReveal={setResultsReveal} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} manualMode={manualMode} setManualMode={setManualMode} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle}/>}
 
     {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
@@ -2036,7 +2048,7 @@ function App({roomCode,role}) {
               </div>
               {!plotOk&&<div style={{marginTop:6,padding:"6px 10px",background:"#FFF0F0",border:"1px solid #C09090",borderRadius:4,fontSize:13,color:"#8B2500",fontWeight:600}}>UWAGA! Pozostając na niewłaściwej działce ponosicie na koniec gry dodatkowy koszt w wysokości 50 $.</div>}
             </div>
-            <div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>{familyView.plots.map(p=><GenericCard key={p.id} item={p}/>)}</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:12}}>{familyView.plots.map(p=><GenericCard key={p.id} item={p}/>)}</div>
             {/* --- GOTÓWKA --- */}
             <div style={taskBg}>
               <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Zadanie: Pomnożenie gotówki</div>
@@ -2278,12 +2290,13 @@ function App({roomCode,role}) {
             return(<div style={{background:"#3A2415",border:"2px solid #8B6914",borderRadius:6,padding:12,marginBottom:16,boxShadow:"inset 0 0 12px rgba(0,0,0,0.3)"}}>
               <div style={{fontSize:13,fontWeight:700,color:"#D4A853",marginBottom:10,textAlign:"center",letterSpacing:"0.5px"}} className="wt">PRZEBIEG ROZGRYWKI</div>
               {STAGES.filter(s=>s.type!=="end").map((s,idx)=>{
-                var isCur=idx===stageIdx,isDone=idx<stageIdx,isFuture=idx>stageIdx;
-                var isPhaseHeader=s.type==="turn"&&(idx===1||idx===5||idx===9);
+                var realIdx=STAGES.indexOf(s);
+                var isCur=realIdx===stageIdx,isDone=realIdx<stageIdx,isFuture=realIdx>stageIdx;
+                var isPhaseHeader=s.type==="turn"&&(s.id==="F1T1"||s.id==="F2T1"||s.id==="F3T1");
                 var partner=s.type==="turn"?getMeetingPartner(fId,s.pairingIdx):null;
                 var phLabel=s.phase?("Faza "+(s.phase===1?"I":s.phase===2?"II":"III")):null;
                 var turnInPhase=s.type==="turn"?(s.id.slice(-1)):"";
-                var showLabel=s.type==="turn"?("Tura "+turnInPhase+(partner?" — "+FM[partner].nom:"")):s.label;
+                var showLabel=s.type==="turn"?("Tura "+turnInPhase+(partner?" — "+FM[partner].nom:"")):s.type==="kn"?"Kr\u00f3tka narada":s.label;
                 return(<React.Fragment key={s.id}>
                   {isPhaseHeader&&<div style={{fontSize:13,fontWeight:700,color:"#D4A853",textTransform:"uppercase",letterSpacing:"1.5px",marginTop:idx>1?8:0,marginBottom:4,paddingBottom:3,borderBottom:"1px solid rgba(212,168,83,0.3)"}}>{phLabel}: {PHASE_NAMES[s.phase]}</div>}
                   <div style={{display:"flex",alignItems:"center",gap:6,padding:"3px 6px",marginBottom:2,borderRadius:3,background:isCur?"rgba(212,168,83,0.25)":"transparent",opacity:isFuture?0.4:isDone?0.6:1,transition:"all 0.3s"}}>
