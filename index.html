@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WDZ Online — Platforma Sieciowa v7.1</title>
+  <title>WDZ Online — Platforma Sieciowa v7.2</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -273,7 +273,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.1</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.2</div>
       </div>
 
       {/* Initial choice */}
@@ -711,12 +711,12 @@ function ResourceCard({item, note, selected, onClick, compact, isSheriff, textOn
 }
 
 /* ========== COMPETENCY CARD ========== */
-function CompCard({item, note, selected, onClick, compact, isSheriff}) {
+function CompCard({item, note, selected, onClick, compact, isSheriff, textOnly}) {
   var merged=!!note, isBl=item.blind;
   var imgSrc=merged?imgUrl("merged-comp",item.name):imgUrl("comp",item.name);
-  const [imgOk,setImgOk]=useState(true);
+  const [imgOk,setImgOk]=useState(!textOnly);
 
-  if(imgOk && !compact) {
+  if(imgOk && !compact && !textOnly) {
     return (<div onClick={onClick} className={"cw"+(selected?" sel":"")} style={{cursor:onClick?"pointer":"default"}}>
       <img src={imgSrc} className="ci" alt={item.name} onError={()=>setImgOk(false)}/>
       {selected&&<div style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700,textShadow:"0 0 3px #fff"}}>V</div>}
@@ -1174,15 +1174,15 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
         <div style={{fontSize:13,color:"#5C4A3A",marginBottom:10}}>Ustaw czasy trwania etapów (minuty), a następnie kliknij Start.</div>
         {(()=>{
           var grouped=[
-            [{key:"PREP",label:"Przygotowanie",ids:["PREP"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-             {key:"F1",label:"Tury Fazy I (wymiana informacji)",ids:["F1T1","F1T2","F1T3"],color:"#6B3FA0",bg:"#F0EBE0",border:"#C4B0D8",multi:"×3 tury"},
-             {key:"KN1",label:"Faza I \u2014 Kr\u00f3tka narada",ids:["KN1A","KN1B"],color:"#5E5971",bg:"#F0EBE0",border:"#B0A8C0",multi:"×2"}],
-            [{key:"NAR1",label:"Narada rodzinna 1",ids:["NAR1"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-             {key:"F2",label:"Tury Fazy II (pierwsze transakcje)",ids:["F2T1","F2T2","F2T3"],color:"#6B3FA0",bg:"#F0EBE0",border:"#C4B0D8",multi:"×3 tury"},
-             {key:"KN2",label:"Faza II \u2014 Kr\u00f3tka narada",ids:["KN2A","KN2B"],color:"#5E5971",bg:"#F0EBE0",border:"#B0A8C0",multi:"×2"}],
-            [{key:"NAR2",label:"Narada rodzinna 2",ids:["NAR2"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-             {key:"F3",label:"Tury Fazy III (fina\u0142)",ids:["F3T1","F3T2","F3T3"],color:"#6B3FA0",bg:"#F0EBE0",border:"#C4B0D8",multi:"×3 tury"},
-             {key:"KN3",label:"Faza III \u2014 Kr\u00f3tka narada",ids:["KN3A","KN3B"],color:"#5E5971",bg:"#F0EBE0",border:"#B0A8C0",multi:"×2"}],
+            [{key:"PREP",label:"Przygotowanie",ids:["PREP"],color:"#842504",bg:"#F0EBE0",border:"#842504"},
+             {key:"F1",label:"Tury Fazy I (wymiana informacji)",ids:["F1T1","F1T2","F1T3"],color:"#842504",bg:"#F0EBE0",border:"#842504",multi:"×3 tury"},
+             {key:"KN1",label:"Faza I \u2014 Kr\u00f3tka narada",ids:["KN1A","KN1B"],color:"#842504",bg:"#F0EBE0",border:"#842504",multi:"×2"}],
+            [{key:"NAR1",label:"Narada rodzinna 1",ids:["NAR1"],color:"#842504",bg:"#F0EBE0",border:"#842504"},
+             {key:"F2",label:"Tury Fazy II (pierwsze transakcje)",ids:["F2T1","F2T2","F2T3"],color:"#842504",bg:"#F0EBE0",border:"#842504",multi:"×3 tury"},
+             {key:"KN2",label:"Faza II \u2014 Kr\u00f3tka narada",ids:["KN2A","KN2B"],color:"#842504",bg:"#F0EBE0",border:"#842504",multi:"×2"}],
+            [{key:"NAR2",label:"Narada rodzinna 2",ids:["NAR2"],color:"#842504",bg:"#F0EBE0",border:"#842504"},
+             {key:"F3",label:"Tury Fazy III (fina\u0142)",ids:["F3T1","F3T2","F3T3"],color:"#842504",bg:"#F0EBE0",border:"#842504",multi:"×3 tury"},
+             {key:"KN3",label:"Faza III \u2014 Kr\u00f3tka narada",ids:["KN3A","KN3B"],color:"#842504",bg:"#F0EBE0",border:"#842504",multi:"×2"}],
           ];
           function setGrouped(g,val){setStageDurations(prev=>{var n={...prev};g.ids.forEach(id=>{n[id]=val;});return n;});}
           return(<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
@@ -1257,9 +1257,9 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     {/* === 3. WEZWIJ SZERYFA + KONSULTACJE (obok siebie) === */}
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:20}}>
       {(()=>{var waiting=sheriffCalls.filter(c=>c.status==="waiting");var recent=sheriffCalls.filter(c=>c.status!=="waiting"&&c.status!=="dismissed").slice(-10);
-        return(<div style={{background:waiting.length>0?"#FFF0F0":"#F8F6FA",border:"2px solid "+(waiting.length>0?"#C09090":"#C4B0D8"),borderRadius:8,padding:16,transition:"all 0.3s"}}>
+        return(<div style={{background:waiting.length>0?"#FFF0F0":"#F8F6FA",border:"1px solid "+(waiting.length>0?"#842504":"#842504"),borderRadius:6,padding:14,transition:"all 0.3s"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-            <div style={{fontSize:14,fontWeight:700,color:waiting.length>0?"#8B2500":"#6B3FA0"}} className="wt">
+            <div style={{fontSize:14,fontWeight:700,color:waiting.length>0?"#8B2500":"#842504"}} className="wt">
               Wezwij Szeryfa {waiting.length>0&&<span style={{background:"#8B2500",color:"#fff",padding:"2px 8px",borderRadius:10,fontSize:13,marginLeft:6}}>{waiting.length}</span>}
             </div>
           </div>
@@ -1281,7 +1281,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
           </div>}
         </div>);
       })()}
-      <div style={{background:"#FFF8E7",border:"1px solid #D4A853",borderRadius:6,padding:14}}>
+      <div style={{background:"#F8F6FA",border:"1px solid #842504",borderRadius:6,padding:14}}>
         <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:10}} className="wt">Konsultacje</div>
         {FO.map(fId=>{var cs=consultations[fId]||[];if(!cs.length)return null;
           return (<div key={fId} style={{marginBottom:8}}>
@@ -1364,7 +1364,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       </div>
     </div>
     {/* === 6. BIZNES NA BOKU === */}
-    <div style={{background:"#FFF8E0",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
+    <div style={{background:"#F8F6FA",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Biznes na boku</div>
         {!bnbEnabled&&<button style={btnS("success")} onClick={activateBnb}>Odblokuj BIZNES NA BOKU</button>}
@@ -1508,8 +1508,8 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       </div>}
     </div>
     {/* === 8. KSIĘGOWOŚĆ (PER FAMILY) === */}
-    <div style={{background:"#fff",border:"1px solid #D4C4A8",borderRadius:6,padding:14}}>
-      <div style={{fontSize:14,fontWeight:700,color:"#8B7355",marginBottom:12}}>Księgowość</div>
+    <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14}}>
+      <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:12}} className="wt">Księgowość</div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
       {FO.map(fId=>{
         var f=FM[fId];
@@ -1558,6 +1558,7 @@ function App({roomCode,role}) {
   });
   const [txs,setTxs]=useState([]);
   const [toast,setToast]=useState(null);
+  const toastTimer=useRef(null);
   const [consultations,setConsultations]=useState({});
   const [consultNotes,setConsultNotes]=useState({adams:"",bennet:"",clinton:"",dexter:""});
   const [blindFate,setBlindFate]=useState({});
@@ -1648,7 +1649,7 @@ function App({roomCode,role}) {
     if(!db||fbIncoming.current)return;
     if(syncTimer.current)clearTimeout(syncTimer.current);
     var doSync=function(){
-      db.ref("rooms/"+roomCode+"/gameState").set(stateRef.current);
+      db.ref("rooms/"+roomCode+"/gameState").update(stateRef.current);
     };
     if(immediate)doSync();
     else syncTimer.current=setTimeout(doSync,150);
@@ -1715,7 +1716,7 @@ function App({roomCode,role}) {
     biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,resultsReveal,revEnabled,revMaxBet,revDuels,
     revCurrent,gameStarted,stageIdx,stageDurations,timerRunning,timerPaused,secondsLeft,sheriffCalls]);
 
-  const showMsg=useCallback(m=>{setToast(m);setTimeout(()=>setToast(null),3000);},[]);
+  const showMsg=useCallback(m=>{if(toastTimer.current)clearTimeout(toastTimer.current);setToast(m);toastTimer.current=setTimeout(()=>setToast(null),3000);},[]);
 
   // === CARD LOCK (Nr 5) — check if card is in pending transaction ===
   function isCardLocked(cardId){
@@ -1948,7 +1949,7 @@ function App({roomCode,role}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.1</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.2</div>
       </div>
     </div>
     {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
@@ -1983,7 +1984,7 @@ function App({roomCode,role}) {
           <button style={btnS("barter")} onClick={()=>{resetP();setShowP(true);setPMode("barter");}}>Barter</button>
         </div>}
       </div>
-      <div style={{display:"grid",gridTemplateColumns:activeTab==="inv"?"1fr 360px":"1fr",gap:20,alignItems:"start"}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 360px",gap:20,alignItems:"start"}}>
         <div>
           <div style={{display:"flex",gap:4,marginBottom:14}}>
             {[["inv","Majątek"],["map","Złotodajna Żyła"],["fate","Ślepy los"],["rev","Rewolwerowiec"],["rel","Budowanie relacji"],["results","Wyniki"]].map(t=>{
@@ -2290,7 +2291,7 @@ function App({roomCode,role}) {
             </div>);
           })()}
         </div>
-        {activeTab==="inv"&&<div>
+        <div>
           {gameStarted&&stageIdx>=0&&(()=>{
             var fId=familyId;
             return(<div style={{background:"#3A2415",border:"2px solid #8B6914",borderRadius:6,padding:12,marginBottom:16,boxShadow:"inset 0 0 12px rgba(0,0,0,0.3)"}}>
@@ -2334,7 +2335,7 @@ function App({roomCode,role}) {
             {familyTxs.length===0?<div style={{textAlign:"center",padding:24,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Brak wpisów</div>
             :familyTxs.map(t=><TxDisplay key={t.id} tx={t} cf={familyId} onAccept={acceptTx} onReject={rejectTx} onRespond={id=>{resetP();setRTx(id);setShowP(true);setPMode("barter_response");}}/>)}
           </div>
-        </div>}
+        </div>
       </div>
     </div>)}
 
@@ -2359,7 +2360,7 @@ function App({roomCode,role}) {
             <div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase",letterSpacing:"1px",marginBottom:8}}>{pMode==="sale"?"Wybierz towar":"Wybierz co oferujesz"}</div>
             <div style={{maxHeight:380,overflowY:"auto"}}>{my.items.filter(item=>item.cat!==C_BNB).map(item=>{var sel=!!selItems.find(i=>i.id===item.id);return <div key={item.id} style={{marginBottom:4}}>
               {item.cat===C_RES&&<ResourceCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
-              {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact onClick={()=>toggleItem(item)} isSheriff={false}/>}
+              {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
               {item.cat===C_NRES&&<NoteCard item={item} selected={sel} type="res" textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_NCOMP&&<NoteCard item={item} selected={sel} type="comp" textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_PLOT&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #C4B090"),background:sel?"#FFF8E7":"#FDFAF4",padding:"8px 10px",cursor:"pointer",position:"relative"}}>{sel&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}<div style={{fontSize:13,fontWeight:600}}>{item.name}</div><div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A08050",marginTop:2}}>DZIAŁKA</div></div>}
@@ -2422,7 +2423,7 @@ function App({roomCode,role}) {
             <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:8}}>Co oferujesz w zamian?</div>
             <div style={{maxHeight:300,overflowY:"auto"}}>{my.items.filter(item=>item.cat!==C_BNB).map(item=>{var sel=!!selItems.find(i=>i.id===item.id);return <div key={item.id} style={{marginBottom:4}}>
               {item.cat===C_RES&&<ResourceCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
-              {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact onClick={()=>toggleItem(item)} isSheriff={false}/>}
+              {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
               {item.cat===C_NRES&&<NoteCard item={item} selected={sel} type="res" textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_NCOMP&&<NoteCard item={item} selected={sel} type="comp" textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_PLOT&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #C4B090"),background:sel?"#FFF8E7":"#FDFAF4",padding:"8px 10px",cursor:"pointer",position:"relative"}}>{sel&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}<div style={{fontSize:13,fontWeight:600}}>{item.name}</div><div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A08050",marginTop:2}}>DZIAŁKA</div></div>}
