@@ -2345,10 +2345,12 @@ function App({roomCode,role}) {
             {/* --- ZASOBY --- */}
             <div style={taskBg}>
               <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">Zadanie: Pozyskanie zasobów do prowadzenia przedsiębiorstwa
-                <InfoPopup title="Zadanie 1: Zasoby — maks. 30 pkt">
-                  <p style={{margin:"0 0 8px 0"}}>Budujecie <strong>{INSTRUCTION_DATA[familyId].business}</strong> zgodnie z rodzinną tradycją. Wasz dziadek opisał wszystkie zasoby niezbędne do uruchomienia przedsiębiorstwa i każdemu przypisał wagę wyrażoną w procentach.</p>
-                  <p style={{margin:"0 0 8px 0"}}><strong>Punkty otrzymujecie za posiadanie właściwych zasobów — nie za notatki.</strong> Notatki dziadka to źródło wiedzy: mówią, które zasoby są potrzebne i jaką wagę ma każdy z nich. Można zdobywać zasoby bez notatek — ale wtedy działacie w ciemno.</p>
-                  <p style={{margin:0}} dangerouslySetInnerHTML={{__html:'Karty &bdquo;ZASÓB&rdquo; to przedmioty, które posiadacie. Karty &bdquo;INFORMACJA&rdquo; to notatki dziadka. Zasób + pasująca notatka = karta scalona (automatycznie).'}}/>
+                <InfoPopup title="ZASOBY — maks. 30 pkt">
+                  <p style={{margin:"0 0 8px 0"}}>Budujecie <strong>{INSTRUCTION_DATA[familyId].business}</strong> zgodnie z rodzinną tradycją. Dziadek opisał zasoby niezbędne do uruchomienia przedsiębiorstwa — każdemu przypisał wagę w procentach.</p>
+                  <p style={{margin:"0 0 8px 0"}}>Huragan rozrzucił jego zapiski po miasteczku. Większość tego, co zebraliście, opisuje zasoby potrzebne innym rodzinom. Swoje musicie pozyskać od sąsiadów.</p>
+                  <p style={{margin:"0 0 8px 0"}}><strong>Punkty otrzymujecie za posiadanie właściwych zasobów — nie za notatki.</strong> Notatki to źródło wiedzy: mówią, które zasoby są potrzebne i jaką wagę ma każdy z nich. Bez nich działacie w ciemno.</p>
+                  <p style={{margin:"0 0 8px 0"}} dangerouslySetInnerHTML={{__html:'Karty &bdquo;ZASÓB&rdquo; = przedmioty, które posiadacie.<br>Karty &bdquo;INFORMACJA&rdquo; = notatki dziadka (kto, ile %).<br>Zasób + pasująca notatka = karta scalona (automatycznie).'}}/>
+                  <p style={{margin:0,fontStyle:"italic"}}>Zadanie zrealizowane, gdy pozyskacie 100% zasobów opisanych w notatkach dziadka.</p>
                 </InfoPopup>
               </div>
               <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
@@ -2368,10 +2370,12 @@ function App({roomCode,role}) {
             {/* --- KOMPETENCJE --- */}
             <div style={taskBg}>
               <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">Zadanie: Pozyskanie kompetencji do prowadzenia przedsiębiorstwa
-                <InfoPopup title="Zadanie 2: Kompetencje — maks. 25 pkt">
-                  <p style={{margin:"0 0 8px 0"}}>Dziadek opisał kompetencje ważne w prowadzeniu {INSTRUCTION_DATA[familyId].business} — każdej przypisał wagę w procentach. Zdobywacie je, gromadząc odpowiednie księgi przechowywane przez rodziny w miasteczku.</p>
-                  <p style={{margin:"0 0 8px 0"}}><strong>Punkty otrzymujecie za posiadanie właściwych kompetencji — nie za notatki.</strong> Notatki dziadka mówią, które kompetencje są potrzebne i jaką wagę ma każda z nich. Można gromadzić księgi bez notatek — ale wtedy działacie w ciemno.</p>
-                  <p style={{margin:0}} dangerouslySetInnerHTML={{__html:'Karty &bdquo;KOMPETENCJA&rdquo;, notatki &bdquo;INFORMACJA&rdquo;, automatyczne scalanie — identycznie jak przy zasobach.'}}/>
+                <InfoPopup title="KOMPETENCJE — maks. 25 pkt">
+                  <p style={{margin:"0 0 8px 0"}}>Dziadek opisał kompetencje ważne w prowadzeniu {INSTRUCTION_DATA[familyId].business} — każdej przypisał wagę w procentach. Zdobywacie je, gromadząc odpowiednie księgi.</p>
+                  <p style={{margin:"0 0 8px 0"}}>W swoim dobytku macie kilka podręczników — przydatnych jednak w innych biznesach {INSTRUCTION_DATA[familyId].businessAdj}. Zapiski o Waszych kompetencjach porwał wiatr. Musicie je odzyskać od sąsiadów.</p>
+                  <p style={{margin:"0 0 8px 0"}}><strong>Punkty otrzymujecie za posiadanie właściwych kompetencji — nie za notatki.</strong> Notatki mówią, które kompetencje są potrzebne i jaką wagę ma każda z nich. Bez nich działacie w ciemno.</p>
+                  <p style={{margin:"0 0 8px 0"}} dangerouslySetInnerHTML={{__html:'Karty &bdquo;KOMPETENCJA&rdquo; = Wasze umiejętności.<br>Karty &bdquo;INFORMACJA&rdquo; = notatki dziadka (kto, ile %).<br>Kompetencja + pasująca notatka = karta scalona (automatycznie).'}}/>
+                  <p style={{margin:0,fontStyle:"italic"}}>Zadanie zrealizowane, gdy pozyskacie wszystkie księgi potrzebne do 100% kompetencji.</p>
                 </InfoPopup>
               </div>
               <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
@@ -2424,16 +2428,6 @@ function App({roomCode,role}) {
                   <p style={{margin:"0 0 6px 0"}}><strong>{INSTRUCTION_DATA[familyId].bnbProduct}</strong> — <span dangerouslySetInnerHTML={{__html:INSTRUCTION_DATA[familyId].bnbDesc}}/></p>
                   <p style={{margin:"0 0 6px 0"}}><strong>Efekt dla kupującego:</strong> <span dangerouslySetInnerHTML={{__html:INSTRUCTION_DATA[familyId].bnbEffect}}/></p>
                   <p style={{margin:"0 0 6px 0"}}>Przyjęliście towar z odroczonym terminem płatności: <strong>{INSTRUCTION_DATA[familyId].bnbQuantity}</strong> o łącznej wartości <strong>{INSTRUCTION_DATA[familyId].bnbValue}</strong>.</p>
-                  <div style={{background:"#F5EFE0",borderRadius:6,padding:"10px 14px",margin:"8px 0"}}>
-                    <p style={{margin:"0 0 4px 0",fontWeight:700}}>Zasady rozliczenia:</p>
-                    <p style={{margin:"0 0 4px 0",fontSize:13}}>Towar przyjęliście z odroczonym terminem płatności. Na koniec gry rozliczacie się z dostawcą za pośrednictwem Szeryfa.</p>
-                    <p style={{margin:"0 0 4px 0",fontSize:13}}>• Sprzedaliście wszystko? Bonifikata <strong>100 $</strong>, odprowadzacie <strong>200 $</strong>. Marża zostaje u Was.</p>
-                    <p style={{margin:"0 0 0 0",fontSize:13}}>• Nie sprzedaliście wszystkiego? Brak bonifikaty, odprowadzacie <strong>300 $</strong>. Niesprzedany towar możecie wykorzystać na własne potrzeby.</p>
-                  </div>
-                  <Accordion title="Przykład rozliczenia">
-                    <p style={{margin:"0 0 4px 0"}}>Sprzedaliście 10 z 10 po 35 $ = 350 $. Wszystko sprzedane → 350 − 200 + 100 = <strong>+250 $</strong>.</p>
-                    <p style={{margin:0}}>Sprzedaliście 7 z 10 po 40 $ = 280 $. Nie wszystko → 280 − 300 = <strong>−20 $</strong>. Ale macie 3 sztuki na własny użytek.</p>
-                  </Accordion>
                 </div>
                 {forSale.length>0&&<div style={{marginBottom:12}}>
                   <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#A89070",marginBottom:6}}>Na sprzedaż</div>
@@ -2441,7 +2435,7 @@ function App({roomCode,role}) {
                     <BnbCard prod={myProduct} count={forSale.length} subtitle="Twój produkt"/>
                   </div>
                 </div>}
-                {Object.keys(boughtGrouped).length>0&&<div>
+                {Object.keys(boughtGrouped).length>0&&<div style={{marginBottom:12}}>
                   <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#A89070",marginBottom:6}}>Zakupione</div>
                   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                     {Object.keys(boughtGrouped).map(origin=>{var cards=boughtGrouped[origin];var prod=BNB_PRODUCTS[origin];return(
@@ -2449,7 +2443,20 @@ function App({roomCode,role}) {
                     );})}
                   </div>
                 </div>}
-                {forSale.length===0&&Object.keys(boughtGrouped).length===0&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak produktów BnB</div>}
+                {forSale.length===0&&Object.keys(boughtGrouped).length===0&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic",marginBottom:12}}>Brak produktów BnB</div>}
+                <div style={{fontSize:14,lineHeight:1.6,color:"#2C1810"}}>
+                  <div style={{background:"#F5EFE0",borderRadius:6,padding:"10px 14px",margin:"8px 0"}}>
+                    <p style={{margin:"0 0 6px 0",fontWeight:700}}>Zasady rozliczenia</p>
+                    <p style={{margin:"0 0 6px 0",fontSize:13}}>Potraktujcie rozmowy z pozostałymi rodzinami jako okazję do zrobienia dodatkowego biznesu. Pokażcie partnerom korzyści z Waszego produktu jak na dłoni.</p>
+                    <p style={{margin:"0 0 4px 0",fontSize:13}}>Na koniec gry rozliczacie się z dostawcą za pośrednictwem Szeryfa:</p>
+                    <p style={{margin:"0 0 4px 0",fontSize:13}}>• <strong>Sprzedaliście wszystko?</strong> Bonifikata <strong>100 $</strong>, odprowadzacie <strong>200 $</strong>. Marża zostaje u Was.</p>
+                    <p style={{margin:"0 0 0 0",fontSize:13}}>• <strong>Nie sprzedaliście wszystkiego?</strong> Brak bonifikaty, odprowadzacie <strong>300 $</strong>. Niesprzedany towar możecie wykorzystać na własne potrzeby.</p>
+                  </div>
+                  <Accordion title="Przykład rozliczenia">
+                    <p style={{margin:"0 0 4px 0"}}>Sprzedaliście 10 z 10 po 35 $ = 350 $. Wszystko sprzedane → 350 − 200 + 100 = <strong>+250 $</strong>.</p>
+                    <p style={{margin:0}}>Sprzedaliście 7 z 10 po 40 $ = 280 $. Nie wszystko → 280 − 300 = <strong>−20 $</strong>. Ale macie 3 sztuki na własny użytek.</p>
+                  </Accordion>
+                </div>
               </div>);
             })()}
             <img src={IMG_BASE+"kairos_chronicle.jpg"} style={{width:"100%",borderRadius:6,marginTop:12}} alt="The Kairos Chronicle" onError={e=>{e.target.style.display="none";}}/>
