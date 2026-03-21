@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WDZ Online — Platforma Sieciowa v7.2</title>
+  <title>WDZ Online — Platforma Sieciowa v7.3</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -273,7 +273,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.2</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.3</div>
       </div>
 
       {/* Initial choice */}
@@ -460,6 +460,67 @@ const BNB_PRODUCTS = {
   clinton:{name:"Obligacje Limon Sisters",   shortName:"Obligacje",  qty:4,  unitCost:75, effect:"cash20",  effectDesc:"+20% kasy na koniec gry",  color:"#5E5971", imgSlug:"bnb_obligacje-limon-sisters"},
   dexter: {name:"Voucher Kuriera Preriowego",shortName:"Kurier",     qty:10, unitCost:30, effect:"res4",    effectDesc:"Zastępuje 4% zasobów",     color:"#5B7674", imgSlug:"bnb_voucher-kuriera-preriowego"},
 };
+
+/* ========== INSTRUKCJA — DANE PER RODZINA ========== */
+const INSTRUCTION_DATA = {
+  adams: {
+    familyName: "Adamsów", familyNom: "Adamsowie", business: "Saloon", businessAdj: "niż Saloon",
+    firstOpponent: "Bennetów",
+    storyParagraph: 'Adamsowie od pokoleń zajmują się gastronomią i rozrywką. Wasz dziadek, jeszcze na starym kontynencie, prowadził słynną oberżę &bdquo;Pod Roztańczonym Prosiakiem&rdquo;. Stworzycie tu <strong>Saloon</strong>, który dostarczy uciechy miejscowym i przyjezdnym.',
+    plotFull: 'Wasza rodzina posiada prawo własności do działki <strong>Nr 6</strong> w centralnym punkcie miasta. Problem w tym, że tuż obok powstał kościół i cmentarz. Stawianie Saloonu naprzeciw świętego przybytku nie licuje z przyzwoitością, widok grobów za oknem jest mało krzepiący, a sąsiedztwo siedziby szeryfa może odstraszać klientów.',
+    plotAdvice: '<strong>Najlepszym wyjściem jest pozyskanie innej działki, która uwolni Was od kłopotliwego sąsiedztwa.</strong> W związku z planami gorzelniczymi potrzebujecie też sąsiedztwa jeziora, dającego dostęp do świeżej wody. Pozostanie na działce nr 6 wiąże się z dodatkowymi kosztami dowożenia wody w wysokości <strong>50 $</strong> — rozliczanymi na koniec gry.',
+    plotPopup: '<strong>DZIAŁKA Nr 6 — maks. 10 pkt</strong><br>Posiadacie działkę nr 6, obok kościoła, cmentarza i siedziby szeryfa. Niedobra lokalizacja na Saloon. Potrzebujecie sąsiedztwa jeziora — dostęp do świeżej wody jest niezbędny do planów gorzelniczych.<br><strong>Pozyskajcie lepszą działkę w drodze negocjacji.</strong> Pozostanie na nr 6 oznacza dodatkowe koszty: <strong>50 $</strong> na koniec gry.<br>Działkę można kupić, sprzedać lub wymienić barterem.',
+    bnbStory: 'Trafia się okazja dodatkowego zarobku — mały &bdquo;biznes na boku&rdquo;. Nawiązał z Wami kontakt przedstawiciel firmy Doktor Geist. Zaproponował, byście na barze, obok butelek z whisky, postawili jeszcze jedną — zawierającą nowy i bardzo obiecujący produkt.',
+    bnbProduct: 'Cudowna mikstura na rozum Doktora Geista',
+    bnbDesc: 'szczyt osiągnięć rodzącego się przemysłu farmaceutycznego. W cudowny sposób wspomaga uczenie się u nawet najbardziej opornych.',
+    bnbEffect: 'Jeden flakon zastępuje brakujący <strong>4% kompetencji</strong> lub zwiększa końcowy wynik o <strong>1 punkt</strong>.',
+    bnbQuantity: '10 flakonów', bnbValue: '300 $',
+    goodLuck: 'Niech fortuna sprzyja rodzinie Adamsów!'
+  },
+  bennet: {
+    familyName: "Bennetów", familyNom: "Bennetowie", business: "Zakład Pogrzebowy", businessAdj: "niż pogrzebowy",
+    firstOpponent: "Adamsów",
+    storyParagraph: 'Bennetowie od pokoleń zajmują się ostatnią posługą. Wasz dziadek prowadził szanowany dom pogrzebowy w jednym z większych miast wschodniego wybrzeża. Stworzycie tu <strong>Zakład Pogrzebowy</strong>, który zapewni mieszkańcom godne pożegnanie bliskich.',
+    plotFull: 'Wasza rodzina posiada prawo własności do działki <strong>Nr 4</strong>. Kupiliście ją &bdquo;w ciemno&rdquo;, uznając, że dla zakładu pogrzebowego lokalizacja ma drugorzędne znaczenie. Tymczasem w czasie Waszej podróży w miasteczku powstał kościół, a za nim cmentarz. To zmienia sytuację — bliskość miejsca ostatecznego spoczynku klientów to dla Was czysta oszczędność.',
+    plotAdvice: '<strong>Najlepszym wyjściem jest pozyskanie działki w pobliżu kościoła i cmentarza.</strong> Pozostanie na działce nr 4 wiąże się z dodatkowymi kosztami transportu zwłok w wysokości <strong>50 $</strong> — rozliczanymi na koniec gry.',
+    plotPopup: '<strong>DZIAŁKA Nr 4 — maks. 10 pkt</strong><br>Kupiliście działkę &bdquo;w ciemno&rdquo;. W międzyczasie w miasteczku powstał kościół i cmentarz — ich bliskość to dla zakładu pogrzebowego czysta oszczędność.<br><strong>Pozyskajcie działkę bliżej kościoła i cmentarza.</strong> Pozostanie na nr 4 oznacza dodatkowe koszty transportu zwłok: <strong>50 $</strong> na koniec gry.<br>Działkę można kupić, sprzedać lub wymienić barterem.',
+    bnbStory: 'Trafia się okazja dodatkowego zarobku — mały &bdquo;biznes na boku&rdquo;. Nawiązał z Wami kontakt lokalny pośrednik nieruchomości reprezentujący ratusz. Zaproponował, byście swoim klientom — tym jeszcze żyjącym, oczywiście — składali dodatkową, nadzwyczaj atrakcyjną ofertę.',
+    bnbProduct: 'Kwatera dla Obywatela',
+    bnbDesc: 'promowana przez lokalne władze akcja sprzedaży rodzinnych kwater na cmentarzu. Kup dla siebie grób, a zacieśnisz związek z miasteczkiem, aż po kres swych dni.',
+    bnbEffect: 'Jedna kwatera zwiększa końcowy wynik o <strong>1 punkt</strong>.',
+    bnbQuantity: '10 kwater', bnbValue: '300 $',
+    goodLuck: 'Niech fortuna sprzyja rodzinie Bennetów!'
+  },
+  clinton: {
+    familyName: "Clintonów", familyNom: "Clintonowie", business: "Bank", businessAdj: "niż bankowy",
+    firstOpponent: "Dexterów",
+    storyParagraph: 'Clintonowie od pokoleń związani są z finansami. Wasz dziadek prowadził kantory wymiany walut i cieszył się opinią człowieka, któremu można powierzyć każdy grosz. Stworzycie tu <strong>Bank</strong>, który zapewni mieszkańcom bezpieczeństwo finansowe.',
+    plotFull: 'Wasza rodzina posiada prawo własności do działki <strong>Nr 20</strong>. Kupiliście ją &bdquo;w ciemno&rdquo;, nie znając topografii miasteczka. Okazało się, że działka jest przy wjeździe — to idealne warunki dla bandytów planujących napady na banki. W Waszej branży kluczową wartością jest bezpieczeństwo.',
+    plotAdvice: '<strong>Najlepszą lokalizacją dla banku jest działka naprzeciw biura Szeryfa — szybka reakcja w razie kłopotów.</strong> Liczy się też centrum miasteczka. Pozostanie na działce nr 20 wiąże się z dodatkowymi kosztami tablic i ulotek reklamowych w wysokości <strong>50 $</strong> — rozliczanymi na koniec gry.',
+    plotPopup: '<strong>DZIAŁKA Nr 20 — maks. 10 pkt</strong><br>Działka przy wjeździe — idealne warunki dla bandytów. Bank potrzebuje bezpieczeństwa i bliskości Szeryfa.<br><strong>Pozyskajcie działkę naprzeciw biura Szeryfa, w centrum.</strong> Pozostanie na nr 20 oznacza dodatkowe koszty tablic i ulotek reklamowych: <strong>50 $</strong> na koniec gry.<br>Działkę można kupić, sprzedać lub wymienić barterem.',
+    bnbStory: 'Trafia się okazja dodatkowego zarobku — mały &bdquo;biznes na boku&rdquo;. Nawiązał z Wami kontakt nowojorski bank Limon Sisters. Zaproponował, byście sprzedawali nowy, bardzo obiecujący produkt finansowy.',
+    bnbProduct: 'Obligacje Limon Sisters',
+    bnbDesc: 'produkt finansowy opracowany specjalnie dla przedsiębiorców. Doskonała inwestycja, która pomnaża to, co wypracowałeś prowadząc swój biznes.',
+    bnbEffect: 'Jedna obligacja zwiększa stan kasy na koniec gry o <strong>20%</strong>.',
+    bnbQuantity: '4 obligacje', bnbValue: '300 $',
+    goodLuck: 'Niech fortuna sprzyja rodzinie Clintonów!'
+  },
+  dexter: {
+    familyName: "Dexterów", familyNom: "Dexterowie", business: "Ranczo", businessAdj: "niż rancho",
+    firstOpponent: "Clintonów",
+    storyParagraph: 'Dexterowie od pokoleń zajmują się hodowlą bydła i uprawą ziemi. Wasz dziadek prowadził jedno z większych ranch na wschodnim wybrzeżu. Stworzycie tu <strong>Ranczo</strong>, które zapewni miasteczku świeże mięso i skóry.',
+    plotFull: 'Wasza rodzina posiada prawo własności do działki <strong>Nr 1</strong>. Kupiliście ją z uwagi na tereny zielone w sąsiedztwie, idealne do wypasu bydła. Po przybyciu na miejsce spotkała Was jednak niemiła niespodzianka — zamiast zieleni zastaliście jezioro i piach wokół skalnych wzgórz.',
+    plotAdvice: '<strong>Alternatywą jest pozyskanie działki przy wjeździe do miasta, która zapewni bliskość prerii i umożliwi wypas bydła.</strong> Bardzo pożądane jest też sąsiedztwo kuźni. Pozostanie na działce nr 1 wiąże się z dodatkowymi kosztami transportu paszy w wysokości <strong>50 $</strong> — rozliczanymi na koniec gry.',
+    plotPopup: '<strong>DZIAŁKA Nr 1 — maks. 10 pkt</strong><br>Kupiliście działkę licząc na tereny zielone — zastaliście jezioro i piach. Ranczo potrzebuje bliskości prerii i sąsiedztwa kuźni.<br><strong>Pozyskajcie działkę przy wjeździe do miasta.</strong> Pozostanie na nr 1 oznacza dodatkowe koszty transportu paszy: <strong>50 $</strong> na koniec gry.<br>Działkę można kupić, sprzedać lub wymienić barterem.',
+    bnbStory: 'Trafia się okazja dodatkowego zarobku — mały &bdquo;biznes na boku&rdquo;. Nawiązał z Wami kontakt właściciel firmy Kurier Preriowy. Zaproponował, byście sprzedawali vouchery na nową, bardzo obiecującą usługę dla przedsiębiorców.',
+    bnbProduct: 'Voucher Kuriera Preriowego',
+    bnbDesc: 'uniezależnia przedsiębiorcę od zakupów na lokalnym rynku. Pozwala sprowadzać dobra z różnych stron kraju. Żadna bariera nie zatrzyma kuriera.',
+    bnbEffect: 'Jeden voucher zastępuje <strong>4% brakujących zasobów</strong> lub zwiększa końcowy wynik o <strong>1 punkt</strong>.',
+    bnbQuantity: '10 voucherów', bnbValue: '300 $',
+    goodLuck: 'Niech fortuna sprzyja rodzinie Dexterów!'
+  }
+};
+
 function makeBnbCards(fId){var p=BNB_PRODUCTS[fId];var cards=[];for(var i=0;i<p.qty;i++){cards.push({id:ci(),name:p.name,cat:C_BNB,bnbOrigin:fId,effect:p.effect,effectDesc:p.effectDesc});}return cards;}
 
 let _i=0; const ci=()=>"c"+(++_i);
@@ -679,6 +740,237 @@ function btnS(v,dis) {
   var b={padding:"10px 18px",borderRadius:"4px",border:"none",fontSize:"14px",fontWeight:700,cursor:dis?"not-allowed":"pointer",fontFamily:"inherit",letterSpacing:"0.3px",transition:"all 0.15s",opacity:dis?0.5:1};
   var m={primary:{background:"#D4A853",color:"#4C130F"},success:{background:"#5B7674",color:"#fff"},danger:{background:"#842504",color:"#fff"},barter:{background:"#5E5971",color:"#fff"},sheriff:{background:"#B14A2A",color:"#fff"},fate:{background:"#6B3FA0",color:"#fff"}};
   return Object.assign({},b,m[v]||{background:"#E8E0D0",color:"#2C1810"});
+}
+
+/* ========== ACCORDION ========== */
+function Accordion({title, children, defaultOpen}) {
+  const [open, setOpen] = useState(!!defaultOpen);
+  return (<div style={{marginBottom:10}}>
+    <div onClick={()=>setOpen(!open)} style={{cursor:"pointer",padding:"8px 12px",background:"#F5EFE0",borderRadius:4,fontWeight:700,fontSize:14,color:"#4C130F",display:"flex",alignItems:"center",gap:8,userSelect:"none"}}>
+      <span style={{display:"inline-block",transition:"transform 0.2s",transform:open?"rotate(90deg)":"rotate(0deg)",fontSize:12}}>▶</span>
+      {title}
+    </div>
+    {open&&<div style={{padding:"10px 12px 10px 32px",fontSize:14,lineHeight:1.6,color:"#2C1810"}}>{children}</div>}
+  </div>);
+}
+
+/* ========== INFO POPUP (?) ========== */
+function InfoPopup({title, children}) {
+  const [open, setOpen] = useState(false);
+  return (<>
+    <span onClick={()=>setOpen(true)} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:22,height:22,borderRadius:"50%",background:"#D4A853",color:"#4C130F",fontWeight:700,fontSize:13,cursor:"pointer",marginLeft:8,verticalAlign:"middle",lineHeight:1,userSelect:"none"}}>?</span>
+    {open&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={()=>setOpen(false)}>
+      <div style={{background:"#FFF",borderRadius:8,padding:24,maxWidth:520,width:"90%",maxHeight:"80vh",overflowY:"auto",position:"relative",boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}} onClick={e=>e.stopPropagation()}>
+        <div onClick={()=>setOpen(false)} style={{position:"absolute",top:10,right:14,cursor:"pointer",fontSize:22,color:"#8B7355",fontWeight:700,lineHeight:1}}>✕</div>
+        {title&&<div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:12,paddingRight:30}} className="wt">{title}</div>}
+        <div style={{fontSize:14,lineHeight:1.7,color:"#2C1810"}}>{children}</div>
+      </div>
+    </div>}
+  </>);
+}
+
+/* ========== INSTRUCTION SLIDES ========== */
+function InstructionSlides({familyId, roomCode}) {
+  const [page, setPage] = useState(0);
+  const [rolesSubmitted, setRolesSubmitted] = useState(false);
+  const [roles, setRoles] = useState({head:'',rep:'',acc:'',nestor:'',heart:''});
+  const [roleSaving, setRoleSaving] = useState(false);
+  const d = INSTRUCTION_DATA[familyId];
+  if(!d) return <div style={{padding:20,color:"#842504"}}>Brak danych instrukcji dla rodziny.</div>;
+
+  const ROLE_DEFS = [
+    {key:"head",   label:"GŁOWA RODZINY",       desc:"Zarządza zespołem, tworzy strategię, podejmuje kluczowe decyzje.", required:true},
+    {key:"rep",    label:"REPREZENTANT RODZINY", desc:"Prowadzi rozmowy z innymi rodzinami, negocjuje warunki, buduje relacje.", required:true},
+    {key:"acc",    label:"KSIĘGOWY RODZINY",     desc:"Obsługuje transakcje w aplikacji, obraca gotówką, ewidencjonuje zasoby i kontroluje czas.", required:true},
+    {key:"nestor", label:"NESTOR RODZINY",       desc:"Obserwuje przebieg rozmów, analizuje sytuacje, doradza i tworzy opcje rozwiązań.", required:false},
+    {key:"heart",  label:"SERCE RODZINY",        desc:"Dba o ludzi i atmosferę w zespole. Łagodzi konflikty, motywuje w kryzysie.", required:false}
+  ];
+  const requiredFilled = ROLE_DEFS.filter(r=>r.required).every(r=>roles[r.key].trim()!=="");
+
+  function submitRoles(){
+    if(!requiredFilled||roleSaving) return;
+    setRoleSaving(true);
+    db.ref("rooms/"+roomCode+"/roles/"+familyId).set(roles).then(()=>{
+      setRolesSubmitted(true); setRoleSaving(false);
+    }).catch(()=>setRoleSaving(false));
+  }
+
+  const canNext = page !== 1 || rolesSubmitted;
+  const totalPages = 7;
+  const hdr = s => <div style={{fontSize:20,fontWeight:700,color:"#842504",marginBottom:10,lineHeight:1.3}} className="wt">{s}</div>;
+  const para = s => <p style={{margin:"8px 0",lineHeight:1.7,fontSize:14}} dangerouslySetInnerHTML={{__html:s}}/>;
+  const tip = s => <div style={{background:"#F5EFE0",borderLeft:"3px solid #D4A853",padding:"8px 12px",margin:"10px 0",fontSize:13,lineHeight:1.6}} dangerouslySetInnerHTML={{__html:s}}/>;
+
+  function renderPage(){
+    switch(page){
+    case 0: return (<div>
+      {hdr("Rodzina "+d.familyName+" — witajcie w Kairoscity!")}
+      {para("Po tygodniach niebezpiecznej podróży Wasza rodzina jest u celu. Kairoscity to małe miasteczko nad wodami Golden Lake. Idealne miejsce, by zacząć nowe życie i rozkręcić interes. Jest kuźnia, hotel, jubiler, telegraf, a nawet lazaret. Szykują się nowe inwestycje.")}
+      {para("Prócz Waszego biznesu wystartowały jeszcze trzy — zakład pogrzebowy, bank i ranczo. Otwierają je rodziny, które dotarły tu wraz z Wami.")}
+      {para(d.storyParagraph)}
+      {para("Zdani jesteście na dobytek przywieziony na własnym wozie oraz na dobra pozostałych rodzin. Są chętni do negocjacji i wymiany. Wszystko ma określoną cenę rynkową — jednak ile zapłacicie lub na co wymienicie, zależy od Was i partnerów.")}
+      {para("Zanim rzucicie się w wir interesów — zapoznajcie się z realiami budowania biznesu w Kairoscity. Najlepiej zna je Szeryf. W dowolnym momencie wezwijcie go na konsultację: <strong>15 $</strong>, <strong>3 pytania</strong>. To rozsądna inwestycja, szczególnie na początku.")}
+      {para("Na przygotowanie macie określony czas — odliczany na zegarze w prawym górnym rogu ekranu. Przeczytajcie tę instrukcję, przejrzyjcie karty, ustalcie role i strategię. Po upływie czasu przystąpicie do pierwszej rozmowy z rodziną "+d.firstOpponent+".")}
+    </div>);
+    case 1: return (<div>
+      {hdr("Role w zespole")}
+      {para("<strong>Przydzielcie role w swoim zespole.</strong> W rodzinnym biznesie jest ich pięć. Jeśli w zespole jest mniej osób — jedna osoba może pełnić kilka ról. Wpiszcie imiona przy wybranych rolach i kliknijcie &bdquo;Zatwierdź&rdquo;, aby przejść dalej.")}
+      <div style={{margin:"14px 0"}}>
+        {ROLE_DEFS.map(r=>(<div key={r.key} style={{marginBottom:12,padding:"10px 14px",background:"#F5EFE0",borderRadius:6}}>
+          <div style={{fontWeight:700,fontSize:14,color:"#4C130F",marginBottom:2}}>{r.label}{r.required&&<span style={{color:"#842504"}}> *</span>}</div>
+          <div style={{fontSize:13,color:"#6B5B3E",marginBottom:6}}>{r.desc}</div>
+          <input type="text" value={roles[r.key]} onChange={e=>{var v=e.target.value;setRoles(p=>({...p,[r.key]:v}));}} disabled={rolesSubmitted}
+            placeholder="Imię uczestnika" style={{width:"100%",boxSizing:"border-box",padding:"6px 10px",border:"1px solid #C4B090",borderRadius:4,fontSize:14,fontFamily:"inherit",background:rolesSubmitted?"#E8E0D0":"#fff"}}/>
+        </div>))}
+      </div>
+      {!rolesSubmitted?<button onClick={submitRoles} disabled={!requiredFilled||roleSaving}
+        style={{...btnS(requiredFilled?"primary":"default",!requiredFilled||roleSaving),width:"100%",fontSize:15,padding:"12px 0"}}>
+        {roleSaving?"Zapisuję...":"Zatwierdź role"}
+      </button>
+      :<div style={{background:"#5B7674",color:"#fff",textAlign:"center",padding:"10px 0",borderRadius:4,fontWeight:700,fontSize:14}}>✓ Role zatwierdzone</div>}
+      {!rolesSubmitted&&<div style={{fontSize:12,color:"#8B7355",marginTop:6,textAlign:"center"}}>* Pola wymagane: Głowa, Reprezentant, Księgowy</div>}
+    </div>);
+    case 2: return (<div>
+      {hdr("Wasze zadania")}
+      {para("<strong>Waszym celem jest zwiększenie wartości rodzinnego biznesu.</strong> Wymaga to realizacji kilku zadań. Efekt każdego z nich przeliczany jest na punkty. Ich suma odzwierciedli wartość Waszego biznesu.")}
+      {para("Punkty za zasoby i kompetencje otrzymujecie za ich posiadanie. Notatki dziadka nie dają punktów — mówią jedynie, czego szukać i jaką wagę ma każdy element. Bez nich działacie w ciemno.")}
+
+      <div style={{marginTop:16,marginBottom:12,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
+        <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:6}} className="wt">ZADANIE 1: Pozyskanie zasobów — maks. 30 pkt</div>
+        {para("Budujecie <strong>"+d.business+"</strong> zgodnie z rodzinną tradycją. Wasz dziadek opisał wszystkie zasoby niezbędne do uruchomienia przedsiębiorstwa i każdemu przypisał wagę wyrażoną w procentach.")}
+        {para("Huraganowy podmuch w pierwszy dzień po przyjeździe poprzewracał wozy i rozrzucił zapiski dziadka po całym miasteczku. Wszyscy osadnicy gorączkowo łapali uciekające papiery. W efekcie większość tego, co zebraliście, opisuje zasoby potrzebne innym rodzinom. Tylko nieliczne dotyczą Waszego "+d.business+". Resztę musicie pozyskać od sąsiadów.")}
+        {para("<strong>Notatki dziadka są cennym towarem w negocjacjach — zarówno Wasze, jak i te, które posiadają inni.</strong>")}
+        {para("<strong>Punkty otrzymujecie za posiadanie właściwych zasobów — nie za notatki.</strong> Notatki dziadka to źródło wiedzy: mówią, które zasoby są potrzebne do Waszego biznesu i jaką wagę ma każdy z nich. Można zdobywać zasoby bez notatek — ale wtedy działacie w ciemno.")}
+        {tip("📍 <strong>Gdzie to w aplikacji?</strong> Zakładka <strong>&bdquo;Majątek&rdquo;</strong>. Karty &bdquo;ZASÓB&rdquo; to przedmioty, które posiadacie. Karty &bdquo;INFORMACJA&rdquo; to notatki dziadka — podpowiadają, komu i z jaką wagą dany zasób jest potrzebny. Zasób + pasująca notatka = karta scalona (automatycznie).")}
+        {para("<em>Zadanie zrealizowane, gdy pozyskacie 100% zasobów opisanych w notatkach dziadka.</em>")}
+      </div>
+
+      <div style={{marginBottom:12,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
+        <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:6}} className="wt">ZADANIE 2: Pozyskanie kompetencji — maks. 25 pkt</div>
+        {para("Dziadek opisał też kompetencje ważne w prowadzeniu "+d.business+" — każdej przypisał wagę w procentach. Zdobywacie je, gromadząc odpowiednie księgi przechowywane przez rodziny w miasteczku.")}
+        {para("W swoim dobytku znajdziecie kilka podręczników — przydatnych jednak w innych biznesach "+d.businessAdj+". Zapiski o Waszych kompetencjach porwał ten sam wiatr. Musicie je odzyskać od sąsiadów.")}
+        {para("<strong>Informacje o kompetencjach — zarówno Wasze, jak i cudze — to kolejna waluta w negocjacjach.</strong>")}
+        {para("<strong>Punkty otrzymujecie za posiadanie właściwych kompetencji — nie za notatki.</strong> Notatki dziadka mówią, które kompetencje są potrzebne i jaką wagę ma każda z nich. Można gromadzić księgi bez notatek — ale wtedy działacie w ciemno.")}
+        {tip("📍 <strong>Gdzie to w aplikacji?</strong> Zakładka <strong>&bdquo;Majątek&rdquo;</strong>, sekcja kompetencji. Identyczna zasada: karty &bdquo;KOMPETENCJA&rdquo;, notatki &bdquo;INFORMACJA&rdquo;, automatyczne scalanie.")}
+        {para("<em>Zadanie zrealizowane, gdy pozyskacie wszystkie księgi potrzebne do 100% kompetencji.</em>")}
+      </div>
+
+      <div style={{marginBottom:12,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
+        <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:6}} className="wt">ZADANIE 3: Właściwa działka — maks. 10 pkt</div>
+        {para(d.plotFull)}
+        {para(d.plotAdvice)}
+        {tip("📍 <strong>Gdzie to w aplikacji?</strong> Zakładka <strong>&bdquo;Majątek&rdquo;</strong>, dół sekcji. Działkę można kupić, sprzedać lub wymienić barterem — jak każde inne dobro w grze.")}
+        {para("<em>Przyjrzyjcie się okolicy, zasięgnijcie języka i negocjujcie.</em>")}
+      </div>
+
+      <div style={{marginBottom:12,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
+        <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:6}} className="wt">ZADANIE 4: Pomnożenie gotówki — maks. 25 pkt</div>
+        {para("<strong>Na start posiadacie 600 $.</strong> Więcej = punkty. Mniej niż 600 $ = punkty ujemne. Proporcjonalnie.")}
+        {para("Biznes wymaga inwestycji, ale miasteczko daje też możliwości zarabiania.")}
+        {tip("📍 <strong>Gdzie to w aplikacji?</strong> Wyświetlacz gotówki u góry panelu — widoczny zawsze.")}
+      </div>
+
+      <div style={{padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
+        <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:6}} className="wt">BONUS: Złotodajna Żyła — maks. 10 pkt</div>
+        {para("Założyciel miasteczka, stary Joe Rhymester, przed śmiercią odnalazł żyłę złota w pobliskich Górach Wilczych. Lokalizację ukrył na mapie, którą podzielił na 5 fragmentów. Cztery z nich zapisał w testamencie czterem rodzinom osiedlającym się w Kairoscity. Jeden z fragmentów jest Wasz.")}
+        {para("Posiadacie trzy dodatkowe kopie swojego fragmentu — mogą być przedmiotem wymiany z innymi rodzinami. Każdy zebrany fragment to <strong>2 punkty</strong>. Rodzina, która <strong>jako pierwsza</strong> zgromadzi kompletną mapę i zgłosi to Szeryfowi, otrzyma <strong>po 100 $</strong> od każdej z pozostałych rodzin — łącznie <strong>300 $</strong>.")}
+        {tip("📍 <strong>Gdzie to w aplikacji?</strong> Zakładka <strong>&bdquo;Złotodajna Żyła&rdquo;</strong> — tracker z 5 polami. Fragmenty można kupować i sprzedawać jak każde inne dobro.")}
+      </div>
+
+      <div style={{marginTop:14,padding:"10px 14px",background:"#F0EBE0",borderRadius:6,fontSize:13,lineHeight:1.6,color:"#4C130F"}}>
+        {para("Sukces w prowadzeniu biznesu, prócz rozumu, wymaga szczęścia. W trakcie gry Szeryf odwiedzi Was trzykrotnie w sprawie <strong>Ślepego Losu</strong> — losowego wydarzenia, które może przynieść zysk lub stratę. Będziecie mogli wykupić ubezpieczenie, a potem dwukrotnie rzucić kośćmi. Szczegóły poznacie w swoim czasie.")}
+        {para("W trakcie gry może pojawić się okazja dodatkowego zarobku — mały <strong>&bdquo;biznes na boku&rdquo;</strong>. Szczegóły poznacie w swoim czasie.")}
+      </div>
+    </div>);
+    case 3: return (<div>
+      {hdr("Przebieg rozgrywki")}
+      {para("Po fazie przygotowania gra toczy się w <strong>trzech fazach</strong> po <strong>trzy tury negocjacyjne</strong>. Między fazami — narady rodzinne.")}
+      <div style={{margin:"14px 0"}}>
+        {[
+          {phase:"Faza I — Wymiana informacji",desc:"3 tury — Zbierajcie informacje, rozpoznajcie kto czego potrzebuje."},
+          {phase:"Narada rodzinna I",desc:null},
+          {phase:"Faza II — Pierwsze transakcje",desc:"3 tury — Czas na konkretne oferty."},
+          {phase:"Narada rodzinna II",desc:null},
+          {phase:"Faza III — Finał",desc:"3 tury — Ostatnia szansa na domknięcie transakcji."}
+        ].map((s,i)=>(<div key={i} style={{padding:"8px 12px",marginBottom:4,background:s.desc?"#FDF8EE":"#F0EBE0",borderRadius:4,borderLeft:s.desc?"3px solid #842504":"3px solid #D4A853"}}>
+          <div style={{fontWeight:700,fontSize:14,color:s.desc?"#842504":"#4C130F"}}>{s.phase}</div>
+          {s.desc&&<div style={{fontSize:13,color:"#4C130F",marginTop:2}}>{s.desc}</div>}
+        </div>))}
+      </div>
+      {para("W każdej turze spotykacie się z jedną z pozostałych rodzin. Harmonogram widzicie w panelu &bdquo;Przebieg rozgrywki&rdquo; po prawej stronie ekranu.")}
+      {tip("⚠️ <strong>Ważne:</strong> Wymiana dóbr i komunikacja z innymi rodzinami odbywa się wyłącznie podczas spotkań negocjacyjnych. Złamanie tej zasady to mandat: <strong>50 $</strong>.")}
+    </div>);
+    case 4: return (<div>
+      {hdr("Wasz panel — przegląd")}
+      {para("Oto elementy, z których będziecie korzystać:")}
+      <div style={{margin:"10px 0"}}>
+        {[
+          ["① Gotówka","Duży wyświetlacz u góry. Zawsze widoczny."],
+          ["② Przyciski transakcji","\u201ESprzedaż\u201D i \u201EBarter\u201D. Tu rozpoczynacie każdą wymianę."],
+          ["③ Zakładki","Po lewej: Witajcie w Kairoscity (ta instrukcja), Majątek, Złotodajna Żyła. Kolejne pojawią się w trakcie gry."],
+          ["④ Przebieg rozgrywki","Po prawej. Timer z odliczaniem i lista etapów."],
+          ["⑤ Księgowość","Po prawej, poniżej timera. Historia transakcji i operacji finansowych."],
+          ["⑥ Wezwij Szeryfa","Przycisk w prawej kolumnie. 15 $, 3 pytania."]
+        ].map(([t,desc],i)=>(<div key={i} style={{padding:"8px 12px",marginBottom:4,background:"#FDF8EE",borderRadius:4,display:"flex",gap:10}}>
+          <div style={{fontWeight:700,fontSize:14,color:"#842504",minWidth:180}}>{t}</div>
+          <div style={{fontSize:13,color:"#4C130F"}}>{desc}</div>
+        </div>))}
+      </div>
+    </div>);
+    case 5: return (<div>
+      {hdr("Jak handlować")}
+      {para("Dwa sposoby: <strong>sprzedaż</strong> (karta za gotówkę) i <strong>barter</strong> (karta za kartę ± dopłata). Warunki ustalcie ustnie — aplikacja rejestruje ustalenia.")}
+      <div style={{marginTop:14,marginBottom:14,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
+        <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:8}} className="wt">Sprzedaż — karta za gotówkę</div>
+        {para("<strong>Krok 1</strong> — Sprzedający: &bdquo;Sprzedaż&rdquo; → rodzina kupującego → karta → cena → wyślij ofertę.")}
+        {para("<strong>Krok 2</strong> — Kupujący: Powiadomienie → &bdquo;Akceptuj&rdquo; lub &bdquo;Odrzuć&rdquo;.")}
+        {para("<strong>Krok 3</strong> — Gotowe: Karta i gotówka się wymieniają. Zapis w Księgowości.")}
+      </div>
+      <div style={{marginBottom:14,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
+        <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:8}} className="wt">Barter — karta za kartę (± dopłata)</div>
+        {para("<strong>Krok 1</strong> — Inicjator: &bdquo;Barter&rdquo; → rodzina → karty do oddania → wyślij propozycję.")}
+        {para("<strong>Krok 2</strong> — Odbiorca: Propozycja → zaznacz karty w zamian → opcjonalnie dopłata → wyślij kontr-ofertę.")}
+        {para("<strong>Krok 3</strong> — Inicjator: Kontr-oferta → &bdquo;Akceptuj&rdquo; lub &bdquo;Odrzuć&rdquo;.")}
+        {para("<strong>Krok 4</strong> — Gotowe: Wymiana automatyczna. Zapis w Księgowości.")}
+      </div>
+      <div style={{fontWeight:700,fontSize:14,color:"#4C130F",marginBottom:6}}>Ważne zasady handlu:</div>
+      {para("Karta w transakcji jest zablokowana — niedostępna aż do akceptacji lub odrzucenia.")}
+      {para("Gotówka musi wystarczyć — brak środków = automatyczne odrzucenie.")}
+      {para("Każda transakcja jest zapisywana — sekcja &bdquo;Księgowość&rdquo; po prawej.")}
+      {para("Pomyłka? Zgłoście Szeryfowi — może cofnąć transakcję.")}
+    </div>);
+    case 6: return (<div>
+      {hdr("Powodzenia!")}
+      {para("Przejrzyjcie karty w &bdquo;Majątku&rdquo;, ustalcie strategię. <strong>Informacja to waluta</strong> — nie ujawniajcie wszystkiego od razu.")}
+      <div style={{marginTop:20,padding:"16px 20px",background:"#FDF8EE",borderRadius:8,textAlign:"center"}}>
+        <div style={{fontSize:18,fontStyle:"italic",color:"#842504",fontWeight:600}} className="wt">{d.goodLuck}</div>
+      </div>
+    </div>);
+    default: return null;
+    }
+  }
+
+  const PAGE_TITLES = ["Historia","Role","Zadania","Przebieg","Panel","Handel","Start!"];
+
+  return (<div style={{maxWidth:640}}>
+    <div style={{minHeight:300,marginBottom:16}}>{renderPage()}</div>
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",borderTop:"1px solid #E8D9B8",paddingTop:12}}>
+      <button onClick={()=>setPage(p=>p-1)} disabled={page===0}
+        style={{...btnS("primary",page===0),padding:"8px 20px",fontSize:14}}>← Wstecz</button>
+      <div style={{display:"flex",gap:6}}>
+        {PAGE_TITLES.map((t,i)=>(<div key={i} onClick={()=>{if(i<=page||(i===page+1&&canNext))setPage(i);}}
+          style={{width:28,height:28,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",
+            fontSize:11,fontWeight:i===page?700:400,
+            background:i===page?"#842504":i<page?"#D4A853":"#E8E0D0",
+            color:i===page?"#fff":i<page?"#4C130F":"#B0A48C",
+            cursor:(i<=page||(i===page+1&&canNext))?"pointer":"default",
+            transition:"all 0.2s"}}
+          title={t}>{i+1}</div>))}
+      </div>
+      <button onClick={()=>setPage(p=>p+1)} disabled={page>=totalPages-1||!canNext}
+        style={{...btnS("primary",page>=totalPages-1||!canNext),padding:"8px 20px",fontSize:14}}>Dalej →</button>
+    </div>
+  </div>);
 }
 
 /* ========== RESOURCE CARD ========== */
@@ -915,6 +1207,15 @@ function MapTracker({items, mapBonusClaimed, fId}) {
   return (<>
     <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
       <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Złotodajna Żyła</div>
+      <div style={{fontSize:13,fontWeight:700,color:"#4C130F",marginTop:4}}>maks. 10 pkt</div>
+    </div>
+    <div style={{marginBottom:14,fontSize:14,lineHeight:1.6,color:"#2C1810"}}>
+      <p style={{margin:"0 0 8px 0"}}>Zbierzcie 5 fragmentów mapy prowadzącej do żyły złota w Górach Wilczych. Każdy fragment to <strong>2 punkty</strong>. Cztery fragmenty są w rękach rodzin osadników. Piąty jest zdeponowany u Szeryfa — otrzyma go ta rodzina, która <strong>jako pierwsza</strong> przedstawi mu pozostałe cztery.</p>
+      <Accordion title="Historia mapy">
+        <p style={{margin:0}}>Stary Joe Rhymester, założyciel Kairoscity, odnalazł żyłę złota, a jej lokalizację ukrył na mapie podzielonej na 5 fragmentów. Cztery zapisał w testamencie rodzinom osadników.</p>
+      </Accordion>
+      <p style={{margin:"8px 0"}}><strong>Premia za komplet:</strong> Rodzina, która <strong>jako pierwsza</strong> zgromadzi 5 fragmentów i zgłosi to Szeryfowi, otrzyma <strong>po 100 $</strong> od każdej z trzech pozostałych rodzin — łącznie <strong>300 $</strong>. Pozostałe rodziny tracą po 100 $.</p>
+      <p style={{margin:"8px 0"}}><strong>Jak zdobywać fragmenty:</strong> Posiadacie trzy dodatkowe kopie swojego fragmentu mapy. Możecie je sprzedawać lub wymieniać barterem — tak samo jak zasoby czy kompetencje. Fragmenty innych rodzin pozyskujecie w negocjacjach.</p>
     </div>
     <div style={{background:"#FFFDF0",border:"1px solid #D4C870",borderRadius:6,padding:16}}>
       <div style={{display:"flex",gap:3}}>
@@ -1023,6 +1324,18 @@ function BlindFateFamily({fId, blindFate}) {
   return (<div>
     <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
       <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Ślepy los</div>
+    </div>
+    <div style={{marginBottom:14,fontSize:14,lineHeight:1.6,color:"#2C1810"}}>
+      <p style={{margin:"0 0 8px 0"}}>Dwukrotnie w trakcie gry rzucicie kośćmi. Suma oczek wskaże losowe wydarzenie — może przynieść zysk lub stratę. Kwota zostanie automatycznie naliczona na Wasze konto. Szeryf odwiedzi Was trzykrotnie: najpierw zaproponuje wykupienie polis, potem przeprowadzi dwa losowania.</p>
+      <Accordion title="Polisy ubezpieczeniowe">
+        <p style={{margin:"0 0 6px 0"}}>Przed pierwszym losowaniem Szeryf zaproponuje Wam ubezpieczenie. Do wyboru dwie polisy:</p>
+        <p style={{margin:"0 0 4px 0"}}>• <strong>Polisa za 30 $</strong> — pokrywa 50% strat z losowego wydarzenia</p>
+        <p style={{margin:"0 0 6px 0"}}>• <strong>Polisa za 50 $</strong> — pokrywa do 100% strat</p>
+        <p style={{margin:0}}>Polisy chronią wyłącznie przed stratami — na zyski nie mają wpływu. Można wykupić jedną, obie lub żadną.</p>
+      </Accordion>
+      <Accordion title="Przebieg losowania">
+        <p style={{margin:0}}>Szeryf aktywuje losowanie. Na ekranie pojawią się kości — kliknijcie, by rzucić. Karta wydarzenia z opisem i skutkiem finansowym wyświetli się automatycznie.</p>
+      </Accordion>
     </div>
     <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:8,padding:14,marginBottom:16}}>
       <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:10}}>{rolls.length===0?"Oczekuj na sygnał Szeryfa":"Losowanie "+(currentRollIdx+1)}</div>
@@ -1570,7 +1883,7 @@ function App({roomCode,role}) {
   const [price,setPrice]=useState(0);
   const [eCash,setECash]=useState(0);
   const [rTx,setRTx]=useState(null);
-  const [activeTab,setActiveTab]=useState("inv");
+  const [activeTab,setActiveTab]=useState("tutorial");
   const [mapBonusClaimed,setMapBonusClaimed]=useState({});
   const [mapEnabled,setMapEnabled]=useState(false);
   const [plotPenalties,setPlotPenalties]=useState({});
@@ -1960,7 +2273,7 @@ function App({roomCode,role}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.2</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.3</div>
       </div>
     </div>
     {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
@@ -1995,10 +2308,10 @@ function App({roomCode,role}) {
           <button style={btnS("barter")} onClick={()=>{resetP();setShowP(true);setPMode("barter");}}>Barter</button>
         </div>}
       </div>
-      <div style={{display:"grid",gridTemplateColumns:activeTab==="inv"?"1fr 360px":"1fr",gap:20,alignItems:"start"}}>
+      <div style={{display:"grid",gridTemplateColumns:(activeTab==="inv"||activeTab==="tutorial")?"1fr 360px":"1fr",gap:20,alignItems:"start"}}>
         <div>
           <div style={{display:"flex",gap:4,marginBottom:14}}>
-            {[["inv","Majątek"],["map","Złotodajna Żyła"],["fate","Ślepy los"],["rev","Rewolwerowiec"],["rel","Budowanie relacji"],["results","Wyniki"]].map(t=>{
+            {[["tutorial","Witajcie w Kairoscity"],["inv","Majątek"],["map","Złotodajna Żyła"],["fate","Ślepy los"],["rev","Rewolwerowiec"],["rel","Budowanie relacji"],["results","Wyniki"]].map(t=>{
               var act=activeTab===t[0];
               var hidden=(t[0]==="rev"&&!revEnabled)||(t[0]==="fate"&&!fateEnabled)||(t[0]==="map"&&!mapEnabled);
               if(hidden) return null;
@@ -2007,6 +2320,7 @@ function App({roomCode,role}) {
               return <div key={t[0]} onClick={()=>setActiveTab(t[0])} style={{padding:"7px 16px",borderRadius:"4px 4px 0 0",fontSize:13,fontWeight:act?700:400,background:act?"#fff":"#F3CA82",color:act?"#842504":"#4C130F",cursor:"pointer",borderBottom:act?"2px solid #842504":"2px solid transparent"}}>{t[1]}</div>;
             })}
           </div>
+          {activeTab==="tutorial"&&<InstructionSlides familyId={familyId} roomCode={roomCode}/>}
           {activeTab==="inv"&&(()=>{
             var f=FM[familyId];
             // Resources for own biz
@@ -2030,7 +2344,13 @@ function App({roomCode,role}) {
             return (<div>
             {/* --- ZASOBY --- */}
             <div style={taskBg}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Zadanie: Pozyskanie zasobów do prowadzenia przedsiębiorstwa</div>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">Zadanie: Pozyskanie zasobów do prowadzenia przedsiębiorstwa
+                <InfoPopup title="Zadanie 1: Zasoby — maks. 30 pkt">
+                  <p style={{margin:"0 0 8px 0"}}>Budujecie <strong>{INSTRUCTION_DATA[familyId].business}</strong> zgodnie z rodzinną tradycją. Wasz dziadek opisał wszystkie zasoby niezbędne do uruchomienia przedsiębiorstwa i każdemu przypisał wagę wyrażoną w procentach.</p>
+                  <p style={{margin:"0 0 8px 0"}}><strong>Punkty otrzymujecie za posiadanie właściwych zasobów — nie za notatki.</strong> Notatki dziadka to źródło wiedzy: mówią, które zasoby są potrzebne i jaką wagę ma każdy z nich. Można zdobywać zasoby bez notatek — ale wtedy działacie w ciemno.</p>
+                  <p style={{margin:0}} dangerouslySetInnerHTML={{__html:'Karty &bdquo;ZASÓB&rdquo; to przedmioty, które posiadacie. Karty &bdquo;INFORMACJA&rdquo; to notatki dziadka. Zasób + pasująca notatka = karta scalona (automatycznie).'}}/>
+                </InfoPopup>
+              </div>
               <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
                 <span>Udokumentowany postęp: <b>{docResPct}%</b></span>
                 <span>Liczba punktów: <b>{resPoints}</b> <span style={{color:"#A89070"}}>(max 30)</span></span>
@@ -2047,7 +2367,13 @@ function App({roomCode,role}) {
             </div>}
             {/* --- KOMPETENCJE --- */}
             <div style={taskBg}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Zadanie: Pozyskanie kompetencji do prowadzenia przedsiębiorstwa</div>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">Zadanie: Pozyskanie kompetencji do prowadzenia przedsiębiorstwa
+                <InfoPopup title="Zadanie 2: Kompetencje — maks. 25 pkt">
+                  <p style={{margin:"0 0 8px 0"}}>Dziadek opisał kompetencje ważne w prowadzeniu {INSTRUCTION_DATA[familyId].business} — każdej przypisał wagę w procentach. Zdobywacie je, gromadząc odpowiednie księgi przechowywane przez rodziny w miasteczku.</p>
+                  <p style={{margin:"0 0 8px 0"}}><strong>Punkty otrzymujecie za posiadanie właściwych kompetencji — nie za notatki.</strong> Notatki dziadka mówią, które kompetencje są potrzebne i jaką wagę ma każda z nich. Można gromadzić księgi bez notatek — ale wtedy działacie w ciemno.</p>
+                  <p style={{margin:0}} dangerouslySetInnerHTML={{__html:'Karty &bdquo;KOMPETENCJA&rdquo;, notatki &bdquo;INFORMACJA&rdquo;, automatyczne scalanie — identycznie jak przy zasobach.'}}/>
+                </InfoPopup>
+              </div>
               <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
                 <span>Udokumentowany postęp: <b>{docCompPct}%</b></span>
                 <span>Liczba punktów: <b>{compPoints}</b> <span style={{color:"#A89070"}}>(max 25)</span></span>
@@ -2064,7 +2390,11 @@ function App({roomCode,role}) {
             </div>}
             {/* --- DZIAŁKI --- */}
             <div style={taskBg}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Zadanie: Pozyskanie prawa własności do właściwej działki</div>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">Zadanie: Pozyskanie prawa własności do właściwej działki
+                <InfoPopup title="Zadanie 3: Działka">
+                  <div dangerouslySetInnerHTML={{__html:INSTRUCTION_DATA[familyId].plotPopup}}/>
+                </InfoPopup>
+              </div>
               <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
                 <span>Punkty: <b>{plotOk?10:0}</b> <span style={{color:"#A89070"}}>(max 10)</span></span>
               </div>
@@ -2089,6 +2419,22 @@ function App({roomCode,role}) {
               var cardStyle=function(col){return{background:"#FDFAF4",border:"2px solid "+col,borderRadius:6,overflow:"hidden",position:"relative",minWidth:120,maxWidth:160}};
               return(<div style={{marginTop:8}}>
                 <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Biznes na boku</div>
+                <div style={{marginBottom:14,fontSize:14,lineHeight:1.6,color:"#2C1810"}}>
+                  <p style={{margin:"0 0 6px 0"}} dangerouslySetInnerHTML={{__html:INSTRUCTION_DATA[familyId].bnbStory}}/>
+                  <p style={{margin:"0 0 6px 0"}}><strong>{INSTRUCTION_DATA[familyId].bnbProduct}</strong> — <span dangerouslySetInnerHTML={{__html:INSTRUCTION_DATA[familyId].bnbDesc}}/></p>
+                  <p style={{margin:"0 0 6px 0"}}><strong>Efekt dla kupującego:</strong> <span dangerouslySetInnerHTML={{__html:INSTRUCTION_DATA[familyId].bnbEffect}}/></p>
+                  <p style={{margin:"0 0 6px 0"}}>Przyjęliście towar z odroczonym terminem płatności: <strong>{INSTRUCTION_DATA[familyId].bnbQuantity}</strong> o łącznej wartości <strong>{INSTRUCTION_DATA[familyId].bnbValue}</strong>.</p>
+                  <div style={{background:"#F5EFE0",borderRadius:6,padding:"10px 14px",margin:"8px 0"}}>
+                    <p style={{margin:"0 0 4px 0",fontWeight:700}}>Zasady rozliczenia:</p>
+                    <p style={{margin:"0 0 4px 0",fontSize:13}}>Towar przyjęliście z odroczonym terminem płatności. Na koniec gry rozliczacie się z dostawcą za pośrednictwem Szeryfa.</p>
+                    <p style={{margin:"0 0 4px 0",fontSize:13}}>• Sprzedaliście wszystko? Bonifikata <strong>100 $</strong>, odprowadzacie <strong>200 $</strong>. Marża zostaje u Was.</p>
+                    <p style={{margin:"0 0 0 0",fontSize:13}}>• Nie sprzedaliście wszystkiego? Brak bonifikaty, odprowadzacie <strong>300 $</strong>. Niesprzedany towar możecie wykorzystać na własne potrzeby.</p>
+                  </div>
+                  <Accordion title="Przykład rozliczenia">
+                    <p style={{margin:"0 0 4px 0"}}>Sprzedaliście 10 z 10 po 35 $ = 350 $. Wszystko sprzedane → 350 − 200 + 100 = <strong>+250 $</strong>.</p>
+                    <p style={{margin:0}}>Sprzedaliście 7 z 10 po 40 $ = 280 $. Nie wszystko → 280 − 300 = <strong>−20 $</strong>. Ale macie 3 sztuki na własny użytek.</p>
+                  </Accordion>
+                </div>
                 {forSale.length>0&&<div style={{marginBottom:12}}>
                   <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#A89070",marginBottom:6}}>Na sprzedaż</div>
                   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
@@ -2306,7 +2652,7 @@ function App({roomCode,role}) {
             </div></div>);
           })()}
         </div>
-        {activeTab==="inv"&&<div>
+        {(activeTab==="inv"||activeTab==="tutorial")&&<div>
           {(()=>{
             var fId=familyId;
             return(<div style={{background:"#3A2415",border:"2px solid #8B6914",borderRadius:6,padding:12,marginBottom:16,boxShadow:"inset 0 0 12px rgba(0,0,0,0.3)"}}>
