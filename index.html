@@ -755,12 +755,12 @@ function Accordion({title, children, defaultOpen}) {
 }
 
 /* ========== INFO POPUP (?) ========== */
-function InfoPopup({title, children}) {
+function InfoPopup({title, children, wide}) {
   const [open, setOpen] = useState(false);
   return (<>
     <span onClick={()=>setOpen(true)} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:22,height:22,borderRadius:"50%",background:"#D4A853",color:"#4C130F",fontWeight:700,fontSize:13,cursor:"pointer",marginLeft:8,verticalAlign:"middle",lineHeight:1,userSelect:"none"}}>?</span>
     {open&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={()=>setOpen(false)}>
-      <div style={{background:"#FFF",borderRadius:8,padding:24,maxWidth:520,width:"90%",maxHeight:"80vh",overflowY:"auto",position:"relative",boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}} onClick={e=>e.stopPropagation()}>
+      <div style={{background:"#FFF",borderRadius:8,padding:24,maxWidth:wide?720:520,width:"90%",maxHeight:"80vh",overflowY:"auto",position:"relative",boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}} onClick={e=>e.stopPropagation()}>
         <div onClick={()=>setOpen(false)} style={{position:"absolute",top:10,right:14,cursor:"pointer",fontSize:22,color:"#8B7355",fontWeight:700,lineHeight:1}}>✕</div>
         {title&&<div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:12,paddingRight:30}} className="wt">{title}</div>}
         <div style={{fontSize:14,lineHeight:1.7,color:"#2C1810"}}>{children}</div>
@@ -2307,7 +2307,7 @@ function App({roomCode,role}) {
           <button style={btnS("barter")} onClick={()=>{resetP();setShowP(true);setPMode("barter");}}>Barter</button>
         </div>}
       </div>
-      <div style={{display:"grid",gridTemplateColumns:activeTab==="inv"?"1fr 360px":"1fr",gap:20,alignItems:"start"}}>
+      <div style={{display:"grid",gridTemplateColumns:(activeTab==="inv"||activeTab==="tutorial")?"1fr 360px":"1fr",gap:20,alignItems:"start"}}>
         <div>
           <div style={{display:"flex",gap:4,marginBottom:14}}>
             {[["tutorial","Witajcie w Kairoscity"],["inv","Majątek"],["map","Złotodajna Żyła"],["fate","Ślepy los"],["rev","Rewolwerowiec"],["rel","Budowanie relacji"],["results","Wyniki"]].map(t=>{
@@ -2344,12 +2344,8 @@ function App({roomCode,role}) {
             {/* --- ZASOBY --- */}
             <div style={taskBg}>
               <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">Zadanie: Pozyskanie zasobów do prowadzenia przedsiębiorstwa
-                <InfoPopup title="ZASOBY — maks. 30 pkt">
-                  <p style={{margin:"0 0 8px 0"}}>Budujecie <strong>{INSTRUCTION_DATA[familyId].business}</strong> zgodnie z rodzinną tradycją. Dziadek opisał zasoby niezbędne do uruchomienia przedsiębiorstwa — każdemu przypisał wagę w procentach.</p>
-                  <p style={{margin:"0 0 8px 0"}}>Huragan rozrzucił jego zapiski po miasteczku. Większość tego, co zebraliście, opisuje zasoby potrzebne innym rodzinom. Swoje musicie pozyskać od sąsiadów.</p>
-                  <p style={{margin:"0 0 8px 0"}}><strong>Punkty otrzymujecie za posiadanie właściwych zasobów — nie za notatki.</strong> Notatki to źródło wiedzy: mówią, które zasoby są potrzebne i jaką wagę ma każdy z nich. Bez nich działacie w ciemno.</p>
-                  <p style={{margin:"0 0 8px 0"}} dangerouslySetInnerHTML={{__html:'Karty &bdquo;ZASÓB&rdquo; = przedmioty, które posiadacie.<br>Karty &bdquo;INFORMACJA&rdquo; = notatki dziadka (kto, ile %).<br>Zasób + pasująca notatka = karta scalona (automatycznie).'}}/>
-                  <p style={{margin:0,fontStyle:"italic"}}>Zadanie zrealizowane, gdy pozyskacie 100% zasobów opisanych w notatkach dziadka.</p>
+                <InfoPopup title="ZASOBY — maks. 30 pkt" wide>
+                  <img src={IMG_BASE+"instrukcja_zasoby-"+familyId+".png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Instrukcja — zasoby" onError={e=>{e.target.style.display="none";}}/>
                 </InfoPopup>
               </div>
               <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
@@ -2369,12 +2365,8 @@ function App({roomCode,role}) {
             {/* --- KOMPETENCJE --- */}
             <div style={taskBg}>
               <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">Zadanie: Pozyskanie kompetencji do prowadzenia przedsiębiorstwa
-                <InfoPopup title="KOMPETENCJE — maks. 25 pkt">
-                  <p style={{margin:"0 0 8px 0"}}>Dziadek opisał kompetencje ważne w prowadzeniu {INSTRUCTION_DATA[familyId].business} — każdej przypisał wagę w procentach. Zdobywacie je, gromadząc odpowiednie księgi.</p>
-                  <p style={{margin:"0 0 8px 0"}}>W swoim dobytku macie kilka podręczników — przydatnych jednak w innych biznesach {INSTRUCTION_DATA[familyId].businessAdj}. Zapiski o Waszych kompetencjach porwał wiatr. Musicie je odzyskać od sąsiadów.</p>
-                  <p style={{margin:"0 0 8px 0"}}><strong>Punkty otrzymujecie za posiadanie właściwych kompetencji — nie za notatki.</strong> Notatki mówią, które kompetencje są potrzebne i jaką wagę ma każda z nich. Bez nich działacie w ciemno.</p>
-                  <p style={{margin:"0 0 8px 0"}} dangerouslySetInnerHTML={{__html:'Karty &bdquo;KOMPETENCJA&rdquo; = Wasze umiejętności.<br>Karty &bdquo;INFORMACJA&rdquo; = notatki dziadka (kto, ile %).<br>Kompetencja + pasująca notatka = karta scalona (automatycznie).'}}/>
-                  <p style={{margin:0,fontStyle:"italic"}}>Zadanie zrealizowane, gdy pozyskacie wszystkie księgi potrzebne do 100% kompetencji.</p>
+                <InfoPopup title="KOMPETENCJE — maks. 25 pkt" wide>
+                  <img src={IMG_BASE+"instrukcja_kompetencje-"+familyId+".png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Instrukcja — kompetencje" onError={e=>{e.target.style.display="none";}}/>
                 </InfoPopup>
               </div>
               <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
@@ -2658,7 +2650,7 @@ function App({roomCode,role}) {
             </div></div>);
           })()}
         </div>
-        {activeTab==="inv"&&<div>
+        {(activeTab==="inv"||activeTab==="tutorial")&&<div>
           {!viewSheriff&&<div style={{marginBottom:16}}>
             {(()=>{var myWaiting=sheriffCalls.filter(c=>c.fId===cf&&c.status==="waiting");var hasWaiting=myWaiting.length>0;
               return(<div>
