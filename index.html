@@ -759,12 +759,16 @@ function InfoPopup({title, children, wide}) {
   const [open, setOpen] = useState(false);
   return (<>
     <span onClick={()=>setOpen(true)} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:22,height:22,borderRadius:"50%",background:"#D4A853",color:"#4C130F",fontWeight:700,fontSize:13,cursor:"pointer",marginLeft:8,verticalAlign:"middle",lineHeight:1,userSelect:"none"}}>?</span>
-    {open&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={()=>setOpen(false)}>
-      <div style={{background:"#FFF",borderRadius:8,padding:24,maxWidth:wide?720:520,width:"90%",maxHeight:"80vh",overflowY:"auto",position:"relative",boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}} onClick={e=>e.stopPropagation()}>
+    {open&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.6)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={()=>setOpen(false)}>
+      {wide?<div style={{position:"relative",maxWidth:"90vw",maxHeight:"80vh"}} onClick={e=>e.stopPropagation()}>
+        <div onClick={()=>setOpen(false)} style={{position:"absolute",top:-12,right:-12,width:28,height:28,borderRadius:"50%",background:"#4C130F",color:"#F5F0E8",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:16,fontWeight:700,lineHeight:1,boxShadow:"0 2px 8px rgba(0,0,0,0.4)",zIndex:1}}>✕</div>
+        <div style={{maxWidth:"90vw",maxHeight:"80vh",overflow:"hidden"}}>{children}</div>
+      </div>
+      :<div style={{background:"#FFF",borderRadius:8,padding:24,maxWidth:520,width:"90%",maxHeight:"80vh",overflowY:"auto",position:"relative",boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}} onClick={e=>e.stopPropagation()}>
         <div onClick={()=>setOpen(false)} style={{position:"absolute",top:10,right:14,cursor:"pointer",fontSize:22,color:"#8B7355",fontWeight:700,lineHeight:1}}>✕</div>
         {title&&<div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:12,paddingRight:30}} className="wt">{title}</div>}
         <div style={{fontSize:14,lineHeight:1.7,color:"#2C1810"}}>{children}</div>
-      </div>
+      </div>}
     </div>}
   </>);
 }
@@ -2345,7 +2349,7 @@ function App({roomCode,role}) {
             <div style={taskBg}>
               <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">Zadanie: Pozyskanie zasobów do prowadzenia przedsiębiorstwa
                 <InfoPopup title="ZASOBY — maks. 30 pkt" wide>
-                  <img src={IMG_BASE+"instrukcja_zasoby-"+familyId+".png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Instrukcja — zasoby" onError={e=>{e.target.style.display="none";}}/>
+                  <img src={IMG_BASE+"instrukcja_zasoby-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — zasoby" onError={e=>{e.target.style.display="none";}}/>
                 </InfoPopup>
               </div>
               <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
@@ -2366,7 +2370,7 @@ function App({roomCode,role}) {
             <div style={taskBg}>
               <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">Zadanie: Pozyskanie kompetencji do prowadzenia przedsiębiorstwa
                 <InfoPopup title="KOMPETENCJE — maks. 25 pkt" wide>
-                  <img src={IMG_BASE+"instrukcja_kompetencje-"+familyId+".png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Instrukcja — kompetencje" onError={e=>{e.target.style.display="none";}}/>
+                  <img src={IMG_BASE+"instrukcja_kompetencje-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — kompetencje" onError={e=>{e.target.style.display="none";}}/>
                 </InfoPopup>
               </div>
               <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
@@ -2386,8 +2390,8 @@ function App({roomCode,role}) {
             {/* --- DZIAŁKI --- */}
             <div style={taskBg}>
               <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">Zadanie: Pozyskanie prawa własności do właściwej działki
-                <InfoPopup title="Zadanie 3: Działka">
-                  <div dangerouslySetInnerHTML={{__html:INSTRUCTION_DATA[familyId].plotPopup}}/>
+                <InfoPopup title="Zadanie 3: Działka" wide>
+                  <img src={IMG_BASE+"instrukcja_dzialka-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — działka" onError={e=>{e.target.style.display="none";}}/>
                 </InfoPopup>
               </div>
               <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
@@ -2398,7 +2402,11 @@ function App({roomCode,role}) {
             <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:12}}>{familyView.plots.map(p=><GenericCard key={p.id} item={p}/>)}</div>
             {/* --- GOTÓWKA --- */}
             <div style={taskBg}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Zadanie: Pomnożenie gotówki</div>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">Zadanie: Pomnożenie gotówki
+                <InfoPopup title="Zadanie 4: Gotówka" wide>
+                  <img src={IMG_BASE+"instrukcja_gotowka.png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — gotówka" onError={e=>{e.target.style.display="none";}}/>
+                </InfoPopup>
+              </div>
               <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
                 <span>Posiadana gotówka: <b>{cashVal} $</b></span>
                 <span>Punkty: <b>{cashPoints}</b> <span style={{color:"#A89070"}}>(od −25 do 25)</span></span>
@@ -2450,7 +2458,7 @@ function App({roomCode,role}) {
                 </div>
               </div>);
             })()}
-            <img src={IMG_BASE+"kairos_chronicle.jpg"} style={{width:"100%",borderRadius:6,marginTop:12}} alt="The Kairos Chronicle" onError={e=>{e.target.style.display="none";}}/>
+            {bnbEnabled&&<img src={IMG_BASE+"kairos_chronicle.jpg"} style={{width:"100%",borderRadius:6,marginTop:12}} alt="The Kairos Chronicle" onError={e=>{e.target.style.display="none";}}/>}
           </div>);
           })()}
           {activeTab==="map"&&<MapTracker items={familyData.items} mapBonusClaimed={mapBonusClaimed} fId={familyId}/>}
