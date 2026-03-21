@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WDZ Online — Platforma Sieciowa v7.1</title>
+  <title>WDZ Online — Platforma Sieciowa v7.2</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -62,7 +62,7 @@
       Ta wersja gry wymaga uruchomienia z internetu (GitHub Pages).<br>
       Otwarcie pliku bezpośrednio z dysku nie pozwala na połączenie z Firebase.
     </div>
-    <div style="background:#FFF8E0;border:1px solid #D4C870;border-radius:8px;padding:16px;text-align:left;font-size:13px;color:#5C4A3A;line-height:1.8">
+    <div style="background:#FFF8E7;border:1px solid #D4C870;border-radius:8px;padding:16px;text-align:left;font-size:13px;color:#5C4A3A;line-height:1.8">
       <b>Co zrobić:</b><br>
       1. Wgraj ten plik na GitHub (jako <code>index.html</code>)<br>
       2. Otwórz adres: <code>https://kkondracki-jpg.github.io/wdz-online/</code><br>
@@ -214,6 +214,7 @@ function Lobby({onJoin}){
   function handleJoin(){
     if(!joinCode.trim()){setError("Wpisz kod pokoju");return;}
     var code=joinCode.trim().toUpperCase();
+    if(!/^WDZ-[A-HJ-NP-Z2-9]{4}$/.test(code)){setError("Nieprawidłowy format kodu (WDZ-XXXX)");return;}
     setLoading(true);setError(null);
     db.ref("rooms/"+code+"/meta").once("value").then(snap=>{
       if(!snap.exists()){setError("Pokój "+code+" nie istnieje");setLoading(false);return;}
@@ -223,18 +224,17 @@ function Lobby({onJoin}){
 
   function selectFamily(fId){
     setLoading(true);setError(null);
-    // Check if family is already taken
-    db.ref("rooms/"+roomCode+"/players/"+fId).once("value").then(snap=>{
-      if(snap.exists()&&snap.val().connected){
-        setError("Rodzina "+FM[fId].nom+" jest już zajęta!");setLoading(false);return;
-      }
-      db.ref("rooms/"+roomCode+"/players/"+fId).set({
-        connected:true,joinedAt:firebase.database.ServerValue.TIMESTAMP
-      }).then(()=>{
-        setSelectedRole(fId);setLoading(false);
-        db.ref("rooms/"+roomCode+"/players/"+fId).onDisconnect().update({connected:false});
-      });
-    }).catch(e=>{setError("Błąd: "+e.message);setLoading(false);});
+    // Atomowe claimowanie rodziny przez transaction()
+    var ref=db.ref("rooms/"+roomCode+"/players/"+fId);
+    ref.transaction(function(current){
+      if(current&&current.connected) return; // abort — already taken
+      return {connected:true,joinedAt:firebase.database.ServerValue.TIMESTAMP};
+    },function(error,committed){
+      if(error){setError("Błąd: "+error.message);setLoading(false);return;}
+      if(!committed){setError("Rodzina "+FM[fId].nom+" jest już zajęta!");setLoading(false);return;}
+      setSelectedRole(fId);setLoading(false);
+      ref.onDisconnect().update({connected:false});
+    });
   }
 
   function startGame(){
@@ -273,7 +273,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.1</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.2</div>
       </div>
 
       {/* Initial choice */}
@@ -302,7 +302,7 @@ function Lobby({onJoin}){
         </div>
         <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:8}}>Podłączeni gracze:</div>
         <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:16}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:"#FFF8E0",borderRadius:4,border:"1px solid #D4A853"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:"#FFF8E7",borderRadius:4,border:"1px solid #D4A853"}}>
             <div style={{width:10,height:10,borderRadius:"50%",background:sheriffConnected?"#2E5B3C":"#C00"}}/>
             <span style={{fontSize:13,fontWeight:700,color:"#8B6914"}}>Szeryf (Ty)</span>
           </div>
@@ -358,7 +358,7 @@ function Lobby({onJoin}){
             </div>);
           })}
         </div>
-        <div style={{textAlign:"center",padding:14,background:"#FFF8E0",borderRadius:6,border:"1px solid #D4C870"}}>
+        <div style={{textAlign:"center",padding:14,background:"#FFF8E7",borderRadius:6,border:"1px solid #D4C870"}}>
           <div style={{fontSize:13,color:"#8B7714",fontWeight:600}}>Oczekiwanie na start gry...</div>
           <div style={{fontSize:13,color:"#A89070",marginTop:4}}>Szeryf rozpocznie grę, gdy wszyscy będą gotowi</div>
         </div>
@@ -470,7 +470,7 @@ const KB=(n,a,t)=>    ({id:ci(),name:n,cat:C_COMP,author:a,title:t,forBiz:null,w
 const NR=(n,b,w)=>({id:ci(),name:n,cat:C_NRES, forBiz:b,weight:w});
 const NK=(n,b,w)=>({id:ci(),name:n,cat:C_NCOMP,forBiz:b,weight:w});
 const PL=(nr)=>   ({id:ci(),name:"Działka nr "+nr,cat:C_PLOT,plotNr:nr});
-const MP=(nr)=>   ({id:ci(),name:"Fragment mapy #"+nr,cat:C_MAP,fragNr:nr});
+const MP=(nr)=>   ({id:ci(),name:"Kopia fragmentu mapy "+(nr===1?"Adamsów":nr===2?"Bennetów":nr===3?"Clintonów":"Dexterów"),cat:C_MAP,fragNr:nr});
 
 const START = {
 adams:{cards:[
@@ -497,7 +497,7 @@ adams:{cards:[
   NK("Biegła Obsługa Liczydła","Bank",18),
   NK("Leczenie Chorób Bydła","Ranczo",27),
   NK("Podstawy Stolarstwa","Zakład Pogrzebowy",43),
-  PL(6), MP(1), MP(1), MP(1), MP(1),
+  PL(6), MP(1), MP(1), MP(1),
 ]},
 bennet:{cards:[
   R("Lasso","Ranczo",30,"aby chwytać bydło i dyscyplinować stado"),
@@ -519,7 +519,7 @@ bennet:{cards:[
   NK("Szybkostrzelność i Celność Oka","Ranczo",18),
   NK("Pędzenie Szkockiej Whisky","Saloon",27),
   NK("Zapewnienie Bezpieczeństwa","Bank",43),
-  PL(4), MP(2), MP(2), MP(2), MP(2),
+  PL(4), MP(2), MP(2), MP(2),
 ]},
 clinton:{cards:[
   R("Stara Destylarnia","Saloon",30,"aby nigdy nie zabrakło tego, co zaspokaja pragnienia"),
@@ -543,7 +543,7 @@ clinton:{cards:[
   NK("Sztuka Balsamowania","Zakład Pogrzebowy",27),
   NK("Prowadzenie Kuchni Zbiorowej","Saloon",18),
   NK("Odnajdywanie Źródeł Wody","Ranczo",12),
-  PL(20), MP(3), MP(3), MP(3), MP(3),
+  PL(20), MP(3), MP(3), MP(3),
 ]},
 dexter:{cards:[
   R("Sejf","Bank",30,"aby pieniądze były bezpieczne jak w banku"),
@@ -569,7 +569,7 @@ dexter:{cards:[
   NK("Podstawy Makijażu Pośmiertnego","Zakład Pogrzebowy",18),
   NK("Obsługa Zamka Szyfrowego","Bank",27),
   NK("Organizowanie Turniejów Pokera","Saloon",43),
-  PL(1), MP(4), MP(4), MP(4), MP(4),
+  PL(1), MP(4), MP(4), MP(4),
 ]},
 };
 
@@ -711,12 +711,12 @@ function ResourceCard({item, note, selected, onClick, compact, isSheriff, textOn
 }
 
 /* ========== COMPETENCY CARD ========== */
-function CompCard({item, note, selected, onClick, compact, isSheriff}) {
+function CompCard({item, note, selected, onClick, compact, isSheriff, textOnly}) {
   var merged=!!note, isBl=item.blind;
   var imgSrc=merged?imgUrl("merged-comp",item.name):imgUrl("comp",item.name);
-  const [imgOk,setImgOk]=useState(true);
+  const [imgOk,setImgOk]=useState(!textOnly);
 
-  if(imgOk && !compact) {
+  if(imgOk && !compact && !textOnly) {
     return (<div onClick={onClick} className={"cw"+(selected?" sel":"")} style={{cursor:onClick?"pointer":"default"}}>
       <img src={imgSrc} className="ci" alt={item.name} onError={()=>setImgOk(false)}/>
       {selected&&<div style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700,textShadow:"0 0 3px #fff"}}>V</div>}
@@ -827,7 +827,7 @@ function TxDisplay({tx,cf,onAccept,onReject,onRespond}) {
 
   // BnB settlement
   if(tx.type==="bnb_settle") {
-    return (<div style={{padding:12,borderRadius:5,border:"1px solid #D4C870",background:"#FFF8E0",marginBottom:8}}>
+    return (<div style={{padding:12,borderRadius:5,border:"1px solid #D4C870",background:"#FFF8E7",marginBottom:8}}>
       <div style={{fontSize:13,color:"#8B7714"}}><b>BIZNES NA BOKU</b> — {tx.description}</div>
     </div>);
   }
@@ -909,14 +909,14 @@ function MapTracker({items, mapBonusClaimed, fId}) {
   // Fragments for sale: count own fragment type minus 1 (the one on map)
   var myFrag=fId?FM[fId].mapFrag:null;
   var ownFragCount=myFrag?frags.filter(f=>f.fragNr===myFrag).length:0;
-  var forSale=Math.max(0,ownFragCount-1);
+  var forSale=ownFragCount;
   // Points: 1 unique fragment = 2 pkt, max 10 (only if first to complete gets 5th from sheriff)
   var mapScore=uniqueNrs.length*2; if(uniqueNrs.length>=4)mapScore=10;
-  return (
+  return (<>
+    <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
+      <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Złotodajna Żyła</div>
+    </div>
     <div style={{background:"#FFFDF0",border:"1px solid #D4C870",borderRadius:6,padding:16}}>
-      <div style={{background:"rgba(255,255,255,0.7)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
-        <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Złotodajna Żyła</div>
-      </div>
       <div style={{display:"flex",gap:3}}>
         {[5,4,3,2,1].map(n=>{
           var have=n<=4?uniqueNrs.indexOf(n)>=0:full;
@@ -933,11 +933,11 @@ function MapTracker({items, mapBonusClaimed, fId}) {
       <div style={{fontSize:14,fontWeight:700,color:"#8B7714",marginTop:8}}>
         Liczba punktów: {mapScore} <span style={{fontWeight:400,color:"#A09060"}}>(max 10)</span>
       </div>
-      {winnerFam&&<div style={{marginTop:10,padding:8,background:"#FFF8E0",border:"1px dashed #D4C870",borderRadius:4,fontSize:13,fontWeight:600,color:"#8B7714",textAlign:"center"}}>
+      {winnerFam&&<div style={{marginTop:10,padding:8,background:"#FFF8E7",border:"1px dashed #D4C870",borderRadius:4,fontSize:13,fontWeight:600,color:"#8B7714",textAlign:"center"}}>
         Wszystkie fragmenty mapy jako pierwsza zdobyła rodzina {FM[winnerFam].gen}!
       </div>}
     </div>
-  );
+  </>);
 }
 
 /* ========== 3D DICE ========== */
@@ -1021,11 +1021,11 @@ function BlindFateFamily({fId, blindFate}) {
     return "Losowanie "+(idx+1)+": Rzut ["+roll.dice1+"+"+roll.dice2+"="+roll.sum+"] — "+ev.text+" → "+effectTxt+polTxt;
   }
   return (<div>
-    <div style={{background:"rgba(255,255,255,0.7)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
+    <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
       <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Ślepy los</div>
     </div>
-    <div style={{background:"#F8F4FF",border:"1px solid #C4B0D8",borderRadius:8,padding:14,marginBottom:16}}>
-      <div style={{fontSize:14,fontWeight:700,color:"#6B3FA0",marginBottom:10}}>{rolls.length===0?"Oczekuj na sygnał Szeryfa":"Losowanie "+(currentRollIdx+1)}</div>
+    <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:8,padding:14,marginBottom:16}}>
+      <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:10}}>{rolls.length===0?"Oczekuj na sygnał Szeryfa":"Losowanie "+(currentRollIdx+1)}</div>
       {/* 3 karty w linii: polisa 100% (flex:1) + polisa 50% (flex:1) + karta zdarzenia (flex:2) */}
       <div style={{display:"flex",gap:8,alignItems:"stretch",marginBottom:12}}>
         <PolicyCardFate pKey="p100" label="Polisa 100%" price="50 $" status={policies.p100} imgName="policy_100" activeForRoll={activePolicy===100}/>
@@ -1168,21 +1168,21 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       </div>
     </div>
     {/* === PRZEBIEG ROZGRYWKI === */}
-    <div style={{background:"#F8F6FA",border:"2px solid #842504",borderRadius:8,padding:16,marginBottom:20}}>
+    <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{fontSize:20,fontWeight:700,color:"#842504",marginBottom:12}} className="wt">Przebieg rozgrywki</div>
       {!gameStarted?(<div>
         <div style={{fontSize:13,color:"#5C4A3A",marginBottom:10}}>Ustaw czasy trwania etapów (minuty), a następnie kliknij Start.</div>
         {(()=>{
           var grouped=[
             [{key:"PREP",label:"Przygotowanie",ids:["PREP"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-             {key:"F1",label:"Tury Fazy I (wymiana informacji)",ids:["F1T1","F1T2","F1T3"],color:"#6B3FA0",bg:"#F0EBE0",border:"#C4B0D8",multi:"×3 tury"},
-             {key:"KN1",label:"Faza I \u2014 Kr\u00f3tka narada",ids:["KN1A","KN1B"],color:"#5E5971",bg:"#F0EBE0",border:"#B0A8C0",multi:"×2"}],
+             {key:"F1",label:"Tury Fazy I (wymiana informacji)",ids:["F1T1","F1T2","F1T3"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"×3 tury"},
+             {key:"KN1",label:"Faza I \u2014 Kr\u00f3tka narada",ids:["KN1A","KN1B"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"×2"}],
             [{key:"NAR1",label:"Narada rodzinna 1",ids:["NAR1"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-             {key:"F2",label:"Tury Fazy II (pierwsze transakcje)",ids:["F2T1","F2T2","F2T3"],color:"#6B3FA0",bg:"#F0EBE0",border:"#C4B0D8",multi:"×3 tury"},
-             {key:"KN2",label:"Faza II \u2014 Kr\u00f3tka narada",ids:["KN2A","KN2B"],color:"#5E5971",bg:"#F0EBE0",border:"#B0A8C0",multi:"×2"}],
+             {key:"F2",label:"Tury Fazy II (pierwsze transakcje)",ids:["F2T1","F2T2","F2T3"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"×3 tury"},
+             {key:"KN2",label:"Faza II \u2014 Kr\u00f3tka narada",ids:["KN2A","KN2B"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"×2"}],
             [{key:"NAR2",label:"Narada rodzinna 2",ids:["NAR2"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-             {key:"F3",label:"Tury Fazy III (fina\u0142)",ids:["F3T1","F3T2","F3T3"],color:"#6B3FA0",bg:"#F0EBE0",border:"#C4B0D8",multi:"×3 tury"},
-             {key:"KN3",label:"Faza III \u2014 Kr\u00f3tka narada",ids:["KN3A","KN3B"],color:"#5E5971",bg:"#F0EBE0",border:"#B0A8C0",multi:"×2"}],
+             {key:"F3",label:"Tury Fazy III (fina\u0142)",ids:["F3T1","F3T2","F3T3"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"×3 tury"},
+             {key:"KN3",label:"Faza III \u2014 Kr\u00f3tka narada",ids:["KN3A","KN3B"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"×2"}],
           ];
           function setGrouped(g,val){setStageDurations(prev=>{var n={...prev};g.ids.forEach(id=>{n[id]=val;});return n;});}
           return(<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
@@ -1232,7 +1232,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     {resultsReveal>=1&&<div style={{background:"#fff",border:"2px solid #842504",borderRadius:8,padding:20,marginBottom:20}}>
       <div style={{fontSize:22,fontWeight:700,color:"#842504",marginBottom:16,textAlign:"center"}} className="wt">Wyniki rozgrywki</div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
-        {FO.map(fId=>{var sc=calcScore(fId,fd,plotPenalties,biznesNaBoku,bnbEnabled),f=FM[fId];return (<div key={fId} style={{background:"#FDFAF4",border:"2px solid "+f.col,borderRadius:6,padding:14}}>
+        {FO.map(fId=>{var sc=calcScore(fId,fd,plotPenalties,biznesNaBoku,bnbEnabled),f=FM[fId];return (<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:14}}>
           <div style={{fontSize:15,fontWeight:700,color:f.col,marginBottom:8,textAlign:"center"}} className="wt">{f.nom}</div>
           <div style={{fontSize:13,color:"#5C4A3A",lineHeight:2}}>
             <div>Zasoby: <b>{sc.resPct}%</b> = <b>{sc.resScore} pkt</b>{bnbEnabled&&sc.bnbKurier>0&&<span style={{fontSize:13,color:"#8B2500"}}> (w tym Kurier ×{sc.bnbKurier}: +{sc.bnbKurier*4}%)</span>}</div>
@@ -1247,7 +1247,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
             <div style={{marginTop:4,padding:6,background:"#EDE4F8",borderRadius:4,textAlign:"center"}}><div style={{fontSize:18,fontWeight:700,color:"#842504"}}>Relacje: {relS} pkt</div></div>
             <div style={{marginTop:6,padding:8,background:f.col,borderRadius:4,textAlign:"center"}}><div style={{fontSize:22,fontWeight:700,color:"#fff"}}>{Math.round((sc.bizTotal+relS)*10)/10} pkt</div></div>
           </div>);})()}
-          {consultNotes[fId]&&<div style={{marginTop:6,padding:6,background:"#FFF8E0",border:"1px solid #842504",borderRadius:4}}>
+          {consultNotes[fId]&&<div style={{marginTop:6,padding:6,background:"#FFF8E7",border:"1px solid #842504",borderRadius:4}}>
             <div style={{fontSize:13,fontWeight:700,color:"#8B6914",marginBottom:2}}>Notatki z konsultacji</div>
             <div style={{fontSize:13,color:"#5C4A3A",whiteSpace:"pre-wrap"}}>{consultNotes[fId]}</div>
           </div>}
@@ -1257,9 +1257,9 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     {/* === 3. WEZWIJ SZERYFA + KONSULTACJE (obok siebie) === */}
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:20}}>
       {(()=>{var waiting=sheriffCalls.filter(c=>c.status==="waiting");var recent=sheriffCalls.filter(c=>c.status!=="waiting"&&c.status!=="dismissed").slice(-10);
-        return(<div style={{background:waiting.length>0?"#FFF0F0":"#F8F6FA",border:"2px solid "+(waiting.length>0?"#C09090":"#C4B0D8"),borderRadius:8,padding:16,transition:"all 0.3s"}}>
+        return(<div style={{background:waiting.length>0?"#FFF0F0":"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:14,transition:"all 0.3s"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-            <div style={{fontSize:14,fontWeight:700,color:waiting.length>0?"#8B2500":"#6B3FA0"}} className="wt">
+            <div style={{fontSize:14,fontWeight:700,color:waiting.length>0?"#8B2500":"#842504"}} className="wt">
               Wezwij Szeryfa {waiting.length>0&&<span style={{background:"#8B2500",color:"#fff",padding:"2px 8px",borderRadius:10,fontSize:13,marginLeft:6}}>{waiting.length}</span>}
             </div>
           </div>
@@ -1281,7 +1281,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
           </div>}
         </div>);
       })()}
-      <div style={{background:"#FFF8E7",border:"1px solid #D4A853",borderRadius:6,padding:14}}>
+      <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:14}}>
         <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:10}} className="wt">Konsultacje</div>
         {FO.map(fId=>{var cs=consultations[fId]||[];if(!cs.length)return null;
           return (<div key={fId} style={{marginBottom:8}}>
@@ -1306,14 +1306,14 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       </div>
     </div>
     {/* === 3.5 ZŁOTODAJNA ŻYŁA — KONTROLA === */}
-    <div style={{background:"#F8F6FA",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
+    <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Złotodajna Żyła</div>
         <button style={btnS(mapEnabled?"danger":"success")} onClick={()=>{setMapEnabled(!mapEnabled);showMsg(mapEnabled?"Złotodajna Żyła — zablokowana":"Złotodajna Żyła — odblokowana");}}>{mapEnabled?"Zablokuj ZŁOTODAJNĄ ŻYŁĘ":"Odblokuj ZŁOTODAJNĄ ŻYŁĘ"}</button>
       </div>
     </div>
     {/* === 4. ŚLEPY LOS — KONTROLA === */}
-    <div style={{background:"#F8F6FA",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
+    <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
         <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Ślepy los — kontrola</div>
         <button style={btnS(fateEnabled?"danger":"success")} onClick={()=>{setFateEnabled(!fateEnabled);showMsg(fateEnabled?"Ślepy los — zablokowany":"Ślepy los — odblokowany");}}>{fateEnabled?"Zablokuj ŚLEPY LOS":"Odblokuj ŚLEPY LOS"}</button>
@@ -1346,7 +1346,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:12}} className="wt">Ślepy los — historia zbiorcza</div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
       {FO.map(fId=>{var f=FM[fId],bf=blindFate[fId]||{},pol=bf.policies||{p50:null,p100:null},rolls=(bf.rolls||[]).filter(r=>r.resolved);
-        return (<div key={fId} style={{background:"#FDFAF4",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
+        return (<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
           <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
           <div style={{fontSize:13,color:"#5C4A3A",marginBottom:4}}>
             <b>Polisy:</b>{" "}
@@ -1364,7 +1364,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       </div>
     </div>
     {/* === 6. BIZNES NA BOKU === */}
-    <div style={{background:"#FFF8E0",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
+    <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Biznes na boku</div>
         {!bnbEnabled&&<button style={btnS("success")} onClick={activateBnb}>Odblokuj BIZNES NA BOKU</button>}
@@ -1405,7 +1405,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       </div>}
     </div>
     {/* === 7. BUDOWANIE RELACJI === */}
-    <div style={{background:"#F8F6FA",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
+    <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Budowanie relacji</div>
         <button style={btnS(relationsUnlocked?"danger":"success",false)} onClick={()=>setRelationsUnlocked(!relationsUnlocked)}>{relationsUnlocked?"Zablokuj BUDOWANIE RELACJI":"Odblokuj BUDOWANIE RELACJI"}</button>
@@ -1423,7 +1423,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       </div>}
     </div>
     {/* === 7b. REWOLWEROWIEC === */}
-    <div style={{background:"#F8F6FA",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
+    <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Rewolwerowiec</div>
         {!revEnabled&&<button style={btnS("success")} onClick={()=>setRevEnabled(true)}>Odblokuj REWOLWEROWIEC</button>}
@@ -1508,8 +1508,8 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
       </div>}
     </div>
     {/* === 8. KSIĘGOWOŚĆ (PER FAMILY) === */}
-    <div style={{background:"#fff",border:"1px solid #D4C4A8",borderRadius:6,padding:14}}>
-      <div style={{fontSize:14,fontWeight:700,color:"#8B7355",marginBottom:12}}>Księgowość</div>
+    <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14}}>
+      <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:12}} className="wt">Księgowość</div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
       {FO.map(fId=>{
         var f=FM[fId];
@@ -1520,7 +1520,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
         var fBnb=txs.filter(t=>t.type==="bnb_settle"&&t.from===fId&&t.status==="accepted");
         var fRev=txs.filter(t=>t.type==="revolver"&&(t.from===fId||t.to===fId)&&t.status==="accepted");
         var hasAny=fTx.length>0||fPen.length>0||fFate.length>0||fMap.length>0||fBnb.length>0||fRev.length>0;
-        return(<div key={fId} style={{background:"#FDFAF4",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
+        return(<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
           <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
           {!hasAny&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak wpisów</div>}
           {fTx.map(tx=>{
@@ -1854,11 +1854,22 @@ function App({roomCode,role}) {
     setBnbSettled(true);showMsg("Biznes na boku — rozliczono!");
   }
 
+  function validateMapDuplicate(targetFam, items) {
+    var mapItems = items.filter(i => i.cat === C_MAP);
+    if (mapItems.length === 0) return true;
+    var targetMaps = fd[targetFam].items.filter(i => i.cat === C_MAP);
+    for (var mi of mapItems) {
+      if (targetMaps.some(t => t.fragNr === mi.fragNr)) return false;
+    }
+    return true;
+  }
   function submitSale(){if(!tFam||!selItems.length||price<=0)return;
+    if(!validateMapDuplicate(tFam,selItems)){showMsg("Ta rodzina już posiada ten fragment mapy!");return;}
     var locked=selItems.filter(i=>isCardLocked(i.id));
     if(locked.length){showMsg("Karta \""+locked[0].name+"\" jest zablokowana w innej transakcji!");return;}
     setTxs(p=>[{id:Date.now().toString(),type:"sale",from:cf,to:tFam,offeredItems:selItems.slice(),price:Number(price),status:"pending"},...p]);resetP();showMsg("Oferta sprzedaży wysłana");}
   function submitBarter(){if(!tFam||!selItems.length)return;
+    if(!validateMapDuplicate(tFam,selItems)){showMsg("Ta rodzina już posiada ten fragment mapy!");return;}
     var locked=selItems.filter(i=>isCardLocked(i.id));
     if(locked.length){showMsg("Karta \""+locked[0].name+"\" jest zablokowana w innej transakcji!");return;}
     setTxs(p=>[{id:Date.now().toString(),type:"barter",from:cf,to:tFam,offeredItems:selItems.slice(),offeredCash:Number(eCash)||0,responseItems:null,responseCash:0,status:"awaiting_response"},...p]);resetP();showMsg("Propozycja barteru wysłana");}
@@ -1940,15 +1951,16 @@ function App({roomCode,role}) {
     },2000);
   }
 
-  useEffect(()=>{function h(e){var btn=e.target.closest("[data-roll]");if(!btn)return;var p=btn.getAttribute("data-roll").split("-");rollDice(p[0],parseInt(p[1]));}document.addEventListener("click",h);return()=>document.removeEventListener("click",h);});
+  var rootRef=React.useRef(null);
+  useEffect(()=>{var el=rootRef.current;if(!el)return;function h(e){var btn=e.target.closest("[data-roll]");if(!btn)return;var p=btn.getAttribute("data-roll").split("-");rollDice(p[0],parseInt(p[1]));}el.addEventListener("click",h);return()=>el.removeEventListener("click",h);});
 
-  return (<div>
+  return (<div ref={rootRef}>
     <ConnectionIndicator online={online}/>
     <div style={{background:"#4C130F",color:"#F5F0E8",padding:"12px 20px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.1</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.2</div>
       </div>
     </div>
     {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
@@ -1963,7 +1975,7 @@ function App({roomCode,role}) {
       </div>
     </div>):(<div style={{background:FM[myFamily].col,padding:"8px 20px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
       <div style={{color:"#fff",fontSize:16,fontWeight:700}} className="wt">{FM[myFamily].nom} — {FM[myFamily].biz}</div>
-      <div style={{fontSize:13,color:"rgba(255,255,255,0.7)"}}>Twoja rodzina</div>
+      <div style={{fontSize:13,color:"rgba(255,255,255,0.85)"}}>Twoja rodzina</div>
     </div>)}
     {browserWarning&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:13,color:"#664D03",textAlign:"center",display:"flex",justifyContent:"center",alignItems:"center",gap:8}}>
       Dla najlepszej jakości gry użyj przeglądarki Google Chrome
@@ -2014,7 +2026,7 @@ function App({roomCode,role}) {
             // Cash
             var cashVal=familyData.cash;
             var cashPoints=Math.round(((cashVal-600)/600)*25);
-            var taskBg={background:"rgba(255,255,255,0.7)",padding:"8px 14px",borderRadius:6,marginBottom:10};
+            var taskBg={background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10};
             return (<div>
             {/* --- ZASOBY --- */}
             <div style={taskBg}>
@@ -2094,6 +2106,7 @@ function App({roomCode,role}) {
                 {forSale.length===0&&Object.keys(boughtGrouped).length===0&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak produktów BnB</div>}
               </div>);
             })()}
+            <img src={IMG_BASE+"kairos_chronicle.jpg"} style={{width:"100%",borderRadius:6,marginTop:12}} alt="The Kairos Chronicle" onError={e=>{e.target.style.display="none";}}/>
           </div>);
           })()}
           {activeTab==="map"&&<MapTracker items={familyData.items} mapBonusClaimed={mapBonusClaimed} fId={familyId}/>}
@@ -2105,10 +2118,11 @@ function App({roomCode,role}) {
               setRelations(prev=>{var n={...prev};if(!n[familyId])n[familyId]={};if(!n[familyId][target])n[familyId][target]={};n[familyId][target]={...n[familyId][target],[cat]:val};return n;});
             }
             function getRating(target,cat){return (relations[familyId]&&relations[familyId][target]&&relations[familyId][target][cat])||0;}
-            return (<div style={{background:"#E8F0E8",border:"1px solid #90C090",borderRadius:6,padding:16}}>
-              <div style={{background:"rgba(255,255,255,0.7)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
+            return (<div>
+              <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
                 <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Budowanie długoterminowych relacji</div>
               </div>
+              <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:16}}>
               <div style={{fontSize:13,color:"#5C4A3A",marginBottom:16}}>Oceń współpracę z każdą z pozostałych rodzin w trzech kategoriach (1–5 gwiazdek).</div>
               {others.map(target=>{var f=FM[target];return (<div key={target} style={{background:"#fff",border:"1px solid "+f.col,borderRadius:6,padding:12,marginBottom:10}}>
                 <div style={{fontSize:14,fontWeight:700,color:f.col,marginBottom:8}} className="wt">{f.nom}</div>
@@ -2120,16 +2134,17 @@ function App({roomCode,role}) {
                   <div style={{display:"flex",justifyContent:"space-between",fontSize:13,color:"#A89070"}}><span>1★ {cat.desc[0]}</span><span>5★ {cat.desc[1]}</span></div>
                 </div>))}
               </div>);})}
-            </div>);
+            </div></div>);
           })()}
           {activeTab==="results"&&resultsReveal>=1&&(()=>{
             var sc=calcScore(familyId,fd,plotPenalties,biznesNaBoku,bnbEnabled);
             var relS=calcRelationScore(familyId,relations);
             var total=Math.round((sc.bizTotal+relS)*10)/10;
-            return (<div style={{background:"#FFF8E0",border:"1px solid #D4C870",borderRadius:6,padding:16}}>
-              <div style={{background:"rgba(255,255,255,0.7)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
+            return (<div>
+              <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
                 <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Wyniki rozgrywki</div>
               </div>
+              <div style={{background:"#FFF8E7",border:"1px solid #D4C870",borderRadius:6,padding:16}}>
               <div style={{background:"#fff",border:"1px solid #D4C4A8",borderRadius:6,padding:14,marginBottom:12}}>
                 <div style={{fontSize:14,fontWeight:700,color:"#8B7355",marginBottom:8}}>Biznes</div>
                 <div style={{fontSize:13,color:"#5C4A3A",lineHeight:2}}>
@@ -2152,10 +2167,10 @@ function App({roomCode,role}) {
                 <div style={{marginTop:8,padding:8,background:"#EDE4F8",borderRadius:4,textAlign:"center"}}><div style={{fontSize:18,fontWeight:700,color:"#6B3FA0"}}>{relS} pkt</div></div>
               </div>}
               {resultsReveal>=3&&<div style={{padding:12,background:FM[familyId].col,borderRadius:6,textAlign:"center"}}>
-                <div style={{fontSize:13,color:"rgba(255,255,255,0.7)",marginBottom:4}}>WYNIK KOŃCOWY</div>
+                <div style={{fontSize:13,color:"rgba(255,255,255,0.85)",marginBottom:4}}>WYNIK KOŃCOWY</div>
                 <div style={{fontSize:28,fontWeight:700,color:"#fff"}}>{total} pkt</div>
               </div>}
-            </div>);
+            </div></div>);
           })()}
           {activeTab==="rev"&&revEnabled&&(()=>{
             var rc=revCurrent;
@@ -2169,10 +2184,11 @@ function App({roomCode,role}) {
               var rows=[];for(var r=0;r<5;r++){var cols=[];for(var c=0;c<10;c++){var idx=r*10+c;var alive=idx<ammo;cols.push(ammoImg?<div key={c} style={{width:14,height:28,transition:"all 0.3s",opacity:alive?1:0.15}}><img src={ammoImg} style={{width:14,height:28,objectFit:"contain"}} alt=""/></div>:<div key={c} style={{width:14,height:28,borderRadius:3,background:alive?col:"#E8E0D0",border:"1px solid "+(alive?"rgba(0,0,0,0.2)":"#D4C4A8"),transition:"all 0.3s",opacity:alive?1:0.3}}/>);}rows.push(<div key={r} style={{display:"flex",gap:2,marginBottom:2}}>{cols}</div>);}
               return(<div><div style={{fontSize:13,fontWeight:700,color:col,marginBottom:4}}>{label}: {ammo}/50</div>{rows}</div>);
             }
-            return(<div style={{background:"#FFF5F0",border:"1px solid #C08060",borderRadius:6,padding:16}}>
-              <div style={{background:"rgba(255,255,255,0.7)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
+            return(<div>
+              <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
                 <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Rewolwerowiec</div>
               </div>
+              <div style={{background:"#FFF5F0",border:"1px solid #C08060",borderRadius:6,padding:16}}>
               {!rc&&<div style={{fontSize:13,color:"#8B7355",fontStyle:"italic",textAlign:"center",padding:20}}>Oczekiwanie na rozpoczęcie pojedynku przez Szeryfa...</div>}
               {rc&&rc.status==="betting"&&<div style={{fontSize:13,color:"#8B7355",textAlign:"center",padding:20}}>
                 <b style={{color:"#8B2500"}}>{FM[rc.familyA].nom} vs {FM[rc.familyB].nom}</b><br/>Trwają ustalenia stawki...
@@ -2212,7 +2228,7 @@ function App({roomCode,role}) {
                   var iWon=isA?(lastRound.winner==="A"):(lastRound.winner==="B");
                   var draw=lastRound.winner==="draw";
                   var oppAmmo=isA?rc.ammoB:rc.ammoA;
-                  return(<div style={{background:"#FFF8E0",border:"2px solid #D4A853",borderRadius:6,padding:14,marginBottom:12}}>
+                  return(<div style={{background:"#FFF8E7",border:"2px solid #D4A853",borderRadius:6,padding:14,marginBottom:12}}>
                     <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:8}} className="wt">Wynik ostatniej rundy</div>
                     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:8}}>
                       <div style={{textAlign:"center",padding:8,background:"#fff",borderRadius:4,border:"1px solid "+FM[familyId].col}}>
@@ -2287,11 +2303,11 @@ function App({roomCode,role}) {
                   <div key={d.id} style={{fontSize:13,color:"#5C4A3A",padding:"2px 0"}}>{FM[d.familyA].nom} vs {FM[d.familyB].nom} — <b>{wN}</b> ({d.winField}, {d.rounds.length} rund)</div>
                 );})}
               </div>}
-            </div>);
+            </div></div>);
           })()}
         </div>
         {activeTab==="inv"&&<div>
-          {gameStarted&&stageIdx>=0&&(()=>{
+          {(()=>{
             var fId=familyId;
             return(<div style={{background:"#3A2415",border:"2px solid #8B6914",borderRadius:6,padding:12,marginBottom:16,boxShadow:"inset 0 0 12px rgba(0,0,0,0.3)"}}>
               <div style={{fontSize:13,fontWeight:700,color:"#D4A853",marginBottom:10,textAlign:"center",letterSpacing:"0.5px"}} className="wt">PRZEBIEG ROZGRYWKI</div>
@@ -2359,7 +2375,7 @@ function App({roomCode,role}) {
             <div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase",letterSpacing:"1px",marginBottom:8}}>{pMode==="sale"?"Wybierz towar":"Wybierz co oferujesz"}</div>
             <div style={{maxHeight:380,overflowY:"auto"}}>{my.items.filter(item=>item.cat!==C_BNB).map(item=>{var sel=!!selItems.find(i=>i.id===item.id);return <div key={item.id} style={{marginBottom:4}}>
               {item.cat===C_RES&&<ResourceCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
-              {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact onClick={()=>toggleItem(item)} isSheriff={false}/>}
+              {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
               {item.cat===C_NRES&&<NoteCard item={item} selected={sel} type="res" textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_NCOMP&&<NoteCard item={item} selected={sel} type="comp" textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_PLOT&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #C4B090"),background:sel?"#FFF8E7":"#FDFAF4",padding:"8px 10px",cursor:"pointer",position:"relative"}}>{sel&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}<div style={{fontSize:13,fontWeight:600}}>{item.name}</div><div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A08050",marginTop:2}}>DZIAŁKA</div></div>}
@@ -2422,7 +2438,7 @@ function App({roomCode,role}) {
             <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:8}}>Co oferujesz w zamian?</div>
             <div style={{maxHeight:300,overflowY:"auto"}}>{my.items.filter(item=>item.cat!==C_BNB).map(item=>{var sel=!!selItems.find(i=>i.id===item.id);return <div key={item.id} style={{marginBottom:4}}>
               {item.cat===C_RES&&<ResourceCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
-              {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact onClick={()=>toggleItem(item)} isSheriff={false}/>}
+              {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
               {item.cat===C_NRES&&<NoteCard item={item} selected={sel} type="res" textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_NCOMP&&<NoteCard item={item} selected={sel} type="comp" textOnly onClick={()=>toggleItem(item)}/>}
               {item.cat===C_PLOT&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #C4B090"),background:sel?"#FFF8E7":"#FDFAF4",padding:"8px 10px",cursor:"pointer",position:"relative"}}>{sel&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}<div style={{fontSize:13,fontWeight:600}}>{item.name}</div><div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A08050",marginTop:2}}>DZIAŁKA</div></div>}
@@ -2488,12 +2504,14 @@ function App({roomCode,role}) {
 function GameWrapper(){
   const [gameInfo,setGameInfo]=useState(null); // {roomCode, role}
 
-  // Check URL params for auto-rejoin
+  // Check URL params for auto-rejoin (z walidacją)
+  var ROOM_RE=/^WDZ-[A-HJ-NP-Z2-9]{4}$/;
+  var ALLOWED_ROLES=["sheriff","adams","bennet","clinton","dexter"];
   useEffect(()=>{
     var params=new URLSearchParams(window.location.search);
     var room=params.get("room");
     var role=params.get("role");
-    if(room&&role){
+    if(room&&role&&ROOM_RE.test(room)&&ALLOWED_ROLES.indexOf(role)>=0){
       setGameInfo({roomCode:room,role:role});
     }
   },[]);
