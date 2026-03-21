@@ -779,11 +779,11 @@ function InstructionSlides({familyId, roomCode}) {
   if(!d) return <div style={{padding:20,color:"#842504"}}>Brak danych instrukcji dla rodziny.</div>;
 
   const ROLE_DEFS = [
-    {key:"head",   label:"GŁOWA RODZINY",       desc:"Zarządza zespołem, tworzy strategię, podejmuje kluczowe decyzje.", required:true},
-    {key:"rep",    label:"REPREZENTANT RODZINY", desc:"Prowadzi rozmowy z innymi rodzinami, negocjuje warunki, buduje relacje.", required:true},
-    {key:"acc",    label:"KSIĘGOWY RODZINY",     desc:"Obsługuje transakcje w aplikacji, obraca gotówką, ewidencjonuje zasoby i kontroluje czas.", required:true},
-    {key:"nestor", label:"NESTOR RODZINY",       desc:"Obserwuje przebieg rozmów, analizuje sytuacje, doradza i tworzy opcje rozwiązań.", required:false},
-    {key:"heart",  label:"SERCE RODZINY",        desc:"Dba o ludzi i atmosferę w zespole. Łagodzi konflikty, motywuje w kryzysie.", required:false}
+    {key:"head",   label:"GŁOWA RODZINY",       desc:"Zarządza zespołem, tworzy strategię, podejmuje kluczowe decyzje.", required:true, img:"role-glowa"},
+    {key:"rep",    label:"REPREZENTANT RODZINY", desc:"Prowadzi rozmowy z innymi rodzinami, negocjuje warunki, buduje relacje.", required:true, img:"role-reprezentant"},
+    {key:"acc",    label:"KSIĘGOWY RODZINY",     desc:"Obsługuje transakcje w aplikacji, obraca gotówką, ewidencjonuje zasoby i kontroluje czas.", required:true, img:"role-ksiegowy"},
+    {key:"nestor", label:"NESTOR RODZINY",       desc:"Obserwuje przebieg rozmów, analizuje sytuacje, doradza i tworzy opcje rozwiązań.", required:false, img:"role-nestor"},
+    {key:"heart",  label:"SERCE RODZINY",        desc:"Dba o ludzi i atmosferę w zespole. Łagodzi konflikty, motywuje w kryzysie.", required:false, img:"role-serce"}
   ];
   const requiredFilled = ROLE_DEFS.filter(r=>r.required).every(r=>roles[r.key].trim()!=="");
 
@@ -795,32 +795,31 @@ function InstructionSlides({familyId, roomCode}) {
     }).catch(()=>setRoleSaving(false));
   }
 
-  const canNext = page !== 1 || rolesSubmitted;
-  const totalPages = 7;
+  const canNext = page !== 2 || rolesSubmitted;
+  const totalPages = 8;
   const hdr = s => <div style={{fontSize:20,fontWeight:700,color:"#842504",marginBottom:10,lineHeight:1.3}} className="wt">{s}</div>;
   const para = s => <p style={{margin:"8px 0",lineHeight:1.7,fontSize:14}} dangerouslySetInnerHTML={{__html:s}}/>;
   const tip = s => <div style={{background:"#F5EFE0",borderLeft:"3px solid #D4A853",padding:"8px 12px",margin:"10px 0",fontSize:13,lineHeight:1.6}} dangerouslySetInnerHTML={{__html:s}}/>;
-
+  const instrImg = name => <img src={IMG_BASE+name+".png"} style={{width:"100%",height:"auto",display:"block",borderRadius:6}} alt="" onError={e=>{e.target.style.display="none";}}/>;
   function renderPage(){
     switch(page){
     case 0: return (<div>
-      {hdr("Rodzina "+d.familyName+" — witajcie w Kairoscity!")}
-      {para("Po tygodniach niebezpiecznej podróży Wasza rodzina jest u celu. Kairoscity to małe miasteczko nad wodami Golden Lake. Idealne miejsce, by zacząć nowe życie i rozkręcić interes. Jest kuźnia, hotel, jubiler, telegraf, a nawet lazaret. Szykują się nowe inwestycje.")}
-      {para("Prócz Waszego biznesu wystartowały jeszcze trzy — zakład pogrzebowy, bank i ranczo. Otwierają je rodziny, które dotarły tu wraz z Wami.")}
-      {para(d.storyParagraph)}
-      {para("Zdani jesteście na dobytek przywieziony na własnym wozie oraz na dobra pozostałych rodzin. Są chętni do negocjacji i wymiany. Wszystko ma określoną cenę rynkową — jednak ile zapłacicie lub na co wymienicie, zależy od Was i partnerów.")}
-      {para("Zanim rzucicie się w wir interesów — zapoznajcie się z realiami budowania biznesu w Kairoscity. Najlepiej zna je Szeryf. W dowolnym momencie wezwijcie go na konsultację: <strong>15 $</strong>, <strong>3 pytania</strong>. To rozsądna inwestycja, szczególnie na początku.")}
-      {para("Na przygotowanie macie określony czas — odliczany na zegarze w prawym górnym rogu ekranu. Przeczytajcie tę instrukcję, przejrzyjcie karty, ustalcie role i strategię. Po upływie czasu przystąpicie do pierwszej rozmowy z rodziną "+d.firstOpponent+".")}
+      {instrImg("ekran_1_witamy1-"+familyId)}
     </div>);
     case 1: return (<div>
-      {hdr("Role w zespole")}
-      {para("<strong>Przydzielcie role w swoim zespole.</strong> W rodzinnym biznesie jest ich pięć. Jeśli w zespole jest mniej osób — jedna osoba może pełnić kilka ról. Wpiszcie imiona przy wybranych rolach i kliknijcie &bdquo;Zatwierdź&rdquo;, aby przejść dalej.")}
+      {instrImg("ekran_2_witamy2-"+familyId)}
+    </div>);
+    case 2: return (<div>
+      {instrImg("ekran_3-role")}
       <div style={{margin:"14px 0"}}>
-        {ROLE_DEFS.map(r=>(<div key={r.key} style={{marginBottom:12,padding:"10px 14px",background:"#F5EFE0",borderRadius:6}}>
-          <div style={{fontWeight:700,fontSize:14,color:"#4C130F",marginBottom:2}}>{r.label}{r.required&&<span style={{color:"#842504"}}> *</span>}</div>
-          <div style={{fontSize:13,color:"#6B5B3E",marginBottom:6}}>{r.desc}</div>
-          <input type="text" value={roles[r.key]} onChange={e=>{var v=e.target.value;setRoles(p=>({...p,[r.key]:v}));}} disabled={rolesSubmitted}
-            placeholder="Imię uczestnika" style={{width:"100%",boxSizing:"border-box",padding:"6px 10px",border:"1px solid #C4B090",borderRadius:4,fontSize:14,fontFamily:"inherit",background:rolesSubmitted?"#E8E0D0":"#fff"}}/>
+        {ROLE_DEFS.map(r=>(<div key={r.key} style={{marginBottom:12,display:"flex",background:"#F6E4C8",borderRadius:6,overflow:"hidden",minHeight:90}}>
+          <img src={IMG_BASE+r.img+".png"} style={{height:"100%",width:"auto",display:"block",alignSelf:"stretch",objectFit:"contain",maxWidth:90}} alt="" onError={e=>{e.target.style.display="none";}}/>
+          <div style={{flex:1,padding:"10px 14px",display:"flex",flexDirection:"column",justifyContent:"center"}}>
+            <div style={{fontWeight:700,fontSize:20,color:"#4C130F",marginBottom:4,lineHeight:1.2}} className="wt">{r.label}</div>
+            <div style={{fontSize:15,color:"#6B5B3E",marginBottom:8,lineHeight:1.5,fontWeight:500}}>{r.desc}</div>
+            <input type="text" value={roles[r.key]} onChange={e=>{var v=e.target.value;setRoles(p=>({...p,[r.key]:v}));}} disabled={rolesSubmitted}
+              placeholder="Imię uczestnika" style={{width:"100%",boxSizing:"border-box",padding:"6px 10px",border:"1px solid #C4B090",borderRadius:4,fontSize:14,fontFamily:"inherit",background:rolesSubmitted?"#E8E0D0":"#fff"}}/>
+          </div>
         </div>))}
       </div>
       {!rolesSubmitted?<button onClick={submitRoles} disabled={!requiredFilled||roleSaving}
@@ -830,7 +829,7 @@ function InstructionSlides({familyId, roomCode}) {
       :<div style={{background:"#5B7674",color:"#fff",textAlign:"center",padding:"10px 0",borderRadius:4,fontWeight:700,fontSize:14}}>✓ Role zatwierdzone</div>}
       {!rolesSubmitted&&<div style={{fontSize:12,color:"#8B7355",marginTop:6,textAlign:"center"}}>* Pola wymagane: Głowa, Reprezentant, Księgowy</div>}
     </div>);
-    case 2: return (<div>
+    case 3: return (<div>
       {hdr("Wasze zadania")}
       {para("<strong>Waszym celem jest zwiększenie wartości rodzinnego biznesu.</strong> Wymaga to realizacji kilku zadań. Efekt każdego z nich przeliczany jest na punkty. Ich suma odzwierciedli wartość Waszego biznesu.")}
       {para("Punkty za zasoby i kompetencje otrzymujecie za ich posiadanie. Notatki dziadka nie dają punktów — mówią jedynie, czego szukać i jaką wagę ma każdy element. Bez nich działacie w ciemno.")}
@@ -882,7 +881,7 @@ function InstructionSlides({familyId, roomCode}) {
         {para("W trakcie gry może pojawić się okazja dodatkowego zarobku — mały <strong>&bdquo;biznes na boku&rdquo;</strong>. Szczegóły poznacie w swoim czasie.")}
       </div>
     </div>);
-    case 3: return (<div>
+    case 4: return (<div>
       {hdr("Przebieg rozgrywki")}
       {para("Po fazie przygotowania gra toczy się w <strong>trzech fazach</strong> po <strong>trzy tury negocjacyjne</strong>. Między fazami — narady rodzinne.")}
       <div style={{margin:"14px 0"}}>
@@ -900,7 +899,7 @@ function InstructionSlides({familyId, roomCode}) {
       {para("W każdej turze spotykacie się z jedną z pozostałych rodzin. Harmonogram widzicie w panelu &bdquo;Przebieg rozgrywki&rdquo; po prawej stronie ekranu.")}
       {tip("⚠️ <strong>Ważne:</strong> Wymiana dóbr i komunikacja z innymi rodzinami odbywa się wyłącznie podczas spotkań negocjacyjnych. Złamanie tej zasady to mandat: <strong>50 $</strong>.")}
     </div>);
-    case 4: return (<div>
+    case 5: return (<div>
       {hdr("Wasz panel — przegląd")}
       {para("Oto elementy, z których będziecie korzystać:")}
       <div style={{margin:"10px 0"}}>
@@ -917,7 +916,7 @@ function InstructionSlides({familyId, roomCode}) {
         </div>))}
       </div>
     </div>);
-    case 5: return (<div>
+    case 6: return (<div>
       {hdr("Jak handlować")}
       {para("Dwa sposoby: <strong>sprzedaż</strong> (karta za gotówkę) i <strong>barter</strong> (karta za kartę ± dopłata). Warunki ustalcie ustnie — aplikacja rejestruje ustalenia.")}
       <div style={{marginTop:14,marginBottom:14,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
@@ -939,7 +938,7 @@ function InstructionSlides({familyId, roomCode}) {
       {para("Każda transakcja jest zapisywana — sekcja &bdquo;Księgowość&rdquo; po prawej.")}
       {para("Pomyłka? Zgłoście Szeryfowi — może cofnąć transakcję.")}
     </div>);
-    case 6: return (<div>
+    case 7: return (<div>
       {hdr("Powodzenia!")}
       {para("Przejrzyjcie karty w &bdquo;Majątku&rdquo;, ustalcie strategię. <strong>Informacja to waluta</strong> — nie ujawniajcie wszystkiego od razu.")}
       <div style={{marginTop:20,padding:"16px 20px",background:"#FDF8EE",borderRadius:8,textAlign:"center"}}>
@@ -950,9 +949,9 @@ function InstructionSlides({familyId, roomCode}) {
     }
   }
 
-  const PAGE_TITLES = ["Historia","Role","Zadania","Przebieg","Panel","Handel","Start!"];
+  const PAGE_TITLES = ["Witamy","Historia","Role","Zadania","Przebieg","Panel","Handel","Start!"];
 
-  return (<div style={{maxWidth:640}}>
+  return (<div>
     <div style={{minHeight:300,marginBottom:16}}>{renderPage()}</div>
     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",borderTop:"1px solid #E8D9B8",paddingTop:12}}>
       <button onClick={()=>setPage(p=>p-1)} disabled={page===0}
@@ -2308,7 +2307,7 @@ function App({roomCode,role}) {
           <button style={btnS("barter")} onClick={()=>{resetP();setShowP(true);setPMode("barter");}}>Barter</button>
         </div>}
       </div>
-      <div style={{display:"grid",gridTemplateColumns:(activeTab==="inv"||activeTab==="tutorial")?"1fr 360px":"1fr",gap:20,alignItems:"start"}}>
+      <div style={{display:"grid",gridTemplateColumns:activeTab==="inv"?"1fr 360px":"1fr",gap:20,alignItems:"start"}}>
         <div>
           <div style={{display:"flex",gap:4,marginBottom:14}}>
             {[["tutorial","Witajcie w Kairoscity"],["inv","Majątek"],["map","Złotodajna Żyła"],["fate","Ślepy los"],["rev","Rewolwerowiec"],["rel","Budowanie relacji"],["results","Wyniki"]].map(t=>{
@@ -2659,7 +2658,23 @@ function App({roomCode,role}) {
             </div></div>);
           })()}
         </div>
-        {(activeTab==="inv"||activeTab==="tutorial")&&<div>
+        {activeTab==="inv"&&<div>
+          {!viewSheriff&&<div style={{marginBottom:16}}>
+            {(()=>{var myWaiting=sheriffCalls.filter(c=>c.fId===cf&&c.status==="waiting");var hasWaiting=myWaiting.length>0;
+              return(<div>
+                <button style={{...btnS("sheriff"),width:"100%",fontSize:14,padding:"12px",display:"flex",justifyContent:"space-between",alignItems:"center"}} onClick={()=>{
+                  setSheriffCalls(prev=>[...prev,{fId:cf,status:"waiting",ts:Date.now()}]);
+                  showMsg("Wezwano Szeryfa!");
+                }}>
+                  <span>Wezwij Szeryfa</span>
+                  <span style={{fontSize:13,opacity:0.8}}>{myQLeft>0?myQLeft+"/"+myQTotal+" pytań":"—"}</span>
+                </button>
+                {hasWaiting&&<div style={{marginTop:6,padding:8,background:"#FFF8E7",border:"1px dashed #D4A853",borderRadius:4,textAlign:"center",fontSize:13,color:"#8B6914",fontWeight:600}}>
+                  Oczekiwanie na Szeryfa...
+                </div>}
+              </div>);
+            })()}
+          </div>}
           {(()=>{
             var fId=familyId;
             return(<div style={{background:"#3A2415",border:"2px solid #8B6914",borderRadius:6,padding:12,marginBottom:16,boxShadow:"inset 0 0 12px rgba(0,0,0,0.3)"}}>
@@ -2682,22 +2697,6 @@ function App({roomCode,role}) {
               })}
             </div>);
           })()}
-          {!viewSheriff&&<div style={{marginBottom:16}}>
-            {(()=>{var myWaiting=sheriffCalls.filter(c=>c.fId===cf&&c.status==="waiting");var hasWaiting=myWaiting.length>0;
-              return(<div>
-                <button style={{...btnS("sheriff"),width:"100%",fontSize:14,padding:"12px",display:"flex",justifyContent:"space-between",alignItems:"center"}} onClick={()=>{
-                  setSheriffCalls(prev=>[...prev,{fId:cf,status:"waiting",ts:Date.now()}]);
-                  showMsg("Wezwano Szeryfa!");
-                }}>
-                  <span>Wezwij Szeryfa</span>
-                  <span style={{fontSize:13,opacity:0.8}}>{myQLeft>0?myQLeft+"/"+myQTotal+" pytań":"—"}</span>
-                </button>
-                {hasWaiting&&<div style={{marginTop:6,padding:8,background:"#FFF8E7",border:"1px dashed #D4A853",borderRadius:4,textAlign:"center",fontSize:13,color:"#8B6914",fontWeight:600}}>
-                  Oczekiwanie na Szeryfa...
-                </div>}
-              </div>);
-            })()}
-          </div>}
           <div style={{background:"#fff",borderRadius:6,border:"1px solid #D4C4A8",padding:14}}>
             <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Księgowość {pendingCount>0&&<span className="badge">{pendingCount}</span>}</div>
             {familyTxs.length===0?<div style={{textAlign:"center",padding:24,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Brak wpisów</div>
