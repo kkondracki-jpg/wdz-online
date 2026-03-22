@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WDZ Online — Platforma Sieciowa v7.3</title>
+  <title>WDZ Online — Platforma Sieciowa v7.3.1</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -273,7 +273,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.3</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.3.1</div>
       </div>
 
       {/* Initial choice */}
@@ -776,6 +776,8 @@ function InfoPopup({title, children, wide}) {
 /* ========== INSTRUCTION SLIDES ========== */
 function InstructionSlides({familyId, roomCode}) {
   const [page, setPage] = useState(0);
+  const [maxVisited, setMaxVisited] = useState(0);
+  const [allCompleted, setAllCompleted] = useState(false);
   const [rolesSubmitted, setRolesSubmitted] = useState(false);
   const [roles, setRoles] = useState({head:'',rep:'',acc:'',nestor:'',heart:''});
   const [roleSaving, setRoleSaving] = useState(false);
@@ -791,7 +793,19 @@ function InstructionSlides({familyId, roomCode}) {
         if(reqKeys.every(k=>v[k]&&v[k].trim()!=="")) setRolesSubmitted(true);
       }
     });
+    db.ref("rooms/"+roomCode+"/instructionCompleted/"+familyId).once("value").then(snap=>{
+      if(snap.val()===true){setAllCompleted(true);setMaxVisited(7);}
+    });
   },[familyId,roomCode]);
+
+  // Track max visited page
+  useEffect(()=>{
+    if(page>maxVisited) setMaxVisited(page);
+    if(page===7&&!allCompleted&&db&&roomCode){
+      setAllCompleted(true);
+      db.ref("rooms/"+roomCode+"/instructionCompleted/"+familyId).set(true);
+    }
+  },[page]);
 
   if(!d) return <div style={{padding:20,color:"#842504"}}>Brak danych instrukcji dla rodziny.</div>;
 
@@ -814,9 +828,8 @@ function InstructionSlides({familyId, roomCode}) {
 
   const canNext = page !== 2 || rolesSubmitted;
   const totalPages = 8;
-  const hdr = s => <div style={{fontSize:20,fontWeight:700,color:"#842504",marginBottom:10,lineHeight:1.3}} className="wt">{s}</div>;
+  const hdr = (s,draft) => <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,lineHeight:1.3,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">{s}{draft&&<span style={{fontSize:13,fontWeight:400,fontStyle:"italic",color:"#A89070",marginLeft:8,letterSpacing:0}}>(wersja robocza)</span>}</div>;
   const para = s => <p style={{margin:"8px 0",lineHeight:1.7,fontSize:14}} dangerouslySetInnerHTML={{__html:s}}/>;
-  const tip = s => <div style={{background:"#F5EFE0",borderLeft:"3px solid #D4A853",padding:"8px 12px",margin:"10px 0",fontSize:13,lineHeight:1.6}} dangerouslySetInnerHTML={{__html:s}}/>;
   const instrImg = name => <img src={IMG_BASE+name+".png"} style={{width:"100%",height:"auto",display:"block",borderRadius:6}} alt="" onError={e=>{e.target.style.display="none";}}/>;
   function renderPage(){
     switch(page){
@@ -826,8 +839,9 @@ function InstructionSlides({familyId, roomCode}) {
     case 1: return (<div>
       {instrImg("ekran_2_witamy2-"+familyId)}
     </div>);
-    case 2: return (<div>
+    case 2: return (<div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
       {instrImg("ekran_3-role")}
+      {hdr("Role w zespole",false)}
       <div style={{margin:"14px 0"}}>
         {ROLE_DEFS.map(r=>(<div key={r.key} style={{marginBottom:12,display:"flex",gap:10,alignItems:"stretch",minHeight:120}}>
           <img src={IMG_BASE+r.img+".png"} style={{width:90,height:"auto",display:"block",objectFit:"contain",alignSelf:"stretch",flexShrink:0}} alt="" onError={e=>{e.target.style.display="none";}}/>
@@ -846,60 +860,53 @@ function InstructionSlides({familyId, roomCode}) {
       :<div style={{background:"#5B7674",color:"#fff",textAlign:"center",padding:"10px 0",borderRadius:4,fontWeight:700,fontSize:14}}>✓ Role zatwierdzone</div>}
       {!rolesSubmitted&&<div style={{fontSize:12,color:"#8B7355",marginTop:6,textAlign:"center"}}>* Pola wymagane: Głowa, Reprezentant, Księgowy</div>}
     </div>);
-    case 3: return (<div>
-      {hdr("Wasze zadania")}
+    case 3: return (<div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
+      {hdr("Wasze zadania",true)}
       {para("<strong>Waszym celem jest zwiększenie wartości rodzinnego biznesu.</strong> Wymaga to realizacji kilku zadań. Efekt każdego z nich przeliczany jest na punkty. Ich suma odzwierciedli wartość Waszego biznesu.")}
       {para("Punkty za zasoby i kompetencje otrzymujecie za ich posiadanie. Notatki dziadka nie dają punktów — mówią jedynie, czego szukać i jaką wagę ma każdy element. Bez nich działacie w ciemno.")}
 
-      <div style={{marginTop:16,marginBottom:12,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
-        <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:6}} className="wt">ZADANIE 1: Pozyskanie zasobów — max 30 pkt</div>
-        {para("Budujecie <strong>"+d.business+"</strong> zgodnie z rodzinną tradycją. Wasz dziadek opisał wszystkie zasoby niezbędne do uruchomienia przedsiębiorstwa i każdemu przypisał wagę wyrażoną w procentach.")}
-        {para("Huraganowy podmuch w pierwszy dzień po przyjeździe poprzewracał wozy i rozrzucił zapiski dziadka po całym miasteczku. Wszyscy osadnicy gorączkowo łapali uciekające papiery. W efekcie większość tego, co zebraliście, opisuje zasoby potrzebne innym rodzinom. Tylko nieliczne dotyczą Waszego "+d.business+". Resztę musicie pozyskać od sąsiadów.")}
-        {para("<strong>Notatki dziadka są cennym towarem w negocjacjach — zarówno Wasze, jak i te, które posiadają inni.</strong>")}
-        {para("<strong>Punkty otrzymujecie za posiadanie właściwych zasobów — nie za notatki.</strong> Notatki dziadka to źródło wiedzy: mówią, które zasoby są potrzebne do Waszego biznesu i jaką wagę ma każdy z nich. Można zdobywać zasoby bez notatek — ale wtedy działacie w ciemno.")}
-        {tip("📍 <strong>Gdzie to w aplikacji?</strong> Zakładka <strong>&bdquo;Majątek&rdquo;</strong>. Karty &bdquo;ZASÓB&rdquo; to przedmioty, które posiadacie. Karty &bdquo;INFORMACJA&rdquo; to notatki dziadka — podpowiadają, komu i z jaką wagą dany zasób jest potrzebny. Zasób + pasująca notatka = karta scalona (automatycznie).")}
-        {para("<em>Zadanie zrealizowane, gdy pozyskacie 100% zasobów opisanych w notatkach dziadka.</em>")}
+      <div style={{marginTop:16,marginBottom:12,padding:"10px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
+        <div style={{fontWeight:700,fontSize:16,color:"#842504",marginBottom:4}} className="wt">1: Pozyskanie zasobów — max 30 pkt</div>
+        {para("Wasz dziadek opisał zasoby niezbędne do uruchomienia Waszego biznesu i każdemu przypisał wagę w procentach. Huragan rozrzucił jego zapiski — większość trafiła w ręce innych rodzin. Pozyskanie notatek ułatwi Wam trafne decyzje.")}
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>➤ Zakładka „Majątek" — ikona „?" przy sekcji „Zasoby".</div>
       </div>
 
-      <div style={{marginBottom:12,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
-        <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:6}} className="wt">ZADANIE 2: Pozyskanie kompetencji — max 25 pkt</div>
-        {para("Dziadek opisał też kompetencje ważne w prowadzeniu "+d.business+" — każdej przypisał wagę w procentach. Zdobywacie je, gromadząc odpowiednie księgi przechowywane przez rodziny w miasteczku.")}
-        {para("W swoim dobytku znajdziecie kilka podręczników — przydatnych jednak w innych biznesach "+d.businessAdj+". Zapiski o Waszych kompetencjach porwał ten sam wiatr. Musicie je odzyskać od sąsiadów.")}
-        {para("<strong>Informacje o kompetencjach — zarówno Wasze, jak i cudze — to kolejna waluta w negocjacjach.</strong>")}
-        {para("<strong>Punkty otrzymujecie za posiadanie właściwych kompetencji — nie za notatki.</strong> Notatki dziadka mówią, które kompetencje są potrzebne i jaką wagę ma każda z nich. Można gromadzić księgi bez notatek — ale wtedy działacie w ciemno.")}
-        {tip("📍 <strong>Gdzie to w aplikacji?</strong> Zakładka <strong>&bdquo;Majątek&rdquo;</strong>, sekcja kompetencji. Identyczna zasada: karty &bdquo;KOMPETENCJA&rdquo;, notatki &bdquo;INFORMACJA&rdquo;, automatyczne scalanie.")}
-        {para("<em>Zadanie zrealizowane, gdy pozyskacie wszystkie księgi potrzebne do 100% kompetencji.</em>")}
+      <div style={{marginBottom:12,padding:"10px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
+        <div style={{fontWeight:700,fontSize:16,color:"#842504",marginBottom:4}} className="wt">2: Pozyskanie kompetencji — max 25 pkt</div>
+        {para("Dziadek opisał też kompetencje potrzebne do prowadzenia Waszego biznesu. Odpowiednie księgi są rozproszone po rodzinach w miasteczku. Zapiski z wagami porwał ten sam wiatr — ich odzyskanie pomoże w doborze właściwych kompetencji.")}
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>➤ Zakładka „Majątek" — ikona „?" przy sekcji „Kompetencje".</div>
       </div>
 
-      <div style={{marginBottom:12,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
-        <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:6}} className="wt">ZADANIE 3: Właściwa działka — max 10 pkt</div>
-        {para(d.plotFull)}
-        {para(d.plotAdvice)}
-        {tip("📍 <strong>Gdzie to w aplikacji?</strong> Zakładka <strong>&bdquo;Majątek&rdquo;</strong>, dół sekcji. Działkę można kupić, sprzedać lub wymienić barterem — jak każde inne dobro w grze.")}
-        {para("<em>Przyjrzyjcie się okolicy, zasięgnijcie języka i negocjujcie.</em>")}
+      <div style={{marginBottom:12,padding:"10px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
+        <div style={{fontWeight:700,fontSize:16,color:"#842504",marginBottom:4}} className="wt">3: Właściwa działka — max 10 pkt</div>
+        {para("Wasza obecna działka nie jest idealna dla planowanego biznesu. Pozyskajcie lepszą lokalizację. Pozostanie na obecnej oznacza dodatkowe koszty: <strong>50 $</strong> na koniec gry.")}
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>➤ Zakładka „Majątek" — ikona „?" przy sekcji „Działka".</div>
       </div>
 
-      <div style={{marginBottom:12,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
-        <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:6}} className="wt">ZADANIE 4: Pomnożenie gotówki — max 25 pkt</div>
-        {para("<strong>Na start posiadacie 600 $.</strong> Więcej = punkty. Mniej niż 600 $ = punkty ujemne. Proporcjonalnie.")}
-        {para("Biznes wymaga inwestycji, ale miasteczko daje też możliwości zarabiania.")}
-        {tip("📍 <strong>Gdzie to w aplikacji?</strong> Wyświetlacz gotówki u góry panelu — widoczny zawsze.")}
+      <div style={{marginBottom:12,padding:"10px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
+        <div style={{fontWeight:700,fontSize:16,color:"#842504",marginBottom:4}} className="wt">4: Pomnożenie gotówki — max 25 pkt</div>
+        {para("Na start macie <strong>600 $</strong>. Więcej = punkty. Mniej = punkty ujemne. Proporcjonalnie. Miasteczko daje możliwości zarabiania — dużo zależy od Waszej operatywności.")}
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>➤ Wyświetlacz gotówki u góry panelu.</div>
       </div>
 
-      <div style={{padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
-        <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:6}} className="wt">BONUS: Złotodajna Żyła — max 10 pkt</div>
-        {para("Założyciel miasteczka, stary Joe Rhymester, przed śmiercią odnalazł żyłę złota w pobliskich Górach Wilczych. Lokalizację ukrył na mapie, którą podzielił na 5 fragmentów. Cztery z nich zapisał w testamencie czterem rodzinom osiedlającym się w Kairoscity. Jeden z fragmentów jest Wasz.")}
-        {para("Posiadacie trzy dodatkowe kopie swojego fragmentu — mogą być przedmiotem wymiany z innymi rodzinami. Każdy zebrany fragment to <strong>2 punkty</strong>. Rodzina, która <strong>jako pierwsza</strong> zgromadzi kompletną mapę i zgłosi to Szeryfowi, otrzyma <strong>po 100 $</strong> od każdej z pozostałych rodzin — łącznie <strong>300 $</strong>.")}
-        {tip("📍 <strong>Gdzie to w aplikacji?</strong> Zakładka <strong>&bdquo;Złotodajna Żyła&rdquo;</strong> — tracker z 5 polami. Fragmenty można kupować i sprzedawać jak każde inne dobro.")}
+      <div style={{marginBottom:12,padding:"10px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
+        <div style={{fontWeight:700,fontSize:16,color:"#842504",marginBottom:4}} className="wt">5: Złotodajna Żyła — max 10 pkt</div>
+        {para("Stary Joe Rhymester ukrył lokalizację żyły złota na mapie podzielonej na 5 fragmentów. Jeden jest Wasz, trzy u pozostałych rodzin, piąty u Szeryfa. Każdy fragment to <strong>2 punkty</strong>. Rodzina, która <strong>jako pierwsza</strong> zgromadzi komplet, otrzyma <strong>300 $</strong>.")}
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>➤ Zakładka „Złotodajna Żyła".</div>
       </div>
 
-      <div style={{marginTop:14,padding:"10px 14px",background:"#F0EBE0",borderRadius:6,fontSize:13,lineHeight:1.6,color:"#4C130F"}}>
-        {para("Sukces w prowadzeniu biznesu, prócz rozumu, wymaga szczęścia. W trakcie gry Szeryf odwiedzi Was trzykrotnie w sprawie <strong>Ślepego Losu</strong> — losowego wydarzenia, które może przynieść zysk lub stratę. Będziecie mogli wykupić ubezpieczenie, a potem dwukrotnie rzucić kośćmi. Szczegóły poznacie w swoim czasie.")}
-        {para("W trakcie gry może pojawić się okazja dodatkowego zarobku — mały <strong>&bdquo;biznes na boku&rdquo;</strong>. Szczegóły poznacie w swoim czasie.")}
+      <div style={{marginBottom:12,padding:"10px 14px",background:"#F0EBE0",borderRadius:6}}>
+        <div style={{fontWeight:700,fontSize:16,color:"#4C130F",marginBottom:4}} className="wt">ŚLEPY LOS</div>
+        {para("Sukces w prowadzeniu biznesu, prócz rozumu, wymaga szczęścia. W trakcie gry Szeryf odwiedzi Was trzykrotnie w sprawie losowego wydarzenia, które może przynieść zysk lub stratę. Szczegóły poznacie w swoim czasie.")}
+      </div>
+
+      <div style={{padding:"10px 14px",background:"#F0EBE0",borderRadius:6}}>
+        <div style={{fontWeight:700,fontSize:16,color:"#4C130F",marginBottom:4}} className="wt">6: Biznes na Boku</div>
+        {para("W trakcie gry może pojawić się okazja dodatkowego zarobku — mały „biznes na boku". Szczegóły poznacie w swoim czasie.")}
       </div>
     </div>);
-    case 4: return (<div>
-      {hdr("Przebieg rozgrywki")}
+    case 4: return (<div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
+      {hdr("Przebieg rozgrywki",true)}
       {para("Po fazie przygotowania gra toczy się w <strong>trzech fazach</strong> po <strong>trzy tury negocjacyjne</strong>. Między fazami — narady rodzinne.")}
       <div style={{margin:"14px 0"}}>
         {[
@@ -914,10 +921,9 @@ function InstructionSlides({familyId, roomCode}) {
         </div>))}
       </div>
       {para("W każdej turze spotykacie się z jedną z pozostałych rodzin. Harmonogram widzicie w panelu &bdquo;Przebieg rozgrywki&rdquo; po prawej stronie ekranu.")}
-      {tip("⚠️ <strong>Ważne:</strong> Wymiana dóbr i komunikacja z innymi rodzinami odbywa się wyłącznie podczas spotkań negocjacyjnych. Złamanie tej zasady to mandat: <strong>50 $</strong>.")}
     </div>);
-    case 5: return (<div>
-      {hdr("Wasz panel — przegląd")}
+    case 5: return (<div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
+      {hdr("Wasz panel \u2014 przegląd",true)}
       {para("Oto elementy, z których będziecie korzystać:")}
       <div style={{margin:"10px 0"}}>
         {[
@@ -933,8 +939,8 @@ function InstructionSlides({familyId, roomCode}) {
         </div>))}
       </div>
     </div>);
-    case 6: return (<div>
-      {hdr("Jak handlować")}
+    case 6: return (<div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
+      {hdr("Jak handlować",true)}
       {para("Dwa sposoby: <strong>sprzedaż</strong> (karta za gotówkę) i <strong>barter</strong> (karta za kartę ± dopłata). Warunki ustalcie ustnie — aplikacja rejestruje ustalenia.")}
       <div style={{marginTop:14,marginBottom:14,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
         <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:8}} className="wt">Sprzedaż — karta za gotówkę</div>
@@ -955,8 +961,8 @@ function InstructionSlides({familyId, roomCode}) {
       {para("Każda transakcja jest zapisywana — sekcja &bdquo;Księgowość&rdquo; po prawej.")}
       {para("Pomyłka? Zgłoście Szeryfowi — może cofnąć transakcję.")}
     </div>);
-    case 7: return (<div>
-      {hdr("Powodzenia!")}
+    case 7: return (<div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
+      {hdr("Powodzenia!",true)}
       {para("Przejrzyjcie karty w &bdquo;Majątku&rdquo;, ustalcie strategię. <strong>Informacja to waluta</strong> — nie ujawniajcie wszystkiego od razu.")}
       <div style={{marginTop:20,padding:"16px 20px",background:"#FDF8EE",borderRadius:8,textAlign:"center"}}>
         <div style={{fontSize:18,fontStyle:"italic",color:"#842504",fontWeight:600}} className="wt">{d.goodLuck}</div>
@@ -974,14 +980,18 @@ function InstructionSlides({familyId, roomCode}) {
       <button onClick={()=>setPage(p=>p-1)} disabled={page===0}
         style={{...btnS("primary",page===0),padding:"8px 20px",fontSize:14}}>← Wstecz</button>
       <div style={{display:"flex",gap:6}}>
-        {PAGE_TITLES.map((t,i)=>(<div key={i} onClick={()=>{if(i<=page||(i===page+1&&canNext))setPage(i);}}
+        {PAGE_TITLES.map((t,i)=>{
+          var canGo=allCompleted?true:(i<=maxVisited||(i===maxVisited+1&&canNext));
+          var visited=i<=maxVisited;
+          return(<div key={i} onClick={()=>{if(canGo)setPage(i);}}
           style={{width:28,height:28,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",
             fontSize:11,fontWeight:i===page?700:400,
-            background:i===page?"#842504":i<page?"#D4A853":"#E8E0D0",
-            color:i===page?"#fff":i<page?"#4C130F":"#B0A48C",
-            cursor:(i<=page||(i===page+1&&canNext))?"pointer":"default",
+            background:i===page?"#842504":visited?"#D4A853":"#E8E0D0",
+            color:i===page?"#fff":visited?"#4C130F":"#B0A48C",
+            cursor:canGo?"pointer":"default",
             transition:"all 0.2s"}}
-          title={t}>{i+1}</div>))}
+          title={t}>{i+1}</div>);
+        })}
       </div>
       <button onClick={()=>setPage(p=>p+1)} disabled={page>=totalPages-1||!canNext}
         style={{...btnS("primary",page>=totalPages-1||!canNext),padding:"8px 20px",fontSize:14}}>Dalej →</button>
@@ -2272,7 +2282,7 @@ function App({roomCode,role}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.3</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.3.1</div>
       </div>
     </div>
     {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
@@ -2417,7 +2427,9 @@ function App({roomCode,role}) {
               var myProduct=BNB_PRODUCTS[familyId];
               var cardStyle=function(col){return{background:"#FDFAF4",border:"2px solid "+col,borderRadius:6,overflow:"hidden",position:"relative",minWidth:120,maxWidth:160}};
               return(<div style={{marginTop:8}}>
-                <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Biznes na boku</div>
+                <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
+                  <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Biznes na boku</div>
+                </div>
                 <div style={{marginBottom:14,fontSize:14,lineHeight:1.6,color:"#2C1810"}}>
                   <p style={{margin:"0 0 6px 0"}} dangerouslySetInnerHTML={{__html:INSTRUCTION_DATA[familyId].bnbStory}}/>
                   <p style={{margin:"0 0 6px 0"}}><strong>{INSTRUCTION_DATA[familyId].bnbProduct}</strong> — <span dangerouslySetInnerHTML={{__html:INSTRUCTION_DATA[familyId].bnbDesc}}/></p>
