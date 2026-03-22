@@ -841,7 +841,6 @@ function InstructionSlides({familyId, roomCode}) {
     </div>);
     case 2: return (<div>
       {instrImg("ekran_3-role")}
-      {hdr("Role w zespole",false)}
       <div style={{margin:"14px 0"}}>
         {ROLE_DEFS.map(r=>(<div key={r.key} style={{marginBottom:12,display:"flex",gap:10,alignItems:"stretch",minHeight:120}}>
           <img src={IMG_BASE+r.img+".png"} style={{width:90,height:"auto",display:"block",objectFit:"contain",alignSelf:"stretch",flexShrink:0}} alt=""/>
@@ -2329,7 +2328,7 @@ function App({roomCode,role}) {
               return <div key={t[0]} onClick={()=>setActiveTab(t[0])} style={{padding:"7px 16px",borderRadius:"4px 4px 0 0",fontSize:13,fontWeight:act?700:400,background:act?"#fff":"#F3CA82",color:act?"#842504":"#4C130F",cursor:"pointer",borderBottom:act?"2px solid #842504":"2px solid transparent"}}>{t[1]}</div>;
             })}
           </div>
-          {activeTab==="tutorial"&&<InstructionSlides familyId={familyId} roomCode={roomCode}/>}
+          {activeTab==="tutorial"&&<InstructionSlides key={familyId} familyId={familyId} roomCode={roomCode}/>}
           {activeTab==="inv"&&(()=>{
             var f=FM[familyId];
             // Resources for own biz
@@ -2350,7 +2349,7 @@ function App({roomCode,role}) {
             var cashVal=familyData.cash;
             var cashPoints=Math.round(((cashVal-600)/600)*25);
             var taskBg={background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10};
-            return (<div>
+            return (<div key={familyId}>
             {/* --- ZASOBY --- */}
             <div style={taskBg}>
               <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt"><span style={{flex:1}}>Pozyskanie zasobów do prowadzenia przedsiębiorstwa</span>
@@ -2430,40 +2429,21 @@ function App({roomCode,role}) {
                 <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
                   <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Biznes na boku</div>
                 </div>
-                <div style={{marginBottom:14,fontSize:14,lineHeight:1.6,color:"#2C1810"}}>
-                  <p style={{margin:"0 0 6px 0"}} dangerouslySetInnerHTML={{__html:INSTRUCTION_DATA[familyId].bnbStory}}/>
-                  <p style={{margin:"0 0 6px 0"}}><strong>{INSTRUCTION_DATA[familyId].bnbProduct}</strong> — <span dangerouslySetInnerHTML={{__html:INSTRUCTION_DATA[familyId].bnbDesc}}/></p>
-                  <p style={{margin:"0 0 6px 0"}}><strong>Efekt dla kupującego:</strong> <span dangerouslySetInnerHTML={{__html:INSTRUCTION_DATA[familyId].bnbEffect}}/></p>
-                  <p style={{margin:"0 0 6px 0"}}>Przyjęliście towar z odroczonym terminem płatności: <strong>{INSTRUCTION_DATA[familyId].bnbQuantity}</strong> o łącznej wartości <strong>{INSTRUCTION_DATA[familyId].bnbValue}</strong>.</p>
+                {/* Twój produkt */}
+                <div style={{marginBottom:16}}>
+                  <img src={IMG_BASE+myProduct.imgSlug+".jpg"} style={{width:160,height:"auto",display:"block",marginBottom:6}} alt={myProduct.name}/>
+                  <div style={{fontSize:15,fontWeight:700,color:"#4C130F"}}>{myProduct.name}</div>
+                  <div style={{fontSize:14,color:"#5C4A3A"}}>Do sprzedania: <b>{forSale.length}/{myProduct.qty}</b></div>
                 </div>
-                {forSale.length>0&&<div style={{marginBottom:12}}>
-                  <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#A89070",marginBottom:6}}>Na sprzedaż</div>
-                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                    <BnbCard prod={myProduct} count={forSale.length} subtitle="Twój produkt"/>
-                  </div>
+                {/* Zakupione produkty */}
+                {Object.keys(boughtGrouped).length>0&&<div style={{marginBottom:16}}>
+                  {Object.keys(boughtGrouped).map(origin=>{var cards=boughtGrouped[origin];var prod=BNB_PRODUCTS[origin];return(
+                    <div key={origin} style={{marginBottom:12}}>
+                      <img src={IMG_BASE+prod.imgSlug+".jpg"} style={{width:160,height:"auto",display:"block",marginBottom:6}} alt={prod.name}/>
+                      <div style={{fontSize:14,color:"#4C130F"}}>{prod.name} <b>x {cards.length}</b></div>
+                    </div>
+                  );})}
                 </div>}
-                {Object.keys(boughtGrouped).length>0&&<div style={{marginBottom:12}}>
-                  <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1.5px",color:"#A89070",marginBottom:6}}>Zakupione</div>
-                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                    {Object.keys(boughtGrouped).map(origin=>{var cards=boughtGrouped[origin];var prod=BNB_PRODUCTS[origin];return(
-                      <BnbCard key={origin} prod={prod} count={cards.length} subtitle={"od "+FM[origin].gen}/>
-                    );})}
-                  </div>
-                </div>}
-                {forSale.length===0&&Object.keys(boughtGrouped).length===0&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic",marginBottom:12}}>Brak produktów BnB</div>}
-                <div style={{fontSize:14,lineHeight:1.6,color:"#2C1810"}}>
-                  <div style={{background:"#F5EFE0",borderRadius:6,padding:"10px 14px",margin:"8px 0"}}>
-                    <p style={{margin:"0 0 6px 0",fontWeight:700}}>Zasady rozliczenia</p>
-                    <p style={{margin:"0 0 6px 0",fontSize:13}}>Potraktujcie rozmowy z pozostałymi rodzinami jako okazję do zrobienia dodatkowego biznesu. Pokażcie partnerom korzyści z Waszego produktu jak na dłoni.</p>
-                    <p style={{margin:"0 0 4px 0",fontSize:13}}>Na koniec gry rozliczacie się z dostawcą za pośrednictwem Szeryfa:</p>
-                    <p style={{margin:"0 0 4px 0",fontSize:13}}>• <strong>Sprzedaliście wszystko?</strong> Bonifikata <strong>100 $</strong>, odprowadzacie <strong>200 $</strong>. Marża zostaje u Was.</p>
-                    <p style={{margin:"0 0 0 0",fontSize:13}}>• <strong>Nie sprzedaliście wszystkiego?</strong> Brak bonifikaty, odprowadzacie <strong>300 $</strong>. Niesprzedany towar możecie wykorzystać na własne potrzeby.</p>
-                  </div>
-                  <Accordion title="Przykład rozliczenia">
-                    <p style={{margin:"0 0 4px 0"}}>Sprzedaliście 10 z 10 po 35 $ = 350 $. Wszystko sprzedane → 350 − 200 + 100 = <strong>+250 $</strong>.</p>
-                    <p style={{margin:0}}>Sprzedaliście 7 z 10 po 40 $ = 280 $. Nie wszystko → 280 − 300 = <strong>−20 $</strong>. Ale macie 3 sztuki na własny użytek.</p>
-                  </Accordion>
-                </div>
               </div>);
             })()}
             {bnbEnabled&&<img src={IMG_BASE+"kairos_chronicle.jpg"} style={{width:"100%",borderRadius:6,marginTop:12}} alt="The Kairos Chronicle"/>}
