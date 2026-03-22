@@ -758,7 +758,7 @@ function Accordion({title, children, defaultOpen}) {
 function InfoPopup({title, children, wide}) {
   const [open, setOpen] = useState(false);
   return (<>
-    <span onClick={()=>setOpen(true)} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:22,height:22,borderRadius:"50%",background:"#D4A853",color:"#4C130F",fontWeight:700,fontSize:13,cursor:"pointer",marginLeft:8,verticalAlign:"middle",lineHeight:1,userSelect:"none"}}>?</span>
+    <img onClick={()=>setOpen(true)} src={IMG_BASE+"ikona_instrukcje.png"} style={{width:22,height:22,cursor:"pointer",marginLeft:8,verticalAlign:"middle",userSelect:"none",flexShrink:0}} alt="?"/>
     {open&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.6)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={()=>setOpen(false)}>
       {wide?<div style={{position:"relative",maxWidth:"90vw",maxHeight:"80vh"}} onClick={e=>e.stopPropagation()}>
         <div onClick={()=>setOpen(false)} style={{position:"absolute",top:-12,right:-12,width:28,height:28,borderRadius:"50%",background:"#4C130F",color:"#F5F0E8",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:16,fontWeight:700,lineHeight:1,boxShadow:"0 2px 8px rgba(0,0,0,0.4)",zIndex:1}}>✕</div>
@@ -830,7 +830,7 @@ function InstructionSlides({familyId, roomCode}) {
   const totalPages = 8;
   const hdr = (s,draft) => <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,lineHeight:1.3,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">{s}{draft&&<span style={{fontSize:13,fontWeight:400,fontStyle:"italic",color:"#A89070",marginLeft:8,letterSpacing:0}}>(wersja robocza)</span>}</div>;
   const para = s => <p style={{margin:"8px 0",lineHeight:1.7,fontSize:14}} dangerouslySetInnerHTML={{__html:s}}/>;
-  const instrImg = name => <img src={IMG_BASE+name+".png"} style={{width:"100%",height:"auto",display:"block",borderRadius:6}} alt="" onError={e=>{e.target.style.display="none";}}/>;
+  const instrImg = name => {var src=IMG_BASE+name+".png"; return <img key={src} src={src} style={{width:"100%",height:"auto",display:"block",borderRadius:6}} alt=""/>;};
   function renderPage(){
     switch(page){
     case 0: return (<div>
@@ -839,12 +839,12 @@ function InstructionSlides({familyId, roomCode}) {
     case 1: return (<div>
       {instrImg("ekran_2_witamy2-"+familyId)}
     </div>);
-    case 2: return (<div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
+    case 2: return (<div>
       {instrImg("ekran_3-role")}
       {hdr("Role w zespole",false)}
       <div style={{margin:"14px 0"}}>
         {ROLE_DEFS.map(r=>(<div key={r.key} style={{marginBottom:12,display:"flex",gap:10,alignItems:"stretch",minHeight:120}}>
-          <img src={IMG_BASE+r.img+".png"} style={{width:90,height:"auto",display:"block",objectFit:"contain",alignSelf:"stretch",flexShrink:0}} alt="" onError={e=>{e.target.style.display="none";}}/>
+          <img src={IMG_BASE+r.img+".png"} style={{width:90,height:"auto",display:"block",objectFit:"contain",alignSelf:"stretch",flexShrink:0}} alt=""/>
           <div style={{flex:1,padding:"10px 14px",background:"#F6E4C8",borderRadius:6,display:"flex",flexDirection:"column",justifyContent:"center"}}>
             <div style={{fontWeight:700,fontSize:20,color:"#4C130F",marginBottom:4,lineHeight:1.2}} className="wt">{r.label}</div>
             <div style={{fontSize:15,color:"#6B5B3E",marginBottom:8,lineHeight:1.5,fontWeight:500}}>{r.desc}</div>
@@ -1239,9 +1239,9 @@ function MapTracker({items, mapBonusClaimed, fId}) {
     </div>
     {/* --- Instrukcja: 2/3 obrazek + 1/3 akordeon --- */}
     <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:16,marginBottom:16,alignItems:"start"}}>
-      <img src={IMG_BASE+"instrukcja_zlotodajna-zyla.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Instrukcja — Złotodajna Żyła" onError={e=>{e.target.style.display="none";}}/>
+      <img src={IMG_BASE+"instrukcja_zlotodajna-zyla.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Instrukcja — Złotodajna Żyła"/>
       <Accordion title="Historia mapy">
-        <img src={IMG_BASE+"instrukcja_historia-mapy.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Historia mapy" onError={e=>{e.target.style.display="none";}}/>
+        <img src={IMG_BASE+"instrukcja_historia-mapy.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Historia mapy"/>
       </Accordion>
     </div>
     {/* --- Fragmenty mapy — bezpośrednio na tle, bez zaokrągleń --- */}
@@ -1309,9 +1309,9 @@ function PolicyCardFate({pKey, label, price, status, imgName, activeForRoll}) {
   var borderCol=isActive?"#842504":"#D4C4A8";
   var statusText=isActive?"Aktywna":status==="owned"?"W posiadaniu":status==="used"?"Wykorzystana":"Nie wykupiona";
   var statusCol=isActive?"#2E5B3C":status==="used"?"#8B7355":"#8B7355";
-  var opa=isActive?1:status==="owned"?0.8:0.5;
+  var opa=isActive?1:status==="owned"?0.85:0.65;
   return (<div style={{flex:1}}>
-    <div style={{border:"2px solid "+borderCol,borderRadius:6,overflow:"hidden",opacity:opa}}>
+    <div style={{border:"2px solid "+borderCol,borderRadius:6,overflow:"hidden",opacity:opa,filter:isActive?"none":"grayscale(40%)"}}>
       {imgOk&&<img src={IMG_BASE+imgName+".jpg"} style={{width:"100%",height:"auto",display:"block"}} alt={label} onError={()=>setImgOk(false)}/>}
       {!imgOk&&<div style={{padding:16,textAlign:"center"}}>
         <div style={{fontSize:13,fontWeight:700,color:"#842504"}}>{label}</div>
@@ -1344,9 +1344,9 @@ function BlindFateFamily({fId, blindFate}) {
     </div>
     {/* --- Instrukcja: 2/3 obrazek + 1/3 akordeon --- */}
     <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:16,marginBottom:16,alignItems:"start"}}>
-      <img src={IMG_BASE+"instrukcja_slepy-los.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Instrukcja — Ślepy los" onError={e=>{e.target.style.display="none";}}/>
+      <img src={IMG_BASE+"instrukcja_slepy-los.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Instrukcja — Ślepy los"/>
       <Accordion title="Przezorny zawsze ubezpieczony">
-        <img src={IMG_BASE+"instrukcja_polisy.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Polisy ubezpieczeniowe" onError={e=>{e.target.style.display="none";}}/>
+        <img src={IMG_BASE+"instrukcja_polisy.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Polisy ubezpieczeniowe"/>
       </Accordion>
     </div>
     {/* --- Karty polis + zdarzenie — bezpośrednio na tle --- */}
@@ -2353,9 +2353,9 @@ function App({roomCode,role}) {
             return (<div>
             {/* --- ZASOBY --- */}
             <div style={taskBg}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">Zadanie: Pozyskanie zasobów do prowadzenia przedsiębiorstwa
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt"><span style={{flex:1}}>Pozyskanie zasobów do prowadzenia przedsiębiorstwa</span>
                 <InfoPopup title="ZASOBY — max 30 pkt" wide>
-                  <img src={IMG_BASE+"instrukcja_zasoby-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — zasoby" onError={e=>{e.target.style.display="none";}}/>
+                  <img src={IMG_BASE+"instrukcja_zasoby-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — zasoby"/>
                 </InfoPopup>
               </div>
               <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
@@ -2374,9 +2374,9 @@ function App({roomCode,role}) {
             </div>}
             {/* --- KOMPETENCJE --- */}
             <div style={taskBg}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">Zadanie: Pozyskanie kompetencji do prowadzenia przedsiębiorstwa
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt"><span style={{flex:1}}>Pozyskanie kompetencji do prowadzenia przedsiębiorstwa</span>
                 <InfoPopup title="KOMPETENCJE — max 25 pkt" wide>
-                  <img src={IMG_BASE+"instrukcja_kompetencje-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — kompetencje" onError={e=>{e.target.style.display="none";}}/>
+                  <img src={IMG_BASE+"instrukcja_kompetencje-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — kompetencje"/>
                 </InfoPopup>
               </div>
               <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
@@ -2395,9 +2395,9 @@ function App({roomCode,role}) {
             </div>}
             {/* --- DZIAŁKI --- */}
             <div style={taskBg}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">Zadanie: Pozyskanie prawa własności do właściwej działki
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt"><span style={{flex:1}}>Pozyskanie prawa własności do właściwej działki</span>
                 <InfoPopup title="Zadanie 3: Działka" wide>
-                  <img src={IMG_BASE+"instrukcja_dzialka-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — działka" onError={e=>{e.target.style.display="none";}}/>
+                  <img src={IMG_BASE+"instrukcja_dzialka-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — działka"/>
                 </InfoPopup>
               </div>
               <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
@@ -2408,9 +2408,9 @@ function App({roomCode,role}) {
             <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:12}}>{familyView.plots.map(p=><GenericCard key={p.id} item={p}/>)}</div>
             {/* --- GOTÓWKA --- */}
             <div style={taskBg}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">Zadanie: Pomnożenie gotówki
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt"><span style={{flex:1}}>Pomnożenie gotówki</span>
                 <InfoPopup title="Zadanie 4: Gotówka" wide>
-                  <img src={IMG_BASE+"instrukcja_gotowka.png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — gotówka" onError={e=>{e.target.style.display="none";}}/>
+                  <img src={IMG_BASE+"instrukcja_gotowka.png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — gotówka"/>
                 </InfoPopup>
               </div>
               <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
@@ -2466,7 +2466,7 @@ function App({roomCode,role}) {
                 </div>
               </div>);
             })()}
-            {bnbEnabled&&<img src={IMG_BASE+"kairos_chronicle.jpg"} style={{width:"100%",borderRadius:6,marginTop:12}} alt="The Kairos Chronicle" onError={e=>{e.target.style.display="none";}}/>}
+            {bnbEnabled&&<img src={IMG_BASE+"kairos_chronicle.jpg"} style={{width:"100%",borderRadius:6,marginTop:12}} alt="The Kairos Chronicle"/>}
           </div>);
           })()}
           {activeTab==="map"&&<MapTracker items={familyData.items} mapBonusClaimed={mapBonusClaimed} fId={familyId}/>}
