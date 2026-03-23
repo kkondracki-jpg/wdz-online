@@ -1961,14 +1961,15 @@ function App({roomCode,role}) {
     winField=fields[newPos+3];
     if(Math.abs(newPos)===3){status="finished";winner=newPos<0?c.familyA:c.familyB;}
     else if(aA<=0&&aB<=0){status="finished";winner=newPos<0?c.familyA:newPos>0?c.familyB:null;}
-    return{...c,bulletPos:newPos,ammoA:aA,ammoB:aB,rounds:rounds,shotsA:null,shotsB:null,status:status,winner:winner,winField:winField,timerPhase:status==="finished"?null:"declaration"};
+    return{...c,bulletPos:newPos,ammoA:aA,ammoB:aB,rounds:rounds,shotsA:null,shotsB:null,status:status,winner:winner,winField:winField,timerPhase:null};
   });}
-  // Restart declaration timer when new round begins
+  // Restart declaration timer when new round begins (after reveal cleared timerPhase)
   useEffect(()=>{
-    if(revCurrent&&revCurrent.status==="playing"&&revCurrent.timerPhase==="declaration"&&revCurrent.shotsA===null&&revCurrent.shotsB===null&&(revCurrent.rounds||[]).length>0){
+    if(revCurrent&&revCurrent.status==="playing"&&revCurrent.timerPhase===null&&revCurrent.shotsA===null&&revCurrent.shotsB===null&&(revCurrent.rounds||[]).length>0){
+      setRevCurrent(c=>c?{...c,timerPhase:"declaration"}:c);
       setRevTimer(REV_DECL_TIME);
     }
-  },[revCurrent&&revCurrent.rounds&&revCurrent.rounds.length]);
+  },[revCurrent?((revCurrent.rounds||[]).length+"|"+revCurrent.timerPhase):null]);
   function revSettle(){if(!revCurrent||revCurrent.status!=="finished")return;var c=revCurrent;
     var payFrac=c.winField==="wygrana"?1:c.winField==="dominacja"?2/3:c.winField==="przewaga"?1/3:0;
     var winAmt=Math.round(c.bet*payFrac);
