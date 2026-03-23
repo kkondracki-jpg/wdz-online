@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WDZ Online — Platforma Sieciowa v7.3.2</title>
+  <title>WDZ Online — Platforma Sieciowa v7.3.3</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -143,8 +143,8 @@ function fixFdFromFirebase(fd){
   }
   return r;
 }
-// Firebase drops null/undefined values and empty arrays — sanitize revCurrent
-function revCurrentToFB(rc){
+// Firebase drops null/undefined values and empty arrays — sanitize revCurrent/revActive
+function revDuelToFB(rc){
   if(!rc) return false;
   return {...rc,
     rounds:rc.rounds&&rc.rounds.length?rc.rounds:"__empty__",
@@ -155,7 +155,7 @@ function revCurrentToFB(rc){
     timerPhase:rc.timerPhase===null?"__null__":rc.timerPhase||"__null__"
   };
 }
-function revCurrentFromFB(rc){
+function revDuelFromFB(rc){
   if(!rc||rc===false) return null;
   return {...rc,
     rounds:rc.rounds==="__empty__"?[]:ensureArray(rc.rounds||[]),
@@ -165,6 +165,19 @@ function revCurrentFromFB(rc){
     winField:rc.winField==="__null__"?null:rc.winField,
     timerPhase:rc.timerPhase==="__null__"?null:rc.timerPhase||null
   };
+}
+// backward compat wrappers
+function revCurrentToFB(rc){return revDuelToFB(rc);}
+function revCurrentFromFB(rc){return revDuelFromFB(rc);}
+// array serialization
+function revActiveToFB(arr){
+  if(!arr||!arr.length)return "__empty__";
+  return arr.map(d=>revDuelToFB(d));
+}
+function revActiveFromFB(val){
+  if(!val||val==="__empty__")return [];
+  var arr=Array.isArray(val)?val:Object.values(val);
+  return arr.map(d=>revDuelFromFB(d)).filter(Boolean);
 }
 
 /* ========== LOBBY COMPONENT ========== */
@@ -275,7 +288,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.3.2</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.3.3</div>
       </div>
 
       {/* Initial choice */}
@@ -1386,7 +1399,7 @@ function BlindFateFamily({fId, blindFate}) {
 }
 
 /* ========== SHERIFF PANEL ========== */
-function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setConsultNotes,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,resultsReveal,setResultsReveal,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,manualMode,setManualMode,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,fateEnabled,setFateEnabled,mapEnabled,setMapEnabled,revEnabled,setRevEnabled,revMaxBet,setRevMaxBet,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle}) {
+function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setConsultNotes,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,resultsReveal,setResultsReveal,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,manualMode,setManualMode,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,fateEnabled,setFateEnabled,mapEnabled,setMapEnabled,revEnabled,setRevEnabled,revMaxBet,setRevMaxBet,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle,revMode,setRevMode,revActive,setRevActive,revStartTournament,getRevTimer,revRevealDuel,revSettleDuel}) {
   function applyPlotPenalties(){
     FO.forEach(fId=>{
       if(plotPenalties[fId]) return;
@@ -1752,15 +1765,21 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
         {!revEnabled&&<button style={btnS("success")} onClick={()=>setRevEnabled(true)}>Odblokuj REWOLWEROWIEC</button>}
         {revEnabled&&<div style={{display:"flex",gap:8,alignItems:"center"}}>
           <span style={{fontSize:13,fontWeight:700,color:"#8B2500",padding:"3px 10px",background:"#FFE8E0",borderRadius:4,border:"1px solid #842504"}}>Aktywny</span>
-          {!revCurrent&&<button style={btnS("danger",false)} onClick={()=>setRevEnabled(false)}>Zablokuj REWOLWEROWIEC</button>}
+          {revActive.length===0&&<button style={btnS("danger",false)} onClick={()=>setRevEnabled(false)}>Zablokuj REWOLWEROWIEC</button>}
         </div>}
       </div>
       {revEnabled&&<div>
-        <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:12}}>
+        {/* Mode toggle + Max bet */}
+        <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:12,flexWrap:"wrap"}}>
+          <div style={{display:"flex",gap:4,alignItems:"center",background:"#fff",border:"1px solid #842504",borderRadius:6,overflow:"hidden"}}>
+            {["arena","tournament"].map(m=><button key={m} style={{padding:"6px 14px",fontSize:13,fontWeight:700,border:"none",cursor:revActive.length>0?"not-allowed":"pointer",background:revMode===m?"#842504":"transparent",color:revMode===m?"#fff":"#842504",opacity:revActive.length>0&&revMode!==m?0.4:1}} onClick={()=>{if(revActive.length===0)setRevMode(m);}} disabled={revActive.length>0}>{m==="arena"?"Arena":"Turniej"}</button>)}
+          </div>
           <label style={{fontSize:13,color:"#5C4A3A"}}>Max stawka ($):</label>
-          <input type="number" min={1} step={1} value={revMaxBet} onChange={e=>setRevMaxBet(Math.max(1,parseInt(e.target.value)||1))} style={{width:70,padding:4,borderRadius:4,border:"1px solid #842504",fontSize:13}} disabled={!!revCurrent}/>
+          <input type="number" min={1} step={1} value={revMaxBet} onChange={e=>setRevMaxBet(Math.max(1,parseInt(e.target.value)||1))} style={{width:70,padding:4,borderRadius:4,border:"1px solid #842504",fontSize:13}} disabled={revActive.length>0}/>
         </div>
-        {!revCurrent&&<div>
+
+        {/* === ARENA MODE === */}
+        {revMode==="arena"&&revActive.length===0&&<div>
           <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:6}}>Wybierz parę do pojedynku:</div>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
             {FO.map((a,ai)=>FO.slice(ai+1).map(b=>{
@@ -1768,68 +1787,111 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
               return(<button key={a+b} style={{...btnS(played?"secondary":"warning",false),fontSize:13,opacity:played?0.5:1}} onClick={()=>{if(!played)revNewDuel(a,b);}} disabled={played} title={played?"Już rozegrano":""}>{FM[a].nom} vs {FM[b].nom}{played?" ✓":""}</button>);
             }))}
           </div>
-          {(revDuels||[]).length>0&&<div style={{marginTop:12}}>
-            <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:4}}>Historia pojedynków:</div>
-            {revDuels.map(d=>{var wN=d.winner?FM[d.winner].nom:"Remis";return(
-              <div key={d.id} style={{fontSize:13,color:"#5C4A3A",padding:"3px 0",borderBottom:"1px dotted #D4C4A8"}}>{FM[d.familyA].nom} vs {FM[d.familyB].nom} — <b>{wN}</b> ({d.winField}, {d.rounds.length} rund, stawka {d.bet} $)</div>
-            );})}
-          </div>}
         </div>}
-        {revCurrent&&<div>
-          {revCurrent.status==="betting"&&<div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:12,marginBottom:8}}>
-            <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:8}} className="wt">{FM[revCurrent.familyA].nom} vs {FM[revCurrent.familyB].nom}</div>
-            <div style={{fontSize:13,color:"#5C4A3A",marginBottom:6}}>Ustalcie stawkę (max {revMaxBet} $):</div>
-            <div style={{display:"flex",gap:8,alignItems:"center"}}>
-              <input type="number" id="revBetInput" min={1} max={revMaxBet} step={1} defaultValue={Math.min(30,revMaxBet)} style={{width:80,padding:4,borderRadius:4,border:"1px solid #842504",fontSize:13}}/>
-              <button style={btnS("success")} onClick={()=>{var v=parseInt(document.getElementById("revBetInput").value)||0;if(v<1||v>revMaxBet){showMsg("Stawka musi wynosić od 1 do "+revMaxBet+" $");return;}revSetBet(v);}}>Zatwierdź stawkę</button>
-              <button style={btnS("danger")} onClick={()=>setRevCurrent(null)}>Anuluj</button>
-            </div>
-          </div>}
-          {(revCurrent.status==="playing"||revCurrent.status==="reveal")&&<div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:12}}>
-            <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:4}} className="wt">{FM[revCurrent.familyA].nom} vs {FM[revCurrent.familyB].nom} — stawka: {revCurrent.bet} $</div>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-              <div style={{fontSize:13,color:FM[revCurrent.familyA].col}}><b>{FM[revCurrent.familyA].nom}</b>: {revCurrent.ammoA} strzałów {revCurrent.shotsA!==null?"(✓ gotowy)":"(czeka...)"}</div>
-              <div style={{fontSize:13,color:FM[revCurrent.familyB].col}}><b>{FM[revCurrent.familyB].nom}</b>: {revCurrent.ammoB} strzałów {revCurrent.shotsB!==null?"(✓ gotowy)":"(czeka...)"}</div>
-            </div>
-            {/* PLANSZA MINI */}
-            <div style={{display:"flex",gap:2,marginBottom:8,alignItems:"stretch"}}>
-              {["WYGRANA","DOMINACJA","PRZEWAGA","POJEDYNEK","PRZEWAGA","DOMINACJA","WYGRANA"].map((label,idx)=>{
-                var pos=idx-3,isBullet=revCurrent.bulletPos===pos;
-                var imgKey=label==="POJEDYNEK"?"POJEDYNEK":label==="PRZEWAGA"?"PRZEWAGA":label==="DOMINACJA"?"DOMINACJA":"WYGRANA";
-                var img=getRevImg(imgKey);
-                var borderCol=isBullet?"#8B2500":"#D4C4A8";
-                return(<div key={idx} style={{flex:1,border:"2px solid "+borderCol,borderRadius:4,textAlign:"center",position:"relative",overflow:"hidden",minHeight:50}}>
-                  {img&&<img src={img} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt={label}/>}
-                  {!img&&<div style={{padding:"8px 4px"}}><div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase"}}>{label}</div></div>}
-                  {isBullet&&<div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)"}}>
-                    {getRevImg("NABOJ_ZNACZNIK")?<img src={getRevImg("NABOJ_ZNACZNIK")} style={{height:35,filter:"drop-shadow(0 2px 3px rgba(0,0,0,0.5))"}} alt="nabój"/>:<div style={{fontSize:20}}>●</div>}
-                  </div>}
+        {revMode==="arena"&&revCurrent&&revCurrent.status==="betting"&&<div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:12,marginBottom:8}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:8}} className="wt">{FM[revCurrent.familyA].nom} vs {FM[revCurrent.familyB].nom}</div>
+          <div style={{fontSize:13,color:"#5C4A3A",marginBottom:6}}>Ustalcie stawkę (max {revMaxBet} $):</div>
+          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+            <input type="number" id="revBetInput" min={1} max={revMaxBet} step={1} defaultValue={Math.min(30,revMaxBet)} style={{width:80,padding:4,borderRadius:4,border:"1px solid #842504",fontSize:13}}/>
+            <button style={btnS("success")} onClick={()=>{var v=parseInt(document.getElementById("revBetInput").value)||0;if(v<1||v>revMaxBet){showMsg("Stawka musi wynosić od 1 do "+revMaxBet+" $");return;}revSetBet(v);}}>Zatwierdź stawkę</button>
+            <button style={btnS("danger")} onClick={()=>setRevCurrent(null)}>Anuluj</button>
+          </div>
+        </div>}
+
+        {/* === TOURNAMENT MODE — pair selection === */}
+        {revMode==="tournament"&&revActive.length===0&&(()=>{
+          var allPairs=[];FO.forEach((a,ai)=>FO.slice(ai+1).forEach(b=>{var played=revDuels.some(d=>(d.familyA===a&&d.familyB===b)||(d.familyA===b&&d.familyB===a));allPairs.push({a,b,played});}));
+          // auto-generate valid 2-pair combos (each family in exactly one pair)
+          var combos=[];
+          for(var i=0;i<allPairs.length;i++){
+            for(var j=i+1;j<allPairs.length;j++){
+              var p1=allPairs[i],p2=allPairs[j];
+              var fams=new Set([p1.a,p1.b,p2.a,p2.b]);
+              if(fams.size===4&&!p1.played&&!p2.played)combos.push([p1,p2]);
+            }
+          }
+          return(<div>
+            <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:6}}>Wybierz sparowanie turnieju (2 pary, 4 rodziny):</div>
+            {combos.length===0&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak dostępnych sparowań — wszystkie możliwe pary zostały już rozegrane.</div>}
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {combos.map((combo,ci2)=>{
+                var [p1,p2]=combo;
+                return(<div key={ci2} style={{display:"flex",gap:8,alignItems:"center",background:"#fff",border:"1px solid #D4C4A8",borderRadius:6,padding:"8px 12px"}}>
+                  <div style={{flex:1,fontSize:13}}><b style={{color:FM[p1.a].col}}>{FM[p1.a].nom}</b> vs <b style={{color:FM[p1.b].col}}>{FM[p1.b].nom}</b></div>
+                  <div style={{fontSize:13,color:"#8B7355"}}>+</div>
+                  <div style={{flex:1,fontSize:13}}><b style={{color:FM[p2.a].col}}>{FM[p2.a].nom}</b> vs <b style={{color:FM[p2.b].col}}>{FM[p2.b].nom}</b></div>
+                  <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                    <input type="number" id={"tBet"+ci2} min={1} max={revMaxBet} step={1} defaultValue={Math.min(30,revMaxBet)} style={{width:70,padding:4,borderRadius:4,border:"1px solid #842504",fontSize:13}}/>
+                    <span style={{fontSize:11,color:"#8B7355"}}>$</span>
+                    <button style={btnS("success")} onClick={()=>{var v=parseInt(document.getElementById("tBet"+ci2).value)||0;if(v<1||v>revMaxBet){showMsg("Stawka od 1 do "+revMaxBet+" $");return;}revStartTournament([p1.a,p1.b],[p2.a,p2.b],v);}}>Startuj turniej</button>
+                  </div>
                 </div>);
               })}
             </div>
-            {/* AMUNICJA TRENERA = KIBIC */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-              {[["A",revCurrent.familyA,revCurrent.ammoA],["B",revCurrent.familyB,revCurrent.ammoB]].map(([side,fam,ammo])=>{
-                var col=FM[fam].col;var ammoImg=getRevImg("NABOJ_AMMO");var rows=[];
-                for(var r=0;r<5;r++){var cols2=[];for(var c=0;c<10;c++){var idx2=r*10+c;var alive=idx2<ammo;cols2.push(ammoImg?<div key={c} style={{width:10,height:20,transition:"all 0.3s",opacity:alive?1:0.15}}><img src={ammoImg} style={{width:10,height:20,objectFit:"contain"}} alt=""/></div>:<div key={c} style={{width:10,height:20,borderRadius:2,background:alive?col:"#E8E0D0",border:"1px solid "+(alive?"rgba(0,0,0,0.15)":"#D4C4A8"),opacity:alive?1:0.3}}/>);}rows.push(<div key={r} style={{display:"flex",gap:1,marginBottom:1}}>{cols2}</div>);}
-                return(<div key={side}><div style={{fontSize:13,fontWeight:700,color:col,marginBottom:2}}>{FM[fam].nom}: {ammo}/50</div>{rows}</div>);
-              })}
-            </div>
-            {(revCurrent.rounds||[]).length>0&&<div style={{fontSize:13,color:"#8B7355",marginBottom:6}}>
-              {(revCurrent.rounds||[]).map((r,i)=><span key={i} style={{marginRight:8}}>R{i+1}: {r.shotsA} vs {r.shotsB} → {r.winner==="A"?"←":r.winner==="B"?"→":"="}</span>)}
-            </div>}
-            {revCurrent.shotsA!==null&&revCurrent.shotsB!==null&&revCurrent.status==="playing"&&<button style={btnS("warning")} onClick={revReveal}>Odsłoń strzały</button>}
-            {revCurrent.status==="playing"&&revCurrent.timerPhase&&revTimer>0&&<div style={{fontSize:16,fontWeight:700,color:revTimer<=5?"#8B2500":"#842504",textAlign:"center",padding:"6px 0",fontFamily:"monospace"}}>
-              {revCurrent.timerPhase==="declaration"?"Czas na deklarację: ":"Odsłonięcie za: "}{revTimer}s
-            </div>}
-            {revCurrent.status!=="playing"&&revCurrent.status!=="finished"&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Oczekiwanie na deklaracje obu rodzin...</div>}
-          </div>}
-          {revCurrent.status==="finished"&&<div style={{background:"#fff",border:"2px solid #8B2500",borderRadius:6,padding:12,marginTop:8}}>
-            <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:6}} className="wt">Koniec pojedynku!</div>
-            <div style={{fontSize:13,color:"#5C4A3A",marginBottom:4}}>{revCurrent.winner?<span>Wygrywa: <b style={{color:FM[revCurrent.winner].col}}>{FM[revCurrent.winner].nom}</b> (pole: {revCurrent.winField})</span>:<span>Remis!</span>}</div>
-            {revCurrent.winner&&<div style={{fontSize:13,color:"#5C4A3A",marginBottom:8}}>Transfer: {Math.round(revCurrent.bet*(revCurrent.winField==="wygrana"?1:revCurrent.winField==="dominacja"?2/3:1/3))} $ → {FM[revCurrent.winner].nom}</div>}
-            <button style={btnS("success")} onClick={revSettle}>Rozlicz i zakończ</button>
-          </div>}
+          </div>);
+        })()}
+
+        {/* === ACTIVE DUELS DISPLAY (both modes) === */}
+        {revActive.filter(d=>d.status!=="betting").length>0&&<div style={{display:"grid",gridTemplateColumns:revActive.filter(d=>d.status!=="betting").length>1?"1fr 1fr":"1fr",gap:12,marginTop:8}}>
+          {revActive.filter(d=>d.status!=="betting").map(duel=>{
+            var dt=getRevTimer(duel.id);
+            return(<div key={duel.id} style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:12}}>
+              <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:4}} className="wt">{FM[duel.familyA].nom} vs {FM[duel.familyB].nom} — stawka: {duel.bet} $</div>
+              {duel.status==="playing"&&<div>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+                  <div style={{fontSize:13,color:FM[duel.familyA].col}}><b>{FM[duel.familyA].nom}</b>: {duel.ammoA} szt. {duel.shotsA!==null?"(✓ gotowy)":"(czeka...)"}</div>
+                  <div style={{fontSize:13,color:FM[duel.familyB].col}}><b>{FM[duel.familyB].nom}</b>: {duel.ammoB} szt. {duel.shotsB!==null?"(✓ gotowy)":"(czeka...)"}</div>
+                </div>
+                {/* PLANSZA MINI */}
+                <div style={{display:"flex",gap:2,marginBottom:8,alignItems:"stretch"}}>
+                  {["WYGRANA","DOMINACJA","PRZEWAGA","POJEDYNEK","PRZEWAGA","DOMINACJA","WYGRANA"].map((label,idx)=>{
+                    var pos=idx-3,isBullet=duel.bulletPos===pos;
+                    var img=getRevImg(label==="POJEDYNEK"?"POJEDYNEK":label==="PRZEWAGA"?"PRZEWAGA":label==="DOMINACJA"?"DOMINACJA":"WYGRANA");
+                    return(<div key={idx} style={{flex:1,border:"2px solid "+(isBullet?"#8B2500":"#D4C4A8"),borderRadius:4,textAlign:"center",position:"relative",overflow:"hidden",minHeight:50}}>
+                      {img&&<img src={img} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt={label}/>}
+                      {!img&&<div style={{padding:"8px 4px"}}><div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase"}}>{label}</div></div>}
+                      {isBullet&&<div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)"}}>
+                        {getRevImg("NABOJ_ZNACZNIK")?<img src={getRevImg("NABOJ_ZNACZNIK")} style={{height:28,filter:"drop-shadow(0 2px 3px rgba(0,0,0,0.5))"}} alt="nabój"/>:<div style={{fontSize:18}}>●</div>}
+                      </div>}
+                    </div>);
+                  })}
+                </div>
+                {/* AMUNICJA */}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:6}}>
+                  {[["A",duel.familyA,duel.ammoA],["B",duel.familyB,duel.ammoB]].map(([side,fam,ammo])=>{
+                    var col=FM[fam].col;var ammoImg=getRevImg("NABOJ_AMMO");var rows=[];
+                    for(var r=0;r<5;r++){var cols2=[];for(var c=0;c<10;c++){var idx2=r*10+c;var alive=idx2<ammo;cols2.push(ammoImg?<div key={c} style={{width:8,height:16,transition:"all 0.3s",opacity:alive?1:0.15}}><img src={ammoImg} style={{width:8,height:16,objectFit:"contain"}} alt=""/></div>:<div key={c} style={{width:8,height:16,borderRadius:2,background:alive?col:"#E8E0D0",border:"1px solid "+(alive?"rgba(0,0,0,0.15)":"#D4C4A8"),opacity:alive?1:0.3}}/>);}rows.push(<div key={r} style={{display:"flex",gap:1,marginBottom:1}}>{cols2}</div>);}
+                    return(<div key={side}><div style={{fontSize:11,fontWeight:700,color:col,marginBottom:2}}>{FM[fam].nom}: {ammo}/50</div>{rows}</div>);
+                  })}
+                </div>
+                {(duel.rounds||[]).length>0&&<div style={{fontSize:12,color:"#8B7355",marginBottom:4}}>
+                  {(duel.rounds||[]).map((r,i)=><span key={i} style={{marginRight:6}}>R{i+1}: {r.shotsA} vs {r.shotsB} → {r.winner==="A"?"←":r.winner==="B"?"→":"="}</span>)}
+                </div>}
+                {duel.shotsA!==null&&duel.shotsB!==null&&<button style={{...btnS("warning"),fontSize:12}} onClick={()=>revRevealDuel(duel.id)}>Odsłoń strzały</button>}
+                {duel.timerPhase&&dt>0&&<div style={{fontSize:14,fontWeight:700,color:dt<=5?"#8B2500":"#842504",textAlign:"center",padding:"4px 0",fontFamily:"monospace"}}>
+                  {duel.timerPhase==="declaration"?"Deklaracja: ":"Odsłonięcie: "}{dt}s
+                </div>}
+              </div>}
+              {duel.status==="finished"&&<div style={{background:"#FFF0EC",border:"1px solid #8B2500",borderRadius:4,padding:10,marginTop:4}}>
+                <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:4}} className="wt">Koniec!</div>
+                <div style={{fontSize:13,color:"#5C4A3A",marginBottom:4}}>{duel.winner?<span>Wygrywa: <b style={{color:FM[duel.winner].col}}>{FM[duel.winner].nom}</b> ({duel.winField})</span>:<span>Remis!</span>}</div>
+                {duel.winner&&<div style={{fontSize:12,color:"#5C4A3A",marginBottom:6}}>Transfer: {Math.round(duel.bet*(duel.winField==="wygrana"?1:duel.winField==="dominacja"?2/3:1/3))} $</div>}
+                <button style={{...btnS("success"),fontSize:12}} onClick={()=>revSettleDuel(duel.id)}>Rozlicz</button>
+              </div>}
+            </div>);
+          })}
+        </div>}
+        {/* Rozlicz oba — tournament shortcut */}
+        {revMode==="tournament"&&revActive.length>0&&revActive.every(d=>d.status==="finished")&&<div style={{textAlign:"center",marginTop:10}}>
+          <button style={btnS("success")} onClick={()=>{revActive.forEach(d=>revSettleDuel(d.id));}}>Rozlicz oba pojedynki</button>
+        </div>}
+
+        {/* HISTORIA */}
+        {(revDuels||[]).length>0&&<div style={{marginTop:12}}>
+          <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:4}}>Historia pojedynków:</div>
+          {revDuels.map(d=>{var wN=d.winner?FM[d.winner].nom:"Remis";return(
+            <div key={d.id} style={{fontSize:13,color:"#5C4A3A",padding:"3px 0",borderBottom:"1px dotted #D4C4A8"}}>{FM[d.familyA].nom} vs {FM[d.familyB].nom} — <b>{wN}</b> ({d.winField}, {d.rounds.length} rund, stawka {d.bet} $)</div>
+          );})}
         </div>}
       </div>}
     </div>
@@ -1912,72 +1974,134 @@ function App({roomCode,role}) {
   const [revEnabled,setRevEnabled]=useState(false);
   const [revMaxBet,setRevMaxBet]=useState(60);
   const [revDuels,setRevDuels]=useState([]);
-  const [revCurrent,setRevCurrent]=useState(null);
-  const [revTimer,setRevTimer]=useState(-1);
-  const revTimerRef=useRef(null);
+  const [revMode,setRevMode]=useState("arena"); // 'arena' | 'tournament'
+  const [revActive,setRevActive]=useState([]); // array of active duels (max 1 arena, max 2 tournament)
   const REV_DECL_TIME=30, REV_REVEAL_TIME=10;
+  // Compatibility layer — arena mode uses revActive[0] as revCurrent
+  const revCurrent=revActive.length>0?revActive[0]:null;
+  function setRevCurrent(valOrFn){
+    setRevActive(prev=>{
+      if(typeof valOrFn==="function"){
+        var old=prev.length>0?prev[0]:null;
+        var nv=valOrFn(old);
+        if(nv===null)return prev.filter((_,i)=>i!==0);
+        return prev.length>0?[nv,...prev.slice(1)]:[nv];
+      } else {
+        if(valOrFn===null)return prev.filter((_,i)=>i!==0);
+        return prev.length>0?[valOrFn,...prev.slice(1)]:[valOrFn];
+      }
+    });
+  }
+  // Per-duel timers (replace single revTimer/revTimerRef)
+  const [revTimers,setRevTimers]=useState({}); // {duelId: seconds}
+  const revTimerRef=useRef(null);
+  function getRevTimer(duelId){return revTimers[duelId]!==undefined?revTimers[duelId]:-1;}
+  // backward compat: revTimer = timer for first active duel
+  const revTimer=revCurrent?getRevTimer(revCurrent.id):-1;
   // revCurrent shape: {id, familyA, familyB, bet:0, bulletPos:0, ammoA:50, ammoB:50, rounds:[], shotsA:null, shotsB:null, status:'betting'|'playing'|'reveal'|'finished', winner:null, winField:null, timerPhase:null|'declaration'|'reveal'}
   function revNewDuel(fA,fB){setRevCurrent({id:ci(),familyA:fA,familyB:fB,bet:0,bulletPos:0,ammoA:50,ammoB:50,rounds:[],shotsA:null,shotsB:null,status:"betting",winner:null,winField:null,timerPhase:null});}
-  function revSetBet(amt){setRevCurrent(c=>c?{...c,bet:amt,status:"playing",timerPhase:"declaration"}:c);setRevTimer(REV_DECL_TIME);}
-  function revSubmitShots(fId,n){setRevCurrent(c=>{if(!c)return c;if(fId===c.familyA)return{...c,shotsA:n};if(fId===c.familyB)return{...c,shotsB:n};return c;});}
-  // Auto-start reveal timer when both shots are in
+  function revSetBet(amt){setRevCurrent(c=>{if(!c)return c;var u={...c,bet:amt,status:"playing",timerPhase:"declaration"};setRevTimers(t=>({...t,[c.id]:REV_DECL_TIME}));return u;});}
+  function revSubmitShots(fId,n){
+    // Find the duel this family is part of and update shots
+    setRevActive(prev=>prev.map(d=>{
+      if(fId===d.familyA)return{...d,shotsA:n};
+      if(fId===d.familyB)return{...d,shotsB:n};
+      return d;
+    }));
+  }
+  // Helper: update a specific duel in revActive by id
+  function revUpdateDuel(duelId,fn){
+    setRevActive(prev=>prev.map(d=>d.id===duelId?fn(d):d));
+  }
+  // Auto-start reveal timer when both shots are in (per duel)
   useEffect(()=>{
-    if(!revCurrent||revCurrent.status!=="playing") return;
-    if(revCurrent.shotsA!==null&&revCurrent.shotsB!==null&&revCurrent.timerPhase==="declaration"){
-      setRevCurrent(c=>c?{...c,timerPhase:"reveal"}:c);
-      setRevTimer(REV_REVEAL_TIME);
-    }
-  },[revCurrent?revCurrent.shotsA:null,revCurrent?revCurrent.shotsB:null]);
-  // Timer tick
+    revActive.forEach(d=>{
+      if(d.status==="playing"&&d.shotsA!==null&&d.shotsB!==null&&d.timerPhase==="declaration"){
+        revUpdateDuel(d.id,c=>({...c,timerPhase:"reveal"}));
+        setRevTimers(t=>({...t,[d.id]:REV_REVEAL_TIME}));
+      }
+    });
+  },[revActive.map(d=>d.id+"|"+d.shotsA+"|"+d.shotsB).join(",")]);
+  // Unified timer tick — ticks all active duels with running timers
   useEffect(()=>{
     if(revTimerRef.current) clearInterval(revTimerRef.current);
-    if(!revCurrent||!revCurrent.timerPhase||revTimer<=0) return;
+    var anyRunning=revActive.some(d=>d.timerPhase&&getRevTimer(d.id)>0);
+    if(!anyRunning) return;
     revTimerRef.current=setInterval(()=>{
-      setRevTimer(t=>{
-        if(t<=1){
-          clearInterval(revTimerRef.current);
-          return 0;
-        }
-        return t-1;
+      setRevTimers(prev=>{
+        var next={...prev};var anyLeft=false;
+        revActive.forEach(d=>{
+          if(d.timerPhase&&prev[d.id]>0){
+            next[d.id]=prev[d.id]-1;
+            if(next[d.id]>0)anyLeft=true;
+          }
+        });
+        if(!anyLeft&&revTimerRef.current)clearInterval(revTimerRef.current);
+        return next;
       });
     },1000);
     return ()=>{if(revTimerRef.current)clearInterval(revTimerRef.current);};
-  },[revCurrent?revCurrent.timerPhase:null,revTimer>0]);
-  // Timer expiry actions — only when timer counted down from positive (not on mount with -1)
+  },[revActive.map(d=>d.id+"|"+d.timerPhase).join(","),Object.values(revTimers).some(v=>v>0)]);
+  // Timer expiry actions — per duel
   useEffect(()=>{
-    if(revTimer!==0||!revCurrent) return;
-    if(revCurrent.timerPhase==="declaration"){
-      setRevCurrent(c=>{if(!c)return c;return{...c,shotsA:c.shotsA===null?0:c.shotsA,shotsB:c.shotsB===null?0:c.shotsB,timerPhase:"reveal"};});
-      setRevTimer(REV_REVEAL_TIME);
-    } else if(revCurrent.timerPhase==="reveal"&&revCurrent.shotsA!==null&&revCurrent.shotsB!==null){
-      revReveal();
-    }
-  },[revTimer]);
-  function revReveal(){setRevCurrent(c=>{if(!c||c.shotsA===null||c.shotsB===null)return c;var sA=c.shotsA,sB=c.shotsB,newPos=c.bulletPos,aA=c.ammoA-sA,aB=c.ammoB-sB;
-    if(sA>sB)newPos=Math.max(-3,c.bulletPos-1);else if(sB>sA)newPos=Math.min(3,c.bulletPos+1);
-    var round={shotsA:sA,shotsB:sB,winner:sA>sB?"A":sB>sA?"B":"draw",bulletAfter:newPos};
-    var rounds=[...(c.rounds||[]),round];var status="playing",winner=null,winField=null;
-    var fields=["wygrana","dominacja","przewaga","pojedynek","przewaga","dominacja","wygrana"];
-    winField=fields[newPos+3];
-    if(Math.abs(newPos)===3){status="finished";winner=newPos<0?c.familyA:c.familyB;}
-    else if(aA<=0&&aB<=0){status="finished";winner=newPos<0?c.familyA:newPos>0?c.familyB:null;}
-    return{...c,bulletPos:newPos,ammoA:aA,ammoB:aB,rounds:rounds,shotsA:null,shotsB:null,status:status,winner:winner,winField:winField,timerPhase:null};
-  });}
-  // Restart declaration timer when new round begins (after reveal cleared timerPhase)
+    revActive.forEach(d=>{
+      var t=getRevTimer(d.id);
+      if(t!==0)return;
+      if(d.timerPhase==="declaration"){
+        revUpdateDuel(d.id,c=>({...c,shotsA:c.shotsA===null?0:c.shotsA,shotsB:c.shotsB===null?0:c.shotsB,timerPhase:"reveal"}));
+        setRevTimers(prev=>({...prev,[d.id]:REV_REVEAL_TIME}));
+      } else if(d.timerPhase==="reveal"&&d.shotsA!==null&&d.shotsB!==null){
+        revRevealDuel(d.id);
+      }
+    });
+  },[JSON.stringify(revTimers)]);
+  function revRevealDuel(duelId){
+    revUpdateDuel(duelId,c=>{
+      if(!c||c.shotsA===null||c.shotsB===null)return c;
+      var sA=c.shotsA,sB=c.shotsB,newPos=c.bulletPos,aA=c.ammoA-sA,aB=c.ammoB-sB;
+      if(sA>sB)newPos=Math.max(-3,c.bulletPos-1);else if(sB>sA)newPos=Math.min(3,c.bulletPos+1);
+      var round={shotsA:sA,shotsB:sB,winner:sA>sB?"A":sB>sA?"B":"draw",bulletAfter:newPos};
+      var rounds=[...(c.rounds||[]),round];var status="playing",winner=null,winField=null;
+      var fields=["wygrana","dominacja","przewaga","pojedynek","przewaga","dominacja","wygrana"];
+      winField=fields[newPos+3];
+      if(Math.abs(newPos)===3){status="finished";winner=newPos<0?c.familyA:c.familyB;}
+      else if(aA<=0&&aB<=0){status="finished";winner=newPos<0?c.familyA:newPos>0?c.familyB:null;}
+      return{...c,bulletPos:newPos,ammoA:aA,ammoB:aB,rounds:rounds,shotsA:null,shotsB:null,status:status,winner:winner,winField:winField,timerPhase:null};
+    });
+  }
+  // backward compat wrapper
+  function revReveal(){if(revCurrent)revRevealDuel(revCurrent.id);}
+  // Restart declaration timer when new round begins (per duel)
   useEffect(()=>{
-    if(revCurrent&&revCurrent.status==="playing"&&revCurrent.timerPhase===null&&revCurrent.shotsA===null&&revCurrent.shotsB===null&&(revCurrent.rounds||[]).length>0){
-      setRevCurrent(c=>c?{...c,timerPhase:"declaration"}:c);
-      setRevTimer(REV_DECL_TIME);
-    }
-  },[revCurrent?((revCurrent.rounds||[]).length+"|"+revCurrent.timerPhase):null]);
-  function revSettle(){if(!revCurrent||revCurrent.status!=="finished")return;var c=revCurrent;
+    revActive.forEach(d=>{
+      if(d.status==="playing"&&d.timerPhase===null&&d.shotsA===null&&d.shotsB===null&&(d.rounds||[]).length>0){
+        revUpdateDuel(d.id,c=>({...c,timerPhase:"declaration"}));
+        setRevTimers(t=>({...t,[d.id]:REV_DECL_TIME}));
+      }
+    });
+  },[revActive.map(d=>d.id+"|"+(d.rounds||[]).length+"|"+d.timerPhase).join(",")]);
+  function revSettleDuel(duelId){
+    var c=revActive.find(d=>d.id===duelId);
+    if(!c||c.status!=="finished")return;
     var payFrac=c.winField==="wygrana"?1:c.winField==="dominacja"?2/3:c.winField==="przewaga"?1/3:0;
     var winAmt=Math.round(c.bet*payFrac);
     if(c.winner&&winAmt>0){var loser=c.winner===c.familyA?c.familyB:c.familyA;
       setFd(fd2=>{var n={...fd2};n[c.winner]={...n[c.winner],cash:n[c.winner].cash+winAmt};n[loser]={...n[loser],cash:n[loser].cash-winAmt};return n;});
       setTxs(p=>[...p,{id:ci(),type:"revolver",from:loser,to:c.winner,amount:winAmt,field:c.winField,status:"accepted",ts:Date.now()}]);
     }
-    setRevDuels(d=>[...d,{...c,settled:true}]);setRevCurrent(null);
+    setRevDuels(d=>[...d,{...c,settled:true}]);
+    setRevActive(prev=>prev.filter(d=>d.id!==duelId));
+    setRevTimers(prev=>{var n={...prev};delete n[duelId];return n;});
+  }
+  // backward compat wrapper
+  function revSettle(){if(revCurrent)revSettleDuel(revCurrent.id);}
+
+  // Tournament: start 2 duels simultaneously
+  function revStartTournament(pair1,pair2,bet){
+    var d1={id:ci(),familyA:pair1[0],familyB:pair1[1],bet:bet,bulletPos:0,ammoA:50,ammoB:50,rounds:[],shotsA:null,shotsB:null,status:"playing",winner:null,winField:null,timerPhase:"declaration"};
+    var d2={id:ci(),familyA:pair2[0],familyB:pair2[1],bet:bet,bulletPos:0,ammoA:50,ammoB:50,rounds:[],shotsA:null,shotsB:null,status:"playing",winner:null,winField:null,timerPhase:"declaration"};
+    setRevActive([d1,d2]);
+    setRevTimers({[d1.id]:REV_DECL_TIME,[d2.id]:REV_DECL_TIME});
   }
 
   // === SCHEDULE STATE ===
@@ -2008,7 +2132,7 @@ function App({roomCode,role}) {
   useEffect(()=>{
     stateRef.current={fd,txs:txs.length?txs:[],consultations,consultNotes,blindFate,mapBonusClaimed,mapEnabled,plotPenalties,
       relations,relationsUnlocked,biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,resultsReveal,
-      revEnabled,revMaxBet,revDuels:revDuels.length?revDuels:[],revCurrent:revCurrentToFB(revCurrent),
+      revEnabled,revMaxBet,revMode,revDuels:revDuels.length?revDuels:[],revActive:revActiveToFB(revActive),revCurrent:revCurrentToFB(revCurrent),
       gameStarted,stageIdx,stageDurations,
       timerRunning,timerPaused,secondsLeft,sheriffCalls:sheriffCalls.length?sheriffCalls:[]};
   });
@@ -2062,7 +2186,14 @@ function App({roomCode,role}) {
       if(s.revEnabled!==undefined)setRevEnabled(s.revEnabled);
       if(s.revMaxBet!==undefined)setRevMaxBet(s.revMaxBet);
       if(s.revDuels)setRevDuels(Array.isArray(s.revDuels)?s.revDuels:Object.values(s.revDuels));
-      setRevCurrent(revCurrentFromFB(s.revCurrent));
+      if(s.revMode)setRevMode(s.revMode);
+      // Read revActive (new format) with backward compat for old revCurrent
+      if(s.revActive!==undefined){
+        setRevActive(revActiveFromFB(s.revActive));
+      } else if(s.revCurrent!==undefined){
+        var rc=revCurrentFromFB(s.revCurrent);
+        setRevActive(rc?[rc]:[]);
+      }
       if(s.gameStarted!==undefined)setGameStarted(s.gameStarted);
       if(s.stageIdx!==undefined)setStageIdx(s.stageIdx);
       if(s.stageDurations)setStageDurations(s.stageDurations);
@@ -2081,8 +2212,8 @@ function App({roomCode,role}) {
     if(fbIncoming.current||!fbInitDone.current)return;
     syncToFB();
   },[fd,txs,consultations,consultNotes,blindFate,mapBonusClaimed,mapEnabled,plotPenalties,relations,relationsUnlocked,
-    biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,resultsReveal,revEnabled,revMaxBet,revDuels,
-    revCurrent,gameStarted,stageIdx,stageDurations,timerRunning,timerPaused,secondsLeft,sheriffCalls]);
+    biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,resultsReveal,revEnabled,revMaxBet,revMode,revDuels,
+    revActive,gameStarted,stageIdx,stageDurations,timerRunning,timerPaused,secondsLeft,sheriffCalls]);
 
   const showMsg=useCallback(m=>{setToast(m);setTimeout(()=>setToast(null),3000);},[]);
 
@@ -2329,7 +2460,7 @@ function App({roomCode,role}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.3.2</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.3.3</div>
       </div>
     </div>
     {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
@@ -2354,7 +2485,7 @@ function App({roomCode,role}) {
     {viewSheriff&&sheriffViewFamily&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:13,color:"#664D03",textAlign:"center"}}>
       Podgląd panelu rodziny {FM[sheriffViewFamily].gen} <button style={{marginLeft:8,fontSize:13,padding:"2px 8px",cursor:"pointer",background:"#8B6914",color:"#fff",border:"none",borderRadius:3,fontFamily:"inherit"}} onClick={()=>setSheriffViewFamily(null)}>Wróć do panelu Szeryfa</button>
     </div>}
-    {viewSheriff&&!sheriffViewFamily&&<SheriffPanel fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} consultNotes={consultNotes} setConsultNotes={setConsultNotes} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} resultsReveal={resultsReveal} setResultsReveal={setResultsReveal} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} manualMode={manualMode} setManualMode={setManualMode} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle}/>}
+    {viewSheriff&&!sheriffViewFamily&&<SheriffPanel fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} consultNotes={consultNotes} setConsultNotes={setConsultNotes} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} resultsReveal={resultsReveal} setResultsReveal={setResultsReveal} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} manualMode={manualMode} setManualMode={setManualMode} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle} revMode={revMode} setRevMode={setRevMode} revActive={revActive} setRevActive={setRevActive} revStartTournament={revStartTournament} getRevTimer={getRevTimer} revRevealDuel={revRevealDuel} revSettleDuel={revSettleDuel}/>}
 
     {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
@@ -2561,7 +2692,8 @@ function App({roomCode,role}) {
             </div></div>);
           })()}
           {activeTab==="rev"&&revEnabled&&(()=>{
-            var rc=revCurrent;
+            var rc=revActive.find(d=>d.familyA===familyId||d.familyB===familyId)||revCurrent;
+            var duelTimer=rc?getRevTimer(rc.id):-1;
             var isPlayer=rc&&(rc.familyA===familyId||rc.familyB===familyId);
             var isA=rc&&rc.familyA===familyId;
             var myAmmo=rc?(isA?rc.ammoA:rc.ammoB):0;
@@ -2607,9 +2739,9 @@ function App({roomCode,role}) {
                   <AmmoGrid ammo={rc.ammoB} col={FM[rc.familyB].col} label={FM[rc.familyB].nom}/>
                 </div>}
                 {/* TIMER */}
-                {isPlayer&&rc.status==="playing"&&rc.timerPhase&&revTimer>0&&<div style={{textAlign:"center",padding:"8px 0",marginBottom:8}}>
-                  <div style={{fontSize:20,fontWeight:700,color:revTimer<=5?"#8B2500":"#842504",fontFamily:"monospace"}}>
-                    {rc.timerPhase==="declaration"&&myShots===null?"Czas na deklarację: ":rc.timerPhase==="reveal"?"Odsłonięcie za: ":""}{(rc.timerPhase==="declaration"&&myShots===null)||rc.timerPhase==="reveal"?revTimer+"s":""}
+                {isPlayer&&rc.status==="playing"&&rc.timerPhase&&duelTimer>0&&<div style={{textAlign:"center",padding:"8px 0",marginBottom:8}}>
+                  <div style={{fontSize:20,fontWeight:700,color:duelTimer<=5?"#8B2500":"#842504",fontFamily:"monospace"}}>
+                    {rc.timerPhase==="declaration"&&myShots===null?"Czas na deklarację: ":rc.timerPhase==="reveal"?"Odsłonięcie za: ":""}{(rc.timerPhase==="declaration"&&myShots===null)||rc.timerPhase==="reveal"?duelTimer+"s":""}
                   </div>
                 </div>}
                 {/* ODSŁONIĘCIE STRZAŁÓW — pokaż po revealcie, przed następną deklaracją */}
@@ -2654,9 +2786,9 @@ function App({roomCode,role}) {
                 </div>}
                 {/* PODGLĄD KIBICA — widzi obu */}
                 {!isPlayer&&rc.status==="playing"&&<div>
-                  {rc.timerPhase&&revTimer>0&&<div style={{textAlign:"center",padding:"6px 0",marginBottom:8}}>
-                    <span style={{fontSize:18,fontWeight:700,color:revTimer<=5?"#8B2500":"#842504",fontFamily:"monospace"}}>
-                      {rc.timerPhase==="declaration"?"Deklaracja: ":"Odsłonięcie: "}{revTimer}s
+                  {rc.timerPhase&&duelTimer>0&&<div style={{textAlign:"center",padding:"6px 0",marginBottom:8}}>
+                    <span style={{fontSize:18,fontWeight:700,color:duelTimer<=5?"#8B2500":"#842504",fontFamily:"monospace"}}>
+                      {rc.timerPhase==="declaration"?"Deklaracja: ":"Odsłonięcie: "}{duelTimer}s
                     </span>
                   </div>}
                   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
