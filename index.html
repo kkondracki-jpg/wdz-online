@@ -1913,7 +1913,7 @@ function App({roomCode,role}) {
   const [revMaxBet,setRevMaxBet]=useState(60);
   const [revDuels,setRevDuels]=useState([]);
   const [revCurrent,setRevCurrent]=useState(null);
-  const [revTimer,setRevTimer]=useState(0);
+  const [revTimer,setRevTimer]=useState(-1);
   const revTimerRef=useRef(null);
   const REV_DECL_TIME=30, REV_REVEAL_TIME=10;
   // revCurrent shape: {id, familyA, familyB, bet:0, bulletPos:0, ammoA:50, ammoB:50, rounds:[], shotsA:null, shotsB:null, status:'betting'|'playing'|'reveal'|'finished', winner:null, winField:null, timerPhase:null|'declaration'|'reveal'}
@@ -1927,7 +1927,7 @@ function App({roomCode,role}) {
       setRevCurrent(c=>c?{...c,timerPhase:"reveal"}:c);
       setRevTimer(REV_REVEAL_TIME);
     }
-  },[revCurrent&&revCurrent.shotsA,revCurrent&&revCurrent.shotsB]);
+  },[revCurrent?revCurrent.shotsA:null,revCurrent?revCurrent.shotsB:null]);
   // Timer tick
   useEffect(()=>{
     if(revTimerRef.current) clearInterval(revTimerRef.current);
@@ -1942,12 +1942,11 @@ function App({roomCode,role}) {
       });
     },1000);
     return ()=>{if(revTimerRef.current)clearInterval(revTimerRef.current);};
-  },[revCurrent&&revCurrent.timerPhase,revTimer>0]);
-  // Timer expiry actions
+  },[revCurrent?revCurrent.timerPhase:null,revTimer>0]);
+  // Timer expiry actions — only when timer counted down from positive (not on mount with -1)
   useEffect(()=>{
-    if(!revCurrent||revTimer>0) return;
+    if(revTimer!==0||!revCurrent) return;
     if(revCurrent.timerPhase==="declaration"){
-      // Force 0 shots for families that didn't declare
       setRevCurrent(c=>{if(!c)return c;return{...c,shotsA:c.shotsA===null?0:c.shotsA,shotsB:c.shotsB===null?0:c.shotsB,timerPhase:"reveal"};});
       setRevTimer(REV_REVEAL_TIME);
     } else if(revCurrent.timerPhase==="reveal"&&revCurrent.shotsA!==null&&revCurrent.shotsB!==null){
