@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WDZ Online — Platforma Sieciowa v7.3.3</title>
+  <title>WDZ Online — Platforma Sieciowa v7.3.4</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -288,7 +288,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.3.3</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.3.4</div>
       </div>
 
       {/* Initial choice */}
@@ -1252,9 +1252,9 @@ function MapSlot({slotIdx, fragNr, locked, dragOver, onDragStart, onDragOver, on
         opacity:(!locked&&!isEmpty&&!claimed)||isEmpty||locked?1:1,
         boxSizing:"border-box",minHeight:80,position:"relative"}}
     >
-      {isEmpty&&<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:80,fontSize:32,fontWeight:700,color:"#D4C4A8",userSelect:"none"}}>?</div>}
+      {isEmpty&&isSpecial&&<img src={IMG_BASE+"zloto_5.jpg"} style={{width:"100%",height:"auto",display:"block"}} alt="Fragment 5"/>}
+      {isEmpty&&!isSpecial&&<img src={IMG_BASE+"zloto_1-4.jpg"} style={{width:"100%",height:"auto",display:"block"}} alt="Pusty slot"/>}
       {!isEmpty&&<MapFragImg n={fragNr}/>}
-      {isSpecial&&isEmpty&&!claimed&&<div style={{position:"absolute",top:0,left:0,right:0,bottom:0,display:"flex",alignItems:"center",justifyContent:"center",pointerEvents:"none"}}/>}
     </div>
   );
 }
@@ -1342,22 +1342,42 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
           ✓ Zatwierdź — zgarnij premię 300 $
         </button>
       </div>}
-      {claimed&&<div style={{marginTop:8,padding:"6px 12px",background:"#FFF8E7",border:"1px dashed #D4A853",
-        borderRadius:4,fontSize:13,fontWeight:600,color:"#842504",textAlign:"center"}}>
-        Mapa kompletna! Premia 300 $ zgarnieta.
-      </div>}
     </div>}
-    {/* Szeryf / widok bez fId — stary widok statyczny */}
+    {/* Szeryf / widok bez fId — statyczny */}
     {!fId&&<div style={{display:"flex",gap:3,marginBottom:12}}>
-      {[5,4,3,2,1].map(n=>{
-        var have=n<=4?uniqueNrs.indexOf(n)>=0:(winnerFam!==null);
+      {[4,3,2,1].map(n=>{
+        var have=uniqueNrs.indexOf(n)>=0;
         return <div key={n} style={{flex:1,overflow:"hidden",border:"2px solid "+(have?"#A09020":"#D4C4A8"),opacity:have?1:0.3}}>
           <MapFragImg n={n}/>
         </div>;
       })}
+      <div style={{flex:1,overflow:"hidden",border:"3px solid #D4A853",opacity:winnerFam?1:0.3}}>
+        <MapFragImg n={5}/>
+      </div>
     </div>}
-    {winnerFam&&<div style={{marginTop:6,padding:8,background:"#FFF8E7",border:"1px dashed #D4C4A8",fontSize:13,fontWeight:600,color:"#842504",textAlign:"center"}}>
-      Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
+    {/* Napisy po zatwierdzeniu — zwycięzca */}
+    {fId&&winnerFam&&winnerFam===fId&&<div style={{marginTop:8,padding:"10px 14px",background:"#F0FFF4",border:"2px solid #2E7D32",borderRadius:6,textAlign:"center"}}>
+      <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:6,letterSpacing:"0.5px"}} className="wt">
+        Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
+      </div>
+      <div style={{fontSize:28,fontWeight:700,color:"#2E7D32",letterSpacing:"1px"}} className="wt">
+        Mapa kompletna! Premia 300 $ zgarnięta.
+      </div>
+    </div>}
+    {/* Napisy po zatwierdzeniu — przegrani */}
+    {fId&&winnerFam&&winnerFam!==fId&&<div style={{marginTop:8,padding:"10px 14px",background:"#FFF8F8",border:"1px solid #C09090",borderRadius:6,textAlign:"center"}}>
+      <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:6,letterSpacing:"0.5px"}} className="wt">
+        Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
+      </div>
+      <div style={{fontSize:18,fontWeight:700,color:"#8B2500",letterSpacing:"0.5px"}} className="wt">
+        − 100 $ dla rodziny {fId?FM[fId].gen:""}
+      </div>
+    </div>}
+    {/* Napis dla widoku szeryfa (bez fId) */}
+    {!fId&&winnerFam&&<div style={{marginTop:6,padding:8,background:"#FFF8E7",border:"1px dashed #D4C4A8",textAlign:"center"}}>
+      <div style={{fontSize:18,fontWeight:700,color:"#842504",letterSpacing:"0.5px"}} className="wt">
+        Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
+      </div>
     </div>}
   </>);
 }
@@ -1995,7 +2015,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
         var fTx=allTx.filter(t=>t.from===fId||t.to===fId);
         var fPen=penaltyTx.filter(t=>t.from===fId);
         var fFate=txs.filter(t=>t.type==="fate"&&t.from===fId&&t.status==="accepted");
-        var fMap=txs.filter(t=>t.type==="map_bonus"&&(t.from===fId||t.to===fId)&&t.status==="accepted");
+        var fMap=txs.filter(t=>t.type==="map_bonus"&&t.status==="accepted"&&(t.from===fId||(t.to==="all"&&t.from!==fId)));
         var fBnb=txs.filter(t=>t.type==="bnb_settle"&&t.from===fId&&t.status==="accepted");
         var fRev=txs.filter(t=>t.type==="revolver"&&(t.from===fId||t.to===fId)&&t.status==="accepted");
         var hasAny=fTx.length>0||fPen.length>0||fFate.length>0||fMap.length>0||fBnb.length>0||fRev.length>0;
@@ -2386,12 +2406,7 @@ function App({roomCode,role}) {
       return n;
     });
     var ts=Date.now();
-    var newTxs=[];
-    newTxs.push({id:ts.toString(),type:"map_bonus",from:fId,to:"all",status:"accepted",offeredItems:[]});
-    FO.filter(f=>f!==fId).forEach((otherId,idx)=>{
-      newTxs.push({id:(ts+idx+1).toString(),type:"map_bonus",from:fId,to:otherId,status:"accepted",offeredItems:[]});
-    });
-    setTxs(prev=>[...newTxs,...prev]);
+    setTxs(prev=>[{id:ts.toString(),type:"map_bonus",from:fId,to:"all",status:"accepted",offeredItems:[]},...prev]);
     showMsg(FM[fId].nom+" zdobyli kompletną mapę! Bonus 300 $!");
   }
 
@@ -2568,7 +2583,7 @@ function App({roomCode,role}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.3.3</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.3.4</div>
       </div>
     </div>
     {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
