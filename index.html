@@ -770,10 +770,11 @@ function Accordion({title, children, defaultOpen}) {
 }
 
 /* ========== INFO POPUP (?) ========== */
-function InfoPopup({title, children, wide}) {
+function InfoPopup({title, children, wide, icon}) {
   const [open, setOpen] = useState(false);
+  var iconFile = (icon||"ikona_instrukcje")+".png";
   return (<>
-    <img onClick={()=>setOpen(true)} src={IMG_BASE+"ikona_instrukcje.png"} style={{width:22,height:22,cursor:"pointer",marginLeft:8,verticalAlign:"middle",userSelect:"none",flexShrink:0}} alt="?"/>
+    <img onClick={()=>setOpen(true)} src={IMG_BASE+iconFile} style={{width:22,height:22,cursor:"pointer",marginLeft:8,verticalAlign:"middle",userSelect:"none",flexShrink:0}} alt="?"/>
     {open&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.6)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={()=>setOpen(false)}>
       {wide?<div style={{position:"relative",maxWidth:"90vw",maxHeight:"80vh"}} onClick={e=>e.stopPropagation()}>
         <div onClick={()=>setOpen(false)} style={{position:"absolute",top:-12,right:-12,width:28,height:28,borderRadius:"50%",background:"#4C130F",color:"#F5F0E8",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:16,fontWeight:700,lineHeight:1,boxShadow:"0 2px 8px rgba(0,0,0,0.4)",zIndex:1}}>✕</div>
@@ -1223,31 +1224,89 @@ function TxDisplay({tx,cf,onAccept,onReject,onRespond}) {
 }
 
 /* ========== MAP FRAGMENT (with image fallback) ========== */
-function MapFragment({n, have}) {
+/* ========== MAP PUZZLE — FRAGMENT IMAGE ========== */
+function MapFragImg({n, size}) {
   const [imgOk,setImgOk]=useState(true);
-  return <div style={{flex:1,overflow:"hidden",border:"2px solid "+(have?"#A09020":"#D4C4A8"),opacity:have?1:0.3,transition:"all 0.3s"}}>
-    {imgOk?<img src={mapImgUrl(n)} style={{width:"100%",height:"auto",display:"block"}} alt={"Fragment "+n} onError={()=>setImgOk(false)}/>
-    :<div style={{height:120,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,fontWeight:700,color:have?"#706010":"#C4C0B0",background:have?"#EDE8B0":"#F5F2E8"}}>{n}</div>}
-  </div>;
+  var s=size||120;
+  return imgOk
+    ?<img src={mapImgUrl(n)} style={{width:"100%",height:"auto",display:"block"}} alt={"Fragment "+n} onError={()=>setImgOk(false)}/>
+    :<div style={{height:s,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:700,color:"#A09020",background:"#EDE8B0"}}>{n}</div>;
+}
+
+/* ========== MAP PUZZLE SLOT ========== */
+function MapSlot({slotIdx, fragNr, locked, dragOver, onDragStart, onDragOver, onDragLeave, onDrop, claimed}) {
+  var isEmpty = fragNr===0;
+  var isSpecial = locked; // slot 4 = fragment szeryfa
+  var borderCol = dragOver?"#D4A853":(isSpecial?"#D4A853":(isEmpty?"#D4C4A8":"#A09020"));
+  var borderW = dragOver||isSpecial?"3px":"2px";
+  return (
+    <div
+      draggable={!locked&&!isEmpty&&!claimed}
+      onDragStart={!locked&&!isEmpty&&!claimed?e=>onDragStart(e,slotIdx):null}
+      onDragOver={!locked&&!claimed?e=>onDragOver(e,slotIdx):null}
+      onDragLeave={!locked&&!claimed?e=>onDragLeave(e,slotIdx):null}
+      onDrop={!locked&&!claimed?e=>onDrop(e,slotIdx):null}
+      style={{flex:1,border:borderW+" solid "+borderCol,background:isEmpty?"#F5F0E8":"transparent",
+        cursor:(!locked&&!isEmpty&&!claimed)?"grab":"default",
+        transition:"border-color 0.15s",overflow:"hidden",
+        opacity:(!locked&&!isEmpty&&!claimed)||isEmpty||locked?1:1,
+        boxSizing:"border-box",minHeight:80,position:"relative"}}
+    >
+      {isEmpty&&<div style={{display:"flex",alignItems:"center",justifyContent:"center",height:80,fontSize:32,fontWeight:700,color:"#D4C4A8",userSelect:"none"}}>?</div>}
+      {!isEmpty&&<MapFragImg n={fragNr}/>}
+      {isSpecial&&isEmpty&&!claimed&&<div style={{position:"absolute",top:0,left:0,right:0,bottom:0,display:"flex",alignItems:"center",justifyContent:"center",pointerEvents:"none"}}/>}
+    </div>
+  );
 }
 
 /* ========== MAP TRACKER (full width) ========== */
-function MapTracker({items, mapBonusClaimed, fId}) {
+function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onClaim, readonly}) {
+  const [dragOver,setDragOver]=useState(null);
   var frags=items.filter(i=>i.cat===C_MAP);
   var uniqueNrs=[...new Set(frags.map(f=>f.fragNr))];
-  var full=uniqueNrs.length>=4;
-  var winnerFam=null;
-  if(mapBonusClaimed){Object.keys(mapBonusClaimed).forEach(fk=>{if(mapBonusClaimed[fk])winnerFam=fk;});}
   var myFrag=fId?FM[fId].mapFrag:null;
   var ownFragCount=myFrag?frags.filter(f=>f.fragNr===myFrag).length:0;
   var forSale=ownFragCount;
+  var layout=(mapLayout&&fId&&mapLayout[fId])||[0,0,0,0];
+  var claimed=!!(mapBonusClaimed&&fId&&mapBonusClaimed[fId]);
+  var winnerFam=null;
+  if(mapBonusClaimed){Object.keys(mapBonusClaimed).forEach(fk=>{if(mapBonusClaimed[fk])winnerFam=fk;});}
   var mapScore=uniqueNrs.length*2; if(uniqueNrs.length>=4)mapScore=10;
+  // Validate layout: slots 0–3 must be [4,3,2,1]
+  var isCorrect=layout[0]===4&&layout[1]===3&&layout[2]===2&&layout[3]===1;
+  var allFour=layout.indexOf(0)<0&&[...new Set(layout)].length===4;
+  var canClaim=allFour&&isCorrect&&!claimed&&fId&&!readonly;
+
+  function handleDragStart(e,fromIdx){
+    e.dataTransfer.setData("fromIdx",String(fromIdx));
+  }
+  function handleDragOver(e,toIdx){
+    e.preventDefault();
+    setDragOver(toIdx);
+  }
+  function handleDragLeave(e,toIdx){
+    setDragOver(prev=>prev===toIdx?null:prev);
+  }
+  function handleDrop(e,toIdx){
+    e.preventDefault();
+    setDragOver(null);
+    var fromIdx=parseInt(e.dataTransfer.getData("fromIdx"),10);
+    if(isNaN(fromIdx)||fromIdx===toIdx)return;
+    setMapLayout(prev=>{
+      var lay=[...(prev[fId]||[0,0,0,0])];
+      var tmp=lay[fromIdx];
+      lay[fromIdx]=lay[toIdx];
+      lay[toIdx]=tmp;
+      return {...prev,[fId]:lay};
+    });
+  }
+
   return (<>
     <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
       <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Złotodajna Żyła</div>
-      <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
+      <div style={{display:"flex",gap:16,marginTop:6,fontSize:14,flexWrap:"wrap"}}>
         <span>Liczba punktów: <b>{mapScore}</b> <span style={{color:"#A89070"}}>(max 10)</span></span>
-        <span>Posiadane fragmenty mapy: <b>{uniqueNrs.length}/5</b>{full&&<span style={{color:"#2E5B3C",fontWeight:700,marginLeft:4}}>Kompletna!</span>}</span>
+        <span>Posiadane fragmenty mapy: <b>{uniqueNrs.length}/5</b></span>
         {fId&&<span>Fragmenty mapy na sprzedaż: <b>{forSale}/3</b></span>}
       </div>
     </div>
@@ -1258,15 +1317,47 @@ function MapTracker({items, mapBonusClaimed, fId}) {
         <img src={IMG_BASE+"instrukcja_historia-mapy.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Historia mapy"/>
       </Accordion>
     </div>
-    {/* --- Fragmenty mapy — bezpośrednio na tle, bez zaokrągleń --- */}
-    <div style={{display:"flex",gap:3,marginBottom:12}}>
+    {/* --- Plansza puzzle --- */}
+    {fId&&<div style={{marginBottom:12}}>
+      {!claimed&&!readonly&&<div style={{fontSize:12,color:"#8B7355",marginBottom:6}}>
+        Ułóż fragmenty w kolejności: <b>4 → 3 → 2 → 1</b> (od lewej do prawej), aby odblokować przycisk Zatwierdź.
+      </div>}
+      <div style={{display:"flex",gap:4}}>
+        {layout.map((fragNr,i)=>(
+          <MapSlot key={i} slotIdx={i} fragNr={fragNr} locked={false} claimed={claimed||readonly}
+            dragOver={dragOver===i}
+            onDragStart={handleDragStart} onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave} onDrop={handleDrop}/>
+        ))}
+        {/* Slot 5 — fragment szeryfa, zablokowany */}
+        <MapSlot slotIdx={4} fragNr={claimed?5:0} locked={true} claimed={false}
+          dragOver={false}
+          onDragStart={()=>{}} onDragOver={()=>{}} onDragLeave={()=>{}} onDrop={()=>{}}/>
+      </div>
+      {canClaim&&<div style={{marginTop:10,textAlign:"center"}}>
+        <button onClick={()=>onClaim&&onClaim(fId)}
+          style={{background:"#842504",color:"#F5F0E8",border:"none",borderRadius:4,padding:"10px 28px",
+            fontSize:15,fontWeight:700,cursor:"pointer",letterSpacing:"0.5px",fontFamily:"inherit",
+            boxShadow:"0 2px 8px rgba(0,0,0,0.25)"}}>
+          ✓ Zatwierdź — zgarnij premię 300 $
+        </button>
+      </div>}
+      {claimed&&<div style={{marginTop:8,padding:"6px 12px",background:"#FFF8E7",border:"1px dashed #D4A853",
+        borderRadius:4,fontSize:13,fontWeight:600,color:"#842504",textAlign:"center"}}>
+        Mapa kompletna! Premia 300 $ zgarnieta.
+      </div>}
+    </div>}
+    {/* Szeryf / widok bez fId — stary widok statyczny */}
+    {!fId&&<div style={{display:"flex",gap:3,marginBottom:12}}>
       {[5,4,3,2,1].map(n=>{
-        var have=n<=4?uniqueNrs.indexOf(n)>=0:full;
-        return <MapFragment key={n} n={n} have={have}/>;
+        var have=n<=4?uniqueNrs.indexOf(n)>=0:(winnerFam!==null);
+        return <div key={n} style={{flex:1,overflow:"hidden",border:"2px solid "+(have?"#A09020":"#D4C4A8"),opacity:have?1:0.3}}>
+          <MapFragImg n={n}/>
+        </div>;
       })}
-    </div>
-    {winnerFam&&<div style={{marginTop:10,padding:8,background:"#FFF8E7",border:"1px dashed #D4C4A8",fontSize:13,fontWeight:600,color:"#842504",textAlign:"center"}}>
-      Wszystkie fragmenty mapy jako pierwsza zdobyła rodzina {FM[winnerFam].gen}!
+    </div>}
+    {winnerFam&&<div style={{marginTop:6,padding:8,background:"#FFF8E7",border:"1px dashed #D4C4A8",fontSize:13,fontWeight:600,color:"#842504",textAlign:"center"}}>
+      Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
     </div>}
   </>);
 }
@@ -1961,6 +2052,7 @@ function App({roomCode,role}) {
   const [activeTab,setActiveTab]=useState("tutorial");
   const [mapBonusClaimed,setMapBonusClaimed]=useState({});
   const [mapEnabled,setMapEnabled]=useState(false);
+  const [mapLayout,setMapLayout]=useState({adams:[0,0,0,0],bennet:[0,0,0,0],clinton:[0,0,0,0],dexter:[0,0,0,0]});
   const [plotPenalties,setPlotPenalties]=useState({});
   const [relations,setRelations]=useState({});
   const [relationsUnlocked,setRelationsUnlocked]=useState(false);
@@ -2130,7 +2222,7 @@ function App({roomCode,role}) {
 
   // Keep stateRef current (Firebase doesn't store null, use false as marker)
   useEffect(()=>{
-    stateRef.current={fd,txs:txs.length?txs:[],consultations,consultNotes,blindFate,mapBonusClaimed,mapEnabled,plotPenalties,
+    stateRef.current={fd,txs:txs.length?txs:[],consultations,consultNotes,blindFate,mapBonusClaimed,mapLayout,mapEnabled,plotPenalties,
       relations,relationsUnlocked,biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,resultsReveal,
       revEnabled,revMaxBet,revMode,revDuels:revDuels.length?revDuels:[],revActive:revActiveToFB(revActive),revCurrent:revCurrentToFB(revCurrent),
       gameStarted,stageIdx,stageDurations,
@@ -2173,6 +2265,7 @@ function App({roomCode,role}) {
       if(s.consultNotes)setConsultNotes(s.consultNotes);
       if(s.blindFate)setBlindFate(s.blindFate);
       if(s.mapBonusClaimed)setMapBonusClaimed(s.mapBonusClaimed);
+      if(s.mapLayout)setMapLayout(s.mapLayout);
       if(s.mapEnabled!==undefined)setMapEnabled(s.mapEnabled);
       if(s.plotPenalties)setPlotPenalties(s.plotPenalties);
       if(s.relations)setRelations(s.relations);
@@ -2211,7 +2304,7 @@ function App({roomCode,role}) {
   useEffect(()=>{
     if(fbIncoming.current||!fbInitDone.current)return;
     syncToFB();
-  },[fd,txs,consultations,consultNotes,blindFate,mapBonusClaimed,mapEnabled,plotPenalties,relations,relationsUnlocked,
+  },[fd,txs,consultations,consultNotes,blindFate,mapBonusClaimed,mapLayout,mapEnabled,plotPenalties,relations,relationsUnlocked,
     biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,resultsReveal,revEnabled,revMaxBet,revMode,revDuels,
     revActive,gameStarted,stageIdx,stageDurations,timerRunning,timerPaused,secondsLeft,sheriffCalls]);
 
@@ -2258,34 +2351,49 @@ function App({roomCode,role}) {
   var myQLeft=myConsults.reduce((s,c)=>s+(c.questionsTotal-c.questionsUsed),0);
   var myQTotal=myConsults.reduce((s,c)=>s+c.questionsTotal,0);
 
-  // Check map bonus
+  // Auto-placement: sync mapLayout when items change
   useEffect(()=>{
-    FO.forEach(fId=>{
-      if(mapBonusClaimed[fId]) return;
-      var items=fd[fId].items;
-      var uniqueFrags=[...new Set(items.filter(i=>i.cat===C_MAP).map(m=>m.fragNr))];
-      if(uniqueFrags.length>=4) {
-        setMapBonusClaimed(prev=>({...prev,[fId]:true}));
-        setFd(prev=>{
-          var n={...prev};
-          n[fId]={...n[fId],cash:n[fId].cash+300};
-          FO.filter(f=>f!==fId).forEach(otherId=>{
-            n[otherId]={...n[otherId],cash:n[otherId].cash-100};
-          });
-          return n;
+    setMapLayout(prev=>{
+      var next={...prev};
+      FO.forEach(fId=>{
+        var items=fd[fId].items;
+        var owned=[...new Set(items.filter(i=>i.cat===C_MAP).map(i=>i.fragNr))];
+        var layout=[...prev[fId]];
+        // Remove slots whose fragment is no longer owned
+        for(var i=0;i<4;i++){if(layout[i]!==0&&owned.indexOf(layout[i])<0)layout[i]=0;}
+        // Add newly owned fragments to first free slot
+        owned.forEach(nr=>{
+          if(layout.indexOf(nr)>=0)return; // already on board
+          var slot=layout.indexOf(0);
+          if(slot>=0)layout[slot]=nr;
         });
-        // Add tx entries for all families
-        var ts=Date.now();
-        var newTxs=[];
-        newTxs.push({id:ts.toString(),type:"map_bonus",from:fId,to:"all",status:"accepted",offeredItems:[]});
-        FO.filter(f=>f!==fId).forEach((otherId,idx)=>{
-          newTxs.push({id:(ts+idx+1).toString(),type:"map_bonus",from:fId,to:otherId,status:"accepted",offeredItems:[]});
-        });
-        setTxs(prev=>[...newTxs,...prev]);
-        showMsg(FM[fId].nom+" zdobyli kompletną mapę! Bonus 300 $!");
-      }
+        next[fId]=layout;
+      });
+      return next;
     });
-  },[fd,mapBonusClaimed]);
+  },[fd]);
+
+  // claimMapBonus — wywoływana ręcznie przez gracza (przycisk Zatwierdź)
+  function claimMapBonus(fId){
+    if(mapBonusClaimed[fId]) return;
+    setMapBonusClaimed(prev=>({...prev,[fId]:true}));
+    setFd(prev=>{
+      var n={...prev};
+      n[fId]={...n[fId],cash:n[fId].cash+300};
+      FO.filter(f=>f!==fId).forEach(otherId=>{
+        n[otherId]={...n[otherId],cash:n[otherId].cash-100};
+      });
+      return n;
+    });
+    var ts=Date.now();
+    var newTxs=[];
+    newTxs.push({id:ts.toString(),type:"map_bonus",from:fId,to:"all",status:"accepted",offeredItems:[]});
+    FO.filter(f=>f!==fId).forEach((otherId,idx)=>{
+      newTxs.push({id:(ts+idx+1).toString(),type:"map_bonus",from:fId,to:otherId,status:"accepted",offeredItems:[]});
+    });
+    setTxs(prev=>[...newTxs,...prev]);
+    showMsg(FM[fId].nom+" zdobyli kompletną mapę! Bonus 300 $!");
+  }
 
   // === TIMER EFFECT ===
   useEffect(()=>{
@@ -2574,6 +2682,9 @@ function App({roomCode,role}) {
             {/* --- DZIAŁKI --- */}
             <div style={taskBg}>
               <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt"><span style={{flex:1}}>Pozyskanie prawa własności do właściwej działki</span>
+                <InfoPopup icon="ikona_mapa" wide>
+                  <img src={IMG_BASE+"kairoscity_mapa.png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Mapa miasta"/>
+                </InfoPopup>
                 <InfoPopup title="Zadanie 3: Działka" wide>
                   <img src={IMG_BASE+"instrukcja_dzialka-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — działka"/>
                 </InfoPopup>
@@ -2628,7 +2739,7 @@ function App({roomCode,role}) {
             {bnbEnabled&&<img src={IMG_BASE+"kairos_chronicle.jpg"} style={{width:"100%",borderRadius:6,marginTop:12}} alt="The Kairos Chronicle"/>}
           </div>);
           })()}
-          {activeTab==="map"&&<MapTracker items={familyData.items} mapBonusClaimed={mapBonusClaimed} fId={familyId}/>}
+          {activeTab==="map"&&<MapTracker items={familyData.items} mapBonusClaimed={mapBonusClaimed} fId={familyId} mapLayout={mapLayout} setMapLayout={setMapLayout} onClaim={claimMapBonus} readonly={!!(viewSheriff&&sheriffViewFamily)}/>}
           {activeTab==="fate"&&<BlindFateFamily fId={familyId} blindFate={blindFate}/>}
           {activeTab==="rel"&&relationsUnlocked&&(()=>{
             var CATS=[{key:"partnership",label:"Partnerstwo",desc:["\u201edbał tylko o swoje interesy\u201d","\u201edbał o interesy dwóch stron\u201d"]},{key:"rules",label:"Przestrzeganie zasad",desc:["\u201ełamał/omijał zasady\u201d","\u201eprzestrzegał i dbał o zasady\u201d"]},{key:"communication",label:"Komunikacja",desc:["\u201eduże trudności\u201d","\u201eczytelnie komunikował i słuchał uważnie\u201d"]}];
