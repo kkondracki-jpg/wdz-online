@@ -17,7 +17,7 @@
       font-weight: 400; font-style: normal;
     }
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Alegreya Sans',sans-serif;background:#F5F0E8;color:#2C1810;font-size:14px;background-repeat:no-repeat;background-size:100% auto;background-position:top center}
+    body{font-family:'Alegreya Sans',sans-serif;background-color:#F5F0E8;color:#2C1810;font-size:14px;background-repeat:no-repeat,repeat;background-size:100% auto,auto;background-position:top center,top left}
     #root{min-height:100vh}
     ::-webkit-scrollbar{width:6px}
     ::-webkit-scrollbar-track{background:#F0EBE0}
@@ -2237,7 +2237,7 @@ function App({roomCode,role}) {
   // Background per role
   useEffect(()=>{
     var bgFile=isSheriff?"background_szeryf":"background_"+myFamily;
-    document.body.style.backgroundImage="url('img/"+bgFile+".jpg')";
+    document.body.style.backgroundImage="url('img/"+bgFile+".jpg'), url('img/background.jpg')";
   },[]);
 
   // Keep stateRef current (Firebase doesn't store null, use false as marker)
@@ -2732,14 +2732,23 @@ function App({roomCode,role}) {
               var cardStyle=function(col){return{background:"#FDFAF4",border:"2px solid "+col,borderRadius:6,overflow:"hidden",position:"relative",minWidth:120,maxWidth:160}};
               return(<div style={{marginTop:8}}>
                 <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
-                  <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Biznes na boku</div>
+                  <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">
+                    <span style={{flex:1}}>Biznes na boku</span>
+                    <InfoPopup title="Biznes na boku — instrukcja" wide>
+                      <img src={IMG_BASE+"instrukcja_bnb-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — Biznes na boku"/>
+                    </InfoPopup>
+                  </div>
                 </div>
+                {/* Obrazek instrukcji — pełna szerokość */}
+                <img src={IMG_BASE+"bnb_"+familyId+".png"} style={{width:"100%",height:"auto",display:"block",marginBottom:12}} alt={"Biznes na boku — "+familyId}/>
                 {/* Twój produkt */}
-                <div style={{marginBottom:16}}>
+                <div style={{marginBottom:12}}>
                   <img src={IMG_BASE+myProduct.imgSlug+".jpg"} style={{width:160,height:"auto",display:"block",marginBottom:6}} alt={myProduct.name}/>
                   <div style={{fontSize:15,fontWeight:700,color:"#4C130F"}}>{myProduct.name}</div>
                   <div style={{fontSize:14,color:"#5C4A3A"}}>Do sprzedania: <b>{forSale.length}/{myProduct.qty}</b></div>
                 </div>
+                {/* Reklama — pełna szerokość */}
+                <img src={IMG_BASE+"reklama_"+familyId+".png"} style={{width:"100%",height:"auto",display:"block",marginBottom:16}} alt={"Reklama — "+familyId}/>
                 {/* Zakupione produkty */}
                 {Object.keys(boughtGrouped).length>0&&<div style={{marginBottom:16}}>
                   {Object.keys(boughtGrouped).map(origin=>{var cards=boughtGrouped[origin];var prod=BNB_PRODUCTS[origin];return(
@@ -2751,7 +2760,6 @@ function App({roomCode,role}) {
                 </div>}
               </div>);
             })()}
-            {bnbEnabled&&<img src={IMG_BASE+"kairos_chronicle.jpg"} style={{width:"100%",borderRadius:6,marginTop:12}} alt="The Kairos Chronicle"/>}
           </div>);
           })()}
           {activeTab==="map"&&<MapTracker items={familyData.items} mapBonusClaimed={mapBonusClaimed} fId={familyId} mapLayout={mapLayout} setMapLayout={setMapLayout} onClaim={claimMapBonus} readonly={!!(viewSheriff&&sheriffViewFamily)}/>}
