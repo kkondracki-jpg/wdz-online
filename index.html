@@ -1323,16 +1323,16 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
         Ułóż z pomocą myszki fragmenty mapy we właściwej kolejności. Gdy pojawi się przycisk „ZATWIERDŹ" kliknij w niego, aby uzyskać premię.
       </div>}
       <div style={{display:"flex",gap:4}}>
+        {/* Slot 5 — fragment szeryfa, zablokowany, pierwszy z lewej */}
+        <MapSlot slotIdx={4} fragNr={claimed?5:0} locked={true} claimed={false}
+          dragOver={false}
+          onDragStart={()=>{}} onDragOver={()=>{}} onDragLeave={()=>{}} onDrop={()=>{}}/>
         {layout.map((fragNr,i)=>(
           <MapSlot key={i} slotIdx={i} fragNr={fragNr} locked={false} claimed={claimed||readonly}
             dragOver={dragOver===i}
             onDragStart={handleDragStart} onDragOver={handleDragOver}
             onDragLeave={handleDragLeave} onDrop={handleDrop}/>
         ))}
-        {/* Slot 5 — fragment szeryfa, zablokowany */}
-        <MapSlot slotIdx={4} fragNr={claimed?5:0} locked={true} claimed={false}
-          dragOver={false}
-          onDragStart={()=>{}} onDragOver={()=>{}} onDragLeave={()=>{}} onDrop={()=>{}}/>
       </div>
       {canClaim&&<div style={{marginTop:10,textAlign:"center"}}>
         <button onClick={()=>onClaim&&onClaim(fId)}
