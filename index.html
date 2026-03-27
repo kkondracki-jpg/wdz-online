@@ -1319,8 +1319,8 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
     </div>
     {/* --- Plansza puzzle --- */}
     {fId&&<div style={{marginBottom:12}}>
-      {!claimed&&!readonly&&<div style={{fontSize:12,color:"#8B7355",marginBottom:6}}>
-        Ułóż fragmenty w kolejności: <b>4 → 3 → 2 → 1</b> (od lewej do prawej), aby odblokować przycisk Zatwierdź.
+      {!claimed&&!readonly&&<div style={{fontSize:14,color:"#842504",fontWeight:600,marginBottom:6}}>
+        Ułóż z pomocą myszki fragmenty mapy we właściwej kolejności. Gdy pojawi się przycisk „ZATWIERDŹ" kliknij w niego, aby uzyskać premię.
       </div>}
       <div style={{display:"flex",gap:4}}>
         {layout.map((fragNr,i)=>(
@@ -1356,7 +1356,7 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
       </div>
     </div>}
     {/* Napisy po zatwierdzeniu — zwycięzca */}
-    {fId&&winnerFam&&winnerFam===fId&&<div style={{marginTop:8,padding:"10px 14px",background:"#F0FFF4",border:"2px solid #2E7D32",borderRadius:6,textAlign:"center"}}>
+    {fId&&winnerFam&&winnerFam===fId&&<div style={{marginTop:8,padding:"10px 14px",textAlign:"center"}}>
       <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:6,letterSpacing:"0.5px"}} className="wt">
         Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
       </div>
@@ -1365,7 +1365,7 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
       </div>
     </div>}
     {/* Napisy po zatwierdzeniu — przegrani */}
-    {fId&&winnerFam&&winnerFam!==fId&&<div style={{marginTop:8,padding:"10px 14px",background:"#FFF8F8",border:"1px solid #C09090",borderRadius:6,textAlign:"center"}}>
+    {fId&&winnerFam&&winnerFam!==fId&&<div style={{marginTop:8,padding:"10px 14px",textAlign:"center"}}>
       <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:6,letterSpacing:"0.5px"}} className="wt">
         Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
       </div>
@@ -1374,7 +1374,7 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
       </div>
     </div>}
     {/* Napis dla widoku szeryfa (bez fId) */}
-    {!fId&&winnerFam&&<div style={{marginTop:6,padding:8,background:"#FFF8E7",border:"1px dashed #D4C4A8",textAlign:"center"}}>
+    {!fId&&winnerFam&&<div style={{marginTop:6,padding:8,textAlign:"center"}}>
       <div style={{fontSize:18,fontWeight:700,color:"#842504",letterSpacing:"0.5px"}} className="wt">
         Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
       </div>
