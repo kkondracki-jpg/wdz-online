@@ -2722,6 +2722,7 @@ function App({roomCode,role}) {
                 <span>Punkty: <b>{cashPoints}</b> <span style={{color:"#A89070"}}>(od −25 do 25)</span></span>
               </div>
             </div>
+            <img src={IMG_BASE+"kasa_punkty.png"} style={{width:"100%",height:"auto",display:"block",marginBottom:8}} alt="Kasa — punkty"/>
             {bnbEnabled&&(()=>{
               var allBnb=familyData.items.filter(i=>i.cat===C_BNB);
               var forSale=allBnb.filter(i=>i.bnbOrigin===familyId);
@@ -2734,8 +2735,8 @@ function App({roomCode,role}) {
                 <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
                   <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt">
                     <span style={{flex:1}}>Biznes na boku</span>
-                    <InfoPopup title="Biznes na boku — instrukcja" wide>
-                      <img src={IMG_BASE+"instrukcja_bnb-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — Biznes na boku"/>
+                    <InfoPopup title="Biznes na boku — warunki" wide>
+                      <img src={IMG_BASE+"bnb_waronki-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Warunki — Biznes na boku"/>
                     </InfoPopup>
                   </div>
                 </div>
