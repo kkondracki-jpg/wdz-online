@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WDZ Online — Platforma Sieciowa v7.3.4</title>
+  <title>WDZ Online — Platforma Sieciowa v1.0.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -182,9 +182,10 @@ function revActiveFromFB(val){
 
 /* ========== LOBBY COMPONENT ========== */
 function Lobby({onJoin}){
-  const [mode,setMode]=useState(null); // null | 'create' | 'join'
+  const [mode,setMode]=useState(null); // null | 'create' | 'join' | 'rejoin_sheriff'
   const [roomCode,setRoomCode]=useState("");
   const [joinCode,setJoinCode]=useState("");
+  const [rejoinCode,setRejoinCode]=useState("");
   const [selectedRole,setSelectedRole]=useState(null); // 'sheriff' | 'adams' | 'bennet' | 'clinton' | 'dexter'
   const [error,setError]=useState(null);
   const [loading,setLoading]=useState(false);
@@ -252,6 +253,21 @@ function Lobby({onJoin}){
     });
   }
 
+  function handleRejoinSheriff(){
+    var code=rejoinCode.trim().toUpperCase();
+    if(!/^WDZ-[A-HJ-NP-Z2-9]{4}$/.test(code)){setError("Nieprawidłowy format kodu (WDZ-XXXX)");return;}
+    if(!db){setError("Brak połączenia z Firebase.");return;}
+    setLoading(true);setError(null);
+    db.ref("rooms/"+code+"/meta/status").once("value").then(snap=>{
+      if(!snap.exists()){setError("Pokój "+code+" nie istnieje");setLoading(false);return;}
+      if(snap.val()!=="playing"){setError("Sesja w tym pokoju nie jest aktywna (status: "+(snap.val()||"brak")+")");setLoading(false);return;}
+      db.ref("rooms/"+code+"/players/sheriff").set({connected:true,rejoinedAt:firebase.database.ServerValue.TIMESTAMP});
+      db.ref("rooms/"+code+"/players/sheriff").onDisconnect().update({connected:false});
+      setLoading(false);
+      onJoin(code,"sheriff");
+    }).catch(e=>{setError("Błąd połączenia: "+e.message);setLoading(false);});
+  }
+
   function startGame(){
     db.ref("rooms/"+roomCode+"/meta/status").set("playing");
     onJoin(roomCode,selectedRole);
@@ -288,7 +304,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v7.3.4</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.0.0</div>
       </div>
 
       {/* Initial choice */}
@@ -298,12 +314,27 @@ function Lobby({onJoin}){
           <button onClick={handleCreate} disabled={loading} style={{...btnS("sheriff"),padding:"14px 20px",fontSize:16,width:"100%",textAlign:"center"}}>
             Stwórz pokój (Szeryf / Trener)
           </button>
+          <button onClick={()=>{setMode("rejoin_sheriff");setError(null);}} style={{...btnS("default"),padding:"10px 20px",fontSize:14,width:"100%",textAlign:"center"}}>
+            Wróć do sesji jako trener
+          </button>
           <div style={{textAlign:"center",fontSize:13,color:"#8B7355",margin:"4px 0"}}>— lub —</div>
           <div style={{display:"flex",gap:8}}>
             <input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} placeholder="Kod pokoju (np. WDZ-A3K7)" style={{flex:1,padding:"12px 14px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:15,fontFamily:"monospace",letterSpacing:2,textTransform:"uppercase",background:"#fff"}} onKeyDown={e=>{if(e.key==="Enter")handleJoin();}}/>
             <button onClick={handleJoin} disabled={loading} style={{...btnS("primary"),padding:"12px 18px",fontSize:14}}>Dołącz</button>
           </div>
         </div>
+        {error&&<div style={{background:"#FEE",border:"1px solid #C88",borderRadius:4,padding:"8px 12px",marginTop:10,fontSize:13,color:"#8B2500"}}>{error}</div>}
+      </div>}
+
+      {/* SH1 — Sheriff rejoin panel */}
+      {mode==="rejoin_sheriff"&&<div style={boxStyle}>
+        <div style={titleStyle}>Wróć do sesji jako trener</div>
+        <div style={{fontSize:13,color:"#5C4A3A",marginBottom:12}}>Wpisz kod pokoju trwającej sesji:</div>
+        <div style={{display:"flex",gap:8,marginBottom:10}}>
+          <input value={rejoinCode} onChange={e=>setRejoinCode(e.target.value.toUpperCase())} placeholder="Kod pokoju (np. WDZ-A3K7)" style={{flex:1,padding:"12px 14px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:15,fontFamily:"monospace",letterSpacing:2,textTransform:"uppercase",background:"#fff"}} onKeyDown={e=>{if(e.key==="Enter")handleRejoinSheriff();}}/>
+          <button onClick={handleRejoinSheriff} disabled={loading} style={{...btnS("sheriff"),padding:"12px 18px",fontSize:14}}>{loading?"…":"Wróć"}</button>
+        </div>
+        <button onClick={()=>{setMode(null);setError(null);}} style={{...btnS("default"),fontSize:13,padding:"6px 14px"}}>← Wróć</button>
         {error&&<div style={{background:"#FEE",border:"1px solid #C88",borderRadius:4,padding:"8px 12px",marginTop:10,fontSize:13,color:"#8B2500"}}>{error}</div>}
       </div>}
 
@@ -920,22 +951,9 @@ function InstructionSlides({familyId, roomCode}) {
         {para("W trakcie gry może pojawić się okazja dodatkowego zarobku — mały &bdquo;biznes na boku&rdquo;. Szczegóły poznacie w swoim czasie.")}
       </div>
     </div>);
-    case 4: return (<div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
-      {hdr("Przebieg rozgrywki",true)}
-      {para("Po fazie przygotowania gra toczy się w <strong>trzech fazach</strong> po <strong>trzy tury negocjacyjne</strong>. Między fazami — narady rodzinne.")}
-      <div style={{margin:"14px 0"}}>
-        {[
-          {phase:"Faza I — Wymiana informacji",desc:"3 tury — Zbierajcie informacje, rozpoznajcie kto czego potrzebuje."},
-          {phase:"Narada rodzinna I",desc:null},
-          {phase:"Faza II — Pierwsze transakcje",desc:"3 tury — Czas na konkretne oferty."},
-          {phase:"Narada rodzinna II",desc:null},
-          {phase:"Faza III — Finał",desc:"3 tury — Ostatnia szansa na domknięcie transakcji."}
-        ].map((s,i)=>(<div key={i} style={{padding:"8px 12px",marginBottom:4,background:s.desc?"#FDF8EE":"#F0EBE0",borderRadius:4,borderLeft:s.desc?"3px solid #842504":"3px solid #D4A853"}}>
-          <div style={{fontWeight:700,fontSize:14,color:s.desc?"#842504":"#4C130F"}}>{s.phase}</div>
-          {s.desc&&<div style={{fontSize:13,color:"#4C130F",marginTop:2}}>{s.desc}</div>}
-        </div>))}
-      </div>
-      {para("W każdej turze spotykacie się z jedną z pozostałych rodzin. Harmonogram widzicie w panelu &bdquo;Przebieg rozgrywki&rdquo; po prawej stronie ekranu.")}
+    case 4: return (<div>
+      {hdr("Przebieg rozgrywki",false)}
+      <img src="img/przebieg_rozgrywki.png" alt="Przebieg rozgrywki" style={{width:"100%",display:"block",borderRadius:4}}/>
     </div>);
     case 5: return (<div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
       {hdr("Wasz panel \u2014 przegląd",true)}
@@ -954,27 +972,29 @@ function InstructionSlides({familyId, roomCode}) {
         </div>))}
       </div>
     </div>);
-    case 6: return (<div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
-      {hdr("Jak handlować",true)}
-      {para("Dwa sposoby: <strong>sprzedaż</strong> (karta za gotówkę) i <strong>barter</strong> (karta za kartę ± dopłata). Warunki ustalcie ustnie — aplikacja rejestruje ustalenia.")}
-      <div style={{marginTop:14,marginBottom:14,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
-        <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:8}} className="wt">Sprzedaż — karta za gotówkę</div>
-        {para("<strong>Krok 1</strong> — Sprzedający: &bdquo;Sprzedaż&rdquo; → rodzina kupującego → karta → cena → wyślij ofertę.")}
-        {para("<strong>Krok 2</strong> — Kupujący: Powiadomienie → &bdquo;Akceptuj&rdquo; lub &bdquo;Odrzuć&rdquo;.")}
-        {para("<strong>Krok 3</strong> — Gotowe: Karta i gotówka się wymieniają. Zapis w Księgowości.")}
+    case 6: return (<div>
+      {hdr("Jak handlować",false)}
+      <img src="img/instrukcja_sprzedaz.png" alt="Instrukcja sprzedaży" style={{width:"100%",display:"block",borderRadius:4,marginBottom:14}}/>
+      <div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
+        <div style={{marginBottom:14,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
+          <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:8}} className="wt">Sprzedaż — karta za gotówkę</div>
+          {para("<strong>Krok 1</strong> — Sprzedający: &bdquo;Sprzedaż&rdquo; → rodzina kupującego → karta → cena → wyślij ofertę.")}
+          {para("<strong>Krok 2</strong> — Kupujący: Powiadomienie → &bdquo;Akceptuj&rdquo; lub &bdquo;Odrzuć&rdquo;.")}
+          {para("<strong>Krok 3</strong> — Gotowe: Karta i gotówka się wymieniają. Zapis w Księgowości.")}
+        </div>
+        <div style={{marginBottom:14,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
+          <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:8}} className="wt">Barter — karta za kartę (± dopłata)</div>
+          {para("<strong>Krok 1</strong> — Inicjator: &bdquo;Barter&rdquo; → rodzina → karty do oddania → wyślij propozycję.")}
+          {para("<strong>Krok 2</strong> — Odbiorca: Propozycja → zaznacz karty w zamian → opcjonalnie dopłata → wyślij kontr-ofertę.")}
+          {para("<strong>Krok 3</strong> — Inicjator: Kontr-oferta → &bdquo;Akceptuj&rdquo; lub &bdquo;Odrzuć&rdquo;.")}
+          {para("<strong>Krok 4</strong> — Gotowe: Wymiana automatyczna. Zapis w Księgowości.")}
+        </div>
+        <div style={{fontWeight:700,fontSize:14,color:"#4C130F",marginBottom:6}}>Ważne zasady handlu:</div>
+        {para("Karta w transakcji jest zablokowana — niedostępna aż do akceptacji lub odrzucenia.")}
+        {para("Gotówka musi wystarczyć — brak środków = automatyczne odrzucenie.")}
+        {para("Każda transakcja jest zapisywana — sekcja &bdquo;Księgowość&rdquo; po prawej.")}
+        {para("Pomyłka? Zgłoście Szeryfowi — może cofnąć transakcję.")}
       </div>
-      <div style={{marginBottom:14,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
-        <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:8}} className="wt">Barter — karta za kartę (± dopłata)</div>
-        {para("<strong>Krok 1</strong> — Inicjator: &bdquo;Barter&rdquo; → rodzina → karty do oddania → wyślij propozycję.")}
-        {para("<strong>Krok 2</strong> — Odbiorca: Propozycja → zaznacz karty w zamian → opcjonalnie dopłata → wyślij kontr-ofertę.")}
-        {para("<strong>Krok 3</strong> — Inicjator: Kontr-oferta → &bdquo;Akceptuj&rdquo; lub &bdquo;Odrzuć&rdquo;.")}
-        {para("<strong>Krok 4</strong> — Gotowe: Wymiana automatyczna. Zapis w Księgowości.")}
-      </div>
-      <div style={{fontWeight:700,fontSize:14,color:"#4C130F",marginBottom:6}}>Ważne zasady handlu:</div>
-      {para("Karta w transakcji jest zablokowana — niedostępna aż do akceptacji lub odrzucenia.")}
-      {para("Gotówka musi wystarczyć — brak środków = automatyczne odrzucenie.")}
-      {para("Każda transakcja jest zapisywana — sekcja &bdquo;Księgowość&rdquo; po prawej.")}
-      {para("Pomyłka? Zgłoście Szeryfowi — może cofnąć transakcję.")}
     </div>);
     case 7: return (<div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
       {hdr("Powodzenia!",true)}
@@ -1855,7 +1875,8 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Budowanie relacji</div>
-        <button style={btnS(relationsUnlocked?"danger":"success",false)} onClick={()=>setRelationsUnlocked(!relationsUnlocked)}>{relationsUnlocked?"Zablokuj BUDOWANIE RELACJI":"Odblokuj BUDOWANIE RELACJI"}</button>
+        {!relationsUnlocked&&<button style={btnS("success",false)} onClick={()=>setRelationsUnlocked(true)}>Odblokuj BUDOWANIE RELACJI</button>}
+        {relationsUnlocked&&<button style={btnS("danger",false)} onClick={()=>{if(window.confirm("Na pewno zablokować zakładkę BUDOWANIE RELACJI dla wszystkich graczy?"))setRelationsUnlocked(false);}}>Zablokuj BUDOWANIE RELACJI</button>}
       </div>
       {relationsUnlocked&&<div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
         {FO.map(fId=>{var f=FM[fId];var relS=calcRelationScore(fId,relations);
@@ -2047,6 +2068,8 @@ function App({roomCode,role}) {
   const isSheriff=role==="sheriff";
   const myFamily=isSheriff?null:role;
   const online=useConnectionStatus();
+  // T5 — unikalny ID sesji (dla blokady formularza TX)
+  const sessionId=useRef(Date.now().toString(36)+Math.random().toString(36).slice(2,6));
   const [cf,setCf]=useState(isSheriff?"adams":(myFamily||"adams"));
   const [viewSheriff,setViewSheriff]=useState(isSheriff);
   const [sheriffViewFamily,setSheriffViewFamily]=useState(null);
@@ -2070,6 +2093,7 @@ function App({roomCode,role}) {
   const [eCash,setECash]=useState(0);
   const [rTx,setRTx]=useState(null);
   const [activeTab,setActiveTab]=useState("tutorial");
+  const [sending,setSending]=useState(false);
   const [mapBonusClaimed,setMapBonusClaimed]=useState({});
   const [mapEnabled,setMapEnabled]=useState(false);
   const [mapLayout,setMapLayout]=useState({adams:[0,0,0,0],bennet:[0,0,0,0],clinton:[0,0,0,0],dexter:[0,0,0,0]});
@@ -2226,11 +2250,20 @@ function App({roomCode,role}) {
   const [timerPaused,setTimerPaused]=useState(false);
   const [gunshotFired,setGunshotFired]=useState(false);
   const timerRef=useRef(null);
+  // S3 — serwer-based timer: przechowywane w Firebase, secondsLeft wyliczane lokalnie
+  const [timerStartedAt,setTimerStartedAt]=useState(0);      // ms — kiedy bieżący okres startował
+  const [timerDuration,setTimerDuration]=useState(0);        // sekundy — całkowity czas etapu
+  const [timerPausedSecondsLeft,setTimerPausedSecondsLeft]=useState(null); // sekundy przy pauzie (null = nie zapauzowany)
   // === SHERIFF QUEUE ===
   const [sheriffCalls,setSheriffCalls]=useState([]);
 
   /* ========== FIREBASE SYNC ========== */
   const fbIncoming=useRef(false);
+  const formOpen=useRef(false);
+  const formStateRef=useRef({tFam:null,pStep:1});
+  const rollingInProgress=useRef({});
+  const diceRolling=useRef(false);
+  const diceTimeouts=useRef([]);
   const syncTimer=useRef(null);
   const stateRef=useRef({});
 
@@ -2240,20 +2273,56 @@ function App({roomCode,role}) {
     document.body.style.backgroundImage="url('img/"+bgFile+".jpg'), url('img/background.jpg')";
   },[]);
 
+  // REL2 — gdy relacje zostaną zablokowane, przełącz aktywną zakładkę
+  useEffect(()=>{
+    if(!relationsUnlocked && activeTab==="rel") setActiveTab("inv");
+  },[relationsUnlocked]);
+
+  // T1 — synchronizuj formOpen z showP (formularz transakcji otwarty)
+  useEffect(()=>{
+    formOpen.current=showP;
+    if(!showP)formOpen.current=false;
+  },[showP]);
+
+  // T2/T3 — synchronizuj formStateRef z tFam i pStep
+  useEffect(()=>{formStateRef.current={tFam,pStep};},[tFam,pStep]);
+
+  // S5 — cleanup dice timeoutów przy odmontowaniu komponentu
+  useEffect(()=>{return()=>{diceTimeouts.current.forEach(t=>clearTimeout(t));};},[]);
+
   // Keep stateRef current (Firebase doesn't store null, use false as marker)
   useEffect(()=>{
     stateRef.current={fd,txs:txs.length?txs:[],consultations,consultNotes,blindFate,mapBonusClaimed,mapLayout,mapEnabled,plotPenalties,
       relations,relationsUnlocked,biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,resultsReveal,
       revEnabled,revMaxBet,revMode,revDuels:revDuels.length?revDuels:[],revActive:revActiveToFB(revActive),revCurrent:revCurrentToFB(revCurrent),
       gameStarted,stageIdx,stageDurations,
-      timerRunning,timerPaused,secondsLeft,sheriffCalls:sheriffCalls.length?sheriffCalls:[]};
+      timerRunning,timerPaused,timerStartedAt,timerDuration,timerPausedSecondsLeft,
+      sheriffCalls:sheriffCalls.length?sheriffCalls:[]};
   });
+
+  // S1 — śledzenie poprzedniego stanu do diff
+  const prevSyncRef=useRef({});
 
   function syncToFB(immediate){
     if(!db||fbIncoming.current)return;
     if(syncTimer.current)clearTimeout(syncTimer.current);
     var doSync=function(){
-      db.ref("rooms/"+roomCode+"/gameState").set(stateRef.current);
+      var cur=stateRef.current;
+      var prev=prevSyncRef.current;
+      var diff={};
+      // Porównaj każde pole i wyślij tylko zmienione
+      var fields=["fd","txs","consultations","consultNotes","blindFate","mapBonusClaimed","mapLayout","mapEnabled",
+        "plotPenalties","relations","relationsUnlocked","biznesNaBoku","bnbEnabled","bnbSettled","fateEnabled",
+        "showResults","resultsReveal","revEnabled","revMaxBet","revMode","revDuels","revActive","revCurrent",
+        "gameStarted","stageIdx","stageDurations","timerRunning","timerPaused","timerStartedAt","timerDuration",
+        "timerPausedSecondsLeft","sheriffCalls"];
+      fields.forEach(function(k){
+        if(JSON.stringify(cur[k])!==JSON.stringify(prev[k]))diff[k]=cur[k]!==undefined?cur[k]:null;
+      });
+      if(Object.keys(diff).length>0){
+        db.ref("rooms/"+roomCode+"/gameState").update(diff);
+        prevSyncRef.current={...prev,...diff};
+      }
     };
     if(immediate)doSync();
     else syncTimer.current=setTimeout(doSync,150);
@@ -2280,10 +2349,19 @@ function App({roomCode,role}) {
       if(!s)return;
       fbIncoming.current=true;
       if(s.fd)setFd(fixFdFromFirebase(s.fd));
-      if(s.txs){var t=s.txs;setTxs(Array.isArray(t)?t:Object.values(t));}else setTxs([]);
+      if(s.txs){var t=s.txs;if(!formOpen.current)setTxs(Array.isArray(t)?t:Object.values(t));}else if(!formOpen.current)setTxs([]);
       if(s.consultations)setConsultations(s.consultations);
       if(s.consultNotes)setConsultNotes(s.consultNotes);
-      if(s.blindFate)setBlindFate(s.blindFate);
+      if(s.blindFate){
+        var fixedBF={...s.blindFate};
+        FO.forEach(function(fId){
+          if(fixedBF[fId]&&fixedBF[fId].rolls){
+            var r=fixedBF[fId].rolls;
+            if(!Array.isArray(r))fixedBF[fId].rolls=Object.values(r);
+          }
+        });
+        if(!diceRolling.current)setBlindFate(fixedBF);
+      }
       if(s.mapBonusClaimed)setMapBonusClaimed(s.mapBonusClaimed);
       if(s.mapLayout)setMapLayout(s.mapLayout);
       if(s.mapEnabled!==undefined)setMapEnabled(s.mapEnabled);
@@ -2312,7 +2390,12 @@ function App({roomCode,role}) {
       if(s.stageDurations)setStageDurations(s.stageDurations);
       if(s.timerRunning!==undefined)setTimerRunning(s.timerRunning);
       if(s.timerPaused!==undefined)setTimerPaused(s.timerPaused);
-      if(s.secondsLeft!==undefined)setSecondsLeft(s.secondsLeft);
+      // S3 — timer oparty na serwerze
+      if(s.timerStartedAt!==undefined)setTimerStartedAt(s.timerStartedAt);
+      if(s.timerDuration!==undefined)setTimerDuration(s.timerDuration);
+      if(s.timerPausedSecondsLeft!==undefined)setTimerPausedSecondsLeft(s.timerPausedSecondsLeft);
+      // backward compat: jeśli stare pole secondsLeft i brak nowych — użyj je
+      if(s.secondsLeft!==undefined&&s.timerStartedAt===undefined)setSecondsLeft(s.secondsLeft);
       if(s.sheriffCalls){var sc=s.sheriffCalls;setSheriffCalls(Array.isArray(sc)?sc:Object.values(sc));}else setSheriffCalls([]);
       if(!fbInitDone.current)fbInitDone.current=true;
       requestAnimationFrame(()=>{fbIncoming.current=false;});
@@ -2326,7 +2409,7 @@ function App({roomCode,role}) {
     syncToFB();
   },[fd,txs,consultations,consultNotes,blindFate,mapBonusClaimed,mapLayout,mapEnabled,plotPenalties,relations,relationsUnlocked,
     biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,resultsReveal,revEnabled,revMaxBet,revMode,revDuels,
-    revActive,gameStarted,stageIdx,stageDurations,timerRunning,timerPaused,secondsLeft,sheriffCalls]);
+    revActive,gameStarted,stageIdx,stageDurations,timerRunning,timerPaused,timerStartedAt,timerDuration,timerPausedSecondsLeft,sheriffCalls]);
 
   const showMsg=useCallback(m=>{setToast(m);setTimeout(()=>setToast(null),3000);},[]);
 
@@ -2401,7 +2484,10 @@ function App({roomCode,role}) {
       var n={...prev};
       n[fId]={...n[fId],cash:n[fId].cash+300};
       FO.filter(f=>f!==fId).forEach(otherId=>{
-        n[otherId]={...n[otherId],cash:n[otherId].cash-100};
+        // S4 — guard: nie zejdź poniżej 0
+        var delta=-100;
+        if(n[otherId].cash+delta<0){delta=-n[otherId].cash;}
+        n[otherId]={...n[otherId],cash:n[otherId].cash+delta};
       });
       return n;
     });
@@ -2410,36 +2496,83 @@ function App({roomCode,role}) {
     showMsg(FM[fId].nom+" zdobyli kompletną mapę! Bonus 300 $!");
   }
 
-  // === TIMER EFFECT ===
+  // === TIMER EFFECT — S3: secondsLeft wyliczane lokalnie z timerStartedAt ===
   useEffect(()=>{
-    if(timerRunning&&!timerPaused&&secondsLeft>0){
+    if(timerRunning&&!timerPaused){
+      // Natychmiast przelicz przy zmianie stanu (np. po reconnect)
+      if(timerPausedSecondsLeft!==null){
+        setSecondsLeft(timerPausedSecondsLeft);
+      } else if(timerStartedAt>0){
+        var calc=Math.max(0,Math.round(timerDuration-(Date.now()-timerStartedAt)/1000));
+        setSecondsLeft(calc);
+      }
       timerRef.current=setInterval(()=>{
         setSecondsLeft(prev=>{
-          if(prev<=1){clearInterval(timerRef.current);setTimerRunning(false);
+          // S3 — wylicz aktualną wartość z timerStartedAt
+          var sLeft=timerStartedAt>0?Math.max(0,Math.round(timerDuration-(Date.now()-timerStartedAt)/1000)):Math.max(0,prev-1);
+          if(sLeft<=0){clearInterval(timerRef.current);setTimerRunning(false);
             playGunshots(5,200);showMsg("Czas min\u0105\u0142!");return 0;}
-          if(prev===6&&!gunshotFired){playGunshots(5,200);setGunshotFired(true);}
-          return prev-1;
+          if(sLeft===6&&!gunshotFired){playGunshots(5,200);setGunshotFired(true);}
+          return sLeft;
         });
       },1000);
       return()=>clearInterval(timerRef.current);
     }
+    if(timerPaused&&timerPausedSecondsLeft!==null){
+      setSecondsLeft(timerPausedSecondsLeft);
+    }
     return()=>{if(timerRef.current)clearInterval(timerRef.current);};
-  },[timerRunning,timerPaused,gunshotFired]);
+  },[timerRunning,timerPaused,timerStartedAt,timerDuration,timerPausedSecondsLeft,gunshotFired]);
 
   function startStage(idx){
     if(idx<0||idx>=STAGES.length)return;
     setStageIdx(idx);setGameStarted(true);
     var dur=stageDurations[STAGES[idx].id]*60;
-    setSecondsLeft(dur);setTimerPaused(false);setGunshotFired(false);
+    var now=Date.now();
+    setTimerDuration(dur);
+    setTimerStartedAt(now);
+    setTimerPausedSecondsLeft(null);
+    setSecondsLeft(dur);
+    setTimerPaused(false);setGunshotFired(false);
     if(dur>0){setTimerRunning(true);}else{setTimerRunning(false);}
     showMsg("Start: "+STAGES[idx].label);
   }
-  function pauseTimer(){setTimerPaused(true);if(timerRef.current)clearInterval(timerRef.current);showMsg("Pauza");}
-  function resumeTimer(){setTimerPaused(false);showMsg("Wznowiono");}
+  function pauseTimer(){
+    var sLeft=timerStartedAt>0?Math.max(0,Math.round(timerDuration-(Date.now()-timerStartedAt)/1000)):secondsLeft;
+    setTimerPausedSecondsLeft(sLeft);
+    setTimerPaused(true);
+    if(timerRef.current)clearInterval(timerRef.current);
+    showMsg("Pauza");
+  }
+  function resumeTimer(){
+    var now=Date.now();
+    var sLeft=timerPausedSecondsLeft!==null?timerPausedSecondsLeft:secondsLeft;
+    // Przesuń timerStartedAt tak żeby secondsLeft się zgadzało
+    setTimerStartedAt(now-(timerDuration-sLeft)*1000);
+    setTimerPausedSecondsLeft(null);
+    setTimerPaused(false);
+    showMsg("Wznowiono");
+  }
   function advanceStage(){if(timerRef.current)clearInterval(timerRef.current);setTimerRunning(false);
     if(stageIdx<STAGES.length-1)startStage(stageIdx+1);else{showMsg("Rozgrywka zako\u0144czona!");}}
 
-  function resetP(){setShowP(false);setPMode(null);setPStep(1);setTFam(null);setSelItems([]);setPrice(0);setECash(0);setRTx(null);}
+  function resetP(){
+    setShowP(false);setPMode(null);setPStep(1);setTFam(null);setSelItems([]);setPrice(0);setECash(0);setRTx(null);setSending(false);
+    // T5 — zwolnij blokadę formularza TX
+    if(db&&cf)db.ref("rooms/"+roomCode+"/txLock/"+cf).transaction(function(v){return v===sessionId.current?null:v;});
+  }
+  // T5 — otwieranie formularza TX z blokadą per rodzina
+  function openTxForm(pMode,extra){
+    if(!db){resetP();setShowP(true);setPMode(pMode);if(extra)extra();return;}
+    db.ref("rooms/"+roomCode+"/txLock/"+cf).transaction(function(v){
+      if(v&&v!==sessionId.current)return; // abort — inny gracz tej rodziny ma formularz
+      return sessionId.current;
+    },function(err,committed){
+      if(!committed){showMsg("Formularz transakcji jest już otwarty przez innego uczestnika tej rodziny!");return;}
+      db.ref("rooms/"+roomCode+"/txLock/"+cf).onDisconnect().remove();
+      resetP();setShowP(true);setPMode(pMode);if(extra)extra();
+    });
+  }
   function toggleItem(item){
     // Nr 5: prevent selecting locked cards
     if(isCardLocked(item.id)){showMsg("Karta \""+item.name+"\" jest zablokowana w innej transakcji!");return;}
@@ -2469,7 +2602,10 @@ function App({roomCode,role}) {
       var soldAll=ownCards.length===0;
       var cost=soldAll?200:300;
       var bonus=soldAll?100:0;
-      setFd(prev=>{var n={...prev};n[fId]={...n[fId],cash:n[fId].cash-cost+bonus};return n;});
+      setFd(prev=>{var n={...prev};
+        // S4 — guard: nie zejdź poniżej 0
+        var netCost=Math.min(cost-bonus,n[fId].cash);
+        n[fId]={...n[fId],cash:n[fId].cash-netCost};return n;});
       newTxs.push({id:(ts+fi*2).toString(),type:"bnb_settle",from:fId,to:"dostawca",status:"accepted",offeredItems:[],
         description:(soldAll?"Sprzedano cały towar — prowizja 200 $ + bonifikata 100 $":"Niesprzedany towar — prowizja 300 $ (brak bonifikaty)")});
     });
@@ -2490,14 +2626,24 @@ function App({roomCode,role}) {
     if(!validateMapDuplicate(tFam,selItems)){showMsg("Ta rodzina już posiada ten fragment mapy!");return;}
     var locked=selItems.filter(i=>isCardLocked(i.id));
     if(locked.length){showMsg("Karta \""+locked[0].name+"\" jest zablokowana w innej transakcji!");return;}
-    setTxs(p=>[{id:Date.now().toString(),type:"sale",from:cf,to:tFam,offeredItems:selItems.slice(),price:Number(price),status:"pending"},...p]);resetP();showMsg("Oferta sprzedaży wysłana");}
+    // S2 — sprawdź duplikat
+    var itemIds=selItems.map(i=>i.id).sort().join(",");
+    var dup=txs.find(t=>t.type==="sale"&&t.from===cf&&t.to===tFam&&(t.status==="pending"||t.status==="awaiting_response")&&t.offeredItems.map(i=>i.id).sort().join(",")===itemIds);
+    if(dup){showMsg("Taka oferta sprzedaży już oczekuje na odpowiedź!");return;}
+    setTxs(p=>[{id:Date.now().toString(),type:"sale",from:cf,to:tFam,offeredItems:selItems.slice(),price:Number(price),status:"pending"},...p]);setSending(true);resetP();showMsg("Oferta sprzedaży wysłana");}
   function submitBarter(){if(!tFam||!selItems.length)return;
     if(!validateMapDuplicate(tFam,selItems)){showMsg("Ta rodzina już posiada ten fragment mapy!");return;}
     var locked=selItems.filter(i=>isCardLocked(i.id));
     if(locked.length){showMsg("Karta \""+locked[0].name+"\" jest zablokowana w innej transakcji!");return;}
-    setTxs(p=>[{id:Date.now().toString(),type:"barter",from:cf,to:tFam,offeredItems:selItems.slice(),offeredCash:Number(eCash)||0,responseItems:null,responseCash:0,status:"awaiting_response"},...p]);resetP();showMsg("Propozycja barteru wysłana");}
-  function submitResponse(){if(!rTx||!selItems.length)return;setTxs(p=>p.map(t=>t.id!==rTx?t:{...t,responseItems:selItems.slice(),responseCash:Number(eCash)||0,status:"pending"}));resetP();showMsg("Kontr-oferta wysłana!");}
+    // S2 — sprawdź duplikat
+    var itemIds2=selItems.map(i=>i.id).sort().join(",");
+    var dup2=txs.find(t=>t.type==="barter"&&t.from===cf&&t.to===tFam&&(t.status==="pending"||t.status==="awaiting_response")&&t.offeredItems.map(i=>i.id).sort().join(",")===itemIds2);
+    if(dup2){showMsg("Taka propozycja barteru już oczekuje na odpowiedź!");return;}
+    setTxs(p=>[{id:Date.now().toString(),type:"barter",from:cf,to:tFam,offeredItems:selItems.slice(),offeredCash:Number(eCash)||0,responseItems:null,responseCash:0,status:"awaiting_response"},...p]);setSending(true);resetP();showMsg("Propozycja barteru wysłana");}
+  function submitResponse(){if(!rTx||!selItems.length)return;setSending(true);setTxs(p=>p.map(t=>t.id!==rTx?t:{...t,responseItems:selItems.slice(),responseCash:Number(eCash)||0,status:"pending"}));resetP();showMsg("Kontr-oferta wysłana!");}
   function acceptTx(txId){setTxs(p=>p.map(tx=>{if(tx.id!==txId)return tx;
+    // S2 — guard: nie akceptuj już zaakceptowanej TX
+    if(tx.status==="accepted")return tx;
     // === WALIDACJA (Nr 4) ===
     var seller=fd[tx.from],buyer=fd[tx.to];
     if(tx.type==="sale"){
@@ -2516,62 +2662,76 @@ function App({roomCode,role}) {
   function rejectTx(txId){setTxs(p=>p.map(t=>t.id===txId?{...t,status:"rejected"}:t));showMsg("Operacja odrzucona.");}
 
   function rollDice(fId,rollIdx){
+    // P1 — blokada przed równoczesnym/podwójnym rzutem
+    var lockKey=fId+"-"+rollIdx;
+    if(rollingInProgress.current[lockKey])return;
+    rollingInProgress.current[lockKey]=true;
+
+    // P4 — odczyt policyUsed z closure (stateRef) zamiast setter-hack
+    var policyUsed=(stateRef.current.blindFate&&stateRef.current.blindFate[fId]&&stateRef.current.blindFate[fId].rolls&&stateRef.current.blindFate[fId].rolls[rollIdx])?stateRef.current.blindFate[fId].rolls[rollIdx].policyUsed||null:null;
+
+    // P2 — flaga blokująca sync blindFate podczas animacji
+    diceRolling.current=true;
+
     // Start rolling animation
     setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var rolls=(bf.rolls||[]).slice();
       rolls[rollIdx]={...rolls[rollIdx],rolling:true};bf.rolls=rolls;n[fId]=bf;return n;});
 
     // After 2s animation, show dice result
-    setTimeout(()=>{
+    diceTimeouts.current.push(setTimeout(()=>{
       var d1=Math.floor(Math.random()*6)+1,d2=Math.floor(Math.random()*6)+1,sum=d1+d2;
       var ev=BLIND_FATE_EVENTS[sum];
+      if(!ev){console.error("Brak zdarzenia dla sumy: "+sum);diceRolling.current=false;delete rollingInProgress.current[lockKey];return;}
       setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var rolls=(bf.rolls||[]).slice();
         var roll={...rolls[rollIdx]};
         roll.rolling=false;roll.dice1=d1;roll.dice2=d2;roll.sum=sum;roll.event=ev;roll.resolved=true;roll.showDice=true;roll.showCard=false;
-        var pu=roll.policyUsed,ne=0,net="";
+        // P4 — użyj policyUsed z closure
+        var pu=policyUsed,ne=0,net="";
         if(ev.type==="loss"){var base=ev.amount;if(pu===100)ne=0;else if(pu===50)ne=Math.round(base/2);else ne=base;net=ne===0?"0 $ (polisa pokryła stratę)":ne+" $";}
         else if(ev.type==="loss_resources"){if(pu===100){ne=0;net="0% zasobów (polisa)";}else if(pu===50){ne=-5;net="-5% zasobów";}else{ne=-10;net="-10% zasobów";}}
         else if(ev.type==="gain"){ne=ev.amount;net="+"+ev.amount+" $";}
         else if(ev.type==="gain_policy"){if(!pu){ne=0;net="0 $ (brak polisy)";}else{var pc=pu===50?30:50;ne=pc*2;net="+"+ne+" $ (2x"+pc+" $)";}}
-        roll.netEffect=ne;roll.netEffectText=net;
+        roll.netEffect=ne;roll.netEffectText=net;roll.policyUsed=policyUsed;
         rolls[rollIdx]=roll;bf.rolls=rolls;n[fId]=bf;return n;
       });
 
       // After 1.5s delay, show event card and apply effects
-      setTimeout(()=>{
+      diceTimeouts.current.push(setTimeout(()=>{
         setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var rolls=(bf.rolls||[]).slice();
           rolls[rollIdx]={...rolls[rollIdx],showCard:true};bf.rolls=rolls;n[fId]=bf;return n;});
 
         var ev2=BLIND_FATE_EVENTS[sum];
-        var pu2; setBlindFate(prev=>{pu2=(prev[fId]||{}).rolls[rollIdx].policyUsed;return prev;});
-        // Read final values from state
-        setBlindFate(prev=>{
-          var bfn={...(prev[fId]||{})};var roll=bfn.rolls[rollIdx];
-          if(ev2.type!=="loss_resources") setFd(fd3=>{var n={...fd3};n[fId]={...n[fId],cash:n[fId].cash+roll.netEffect};return n;});
-          if(roll.policyUsed){
+        // P4 — oblicz netEffect z closure zamiast setter-hack
+        var pu=policyUsed,ne=0,net="";
+        if(ev2.type==="loss"){var base2=ev2.amount;if(pu===100)ne=0;else if(pu===50)ne=Math.round(base2/2);else ne=base2;net=ne===0?"0 $ (polisa pokryła stratę)":ne+" $";}
+        else if(ev2.type==="loss_resources"){if(pu===100){ne=0;net="0% zasobów (polisa)";}else if(pu===50){ne=-5;net="-5% zasobów";}else{ne=-10;net="-10% zasobów";}}
+        else if(ev2.type==="gain"){ne=ev2.amount;net="+"+ev2.amount+" $";}
+        else if(ev2.type==="gain_policy"){if(!pu){ne=0;net="0 $ (brak polisy)";}else{var pc2=pu===50?30:50;ne=pc2*2;net="+"+ne+" $ (2x"+pc2+" $)";}}
+
+        // Zastosuj efekty finansowe i polisę
+        if(ev2.type!=="loss_resources") setFd(fd3=>{var n={...fd3};n[fId]={...n[fId],cash:n[fId].cash+ne};return n;});
+        if(policyUsed){
+          setBlindFate(prev=>{var n={...prev};var bfn={...(prev[fId]||{})};
             var pol={...(bfn.policies||{})};
-            if(roll.policyUsed===50)pol.p50="used";if(roll.policyUsed===100)pol.p100="used";
-            bfn.policies=pol;
-          }
-          return {...prev,[fId]:bfn};
-        });
-        setTxs(prev2=>{
-          var roll2; setBlindFate(prev3=>{roll2=(prev3[fId]||{}).rolls[rollIdx];return prev3;});
-          var ev3=BLIND_FATE_EVENTS[sum];
-          var desc="Rzut ["+d1+"+"+d2+"="+sum+"] — "+(ev3?ev3.text:"")+" → "+(roll2?roll2.netEffectText:"");
-          if(roll2&&roll2.policyUsed) desc+=" (polisa "+roll2.policyUsed+"%)";
-          if(ev3&&ev3.type==="loss_resources") desc="Rzut ["+d1+"+"+d2+"="+sum+"] — utrata 10% zasobów na koniec rozgrywki"+(roll2&&roll2.policyUsed?" (polisa "+roll2.policyUsed+"%)":"");
-          return [{id:Date.now().toString(),type:"fate",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:desc},...prev2];
-        });
+            if(policyUsed===50)pol.p50="used";if(policyUsed===100)pol.p100="used";
+            bfn.policies=pol;return {...n,[fId]:bfn};});
+        }
+        var desc="Rzut ["+d1+"+"+d2+"="+sum+"] — "+(ev2?ev2.text:"")+" → "+net;
+        if(policyUsed) desc+=" (polisa "+policyUsed+"%)";
+        if(ev2&&ev2.type==="loss_resources") desc="Rzut ["+d1+"+"+d2+"="+sum+"] — utrata 10% zasobów na koniec rozgrywki"+(policyUsed?" (polisa "+policyUsed+"%)":"");
+        setTxs(prev2=>[{id:Date.now().toString(),type:"fate",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:desc},...prev2]);
         showMsg(FM[fId].nom+": "+ev2.text);
 
-        // Auto-hide after 30s
-        setTimeout(()=>{
+        // Auto-hide after 30s + P1/P2 cleanup
+        diceTimeouts.current.push(setTimeout(()=>{
           setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var rls=(bf.rolls||[]).slice();
             if(rls[rollIdx])rls[rollIdx]={...rls[rollIdx],showCard:false,showDice:false};
             bf.rolls=rls;n[fId]=bf;return n;});
-        },30000);
-      },1500);
-    },2000);
+          diceRolling.current=false;           // P2 — odblokuj sync
+          delete rollingInProgress.current[lockKey]; // P1 — odblokuj rzut
+        },30000));
+      },1500));
+    },2000));
   }
 
   var rootRef=React.useRef(null);
@@ -2583,7 +2743,7 @@ function App({roomCode,role}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v7.3.4</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.0.0</div>
       </div>
     </div>
     {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
@@ -2614,8 +2774,8 @@ function App({roomCode,role}) {
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
         <div style={{background:"#4C130F",color:"#D4A853",padding:"8px 16px",borderRadius:4,fontSize:28,fontWeight:700}}>{familyData.cash} $</div>
         {!viewSheriff&&<div style={{display:"flex",gap:6}}>
-          <button style={btnS("primary")} onClick={()=>{resetP();setShowP(true);setPMode("sale");}}>Sprzedaż</button>
-          <button style={btnS("barter")} onClick={()=>{resetP();setShowP(true);setPMode("barter");}}>Barter</button>
+          <button style={btnS("primary")} onClick={()=>openTxForm("sale")}>Sprzedaż</button>
+          <button style={btnS("barter")} onClick={()=>openTxForm("barter")}>Barter</button>
         </div>}
       </div>
       <div style={{display:"grid",gridTemplateColumns:(activeTab==="inv"||activeTab==="tutorial")?"1fr 360px":"1fr",gap:20,alignItems:"start"}}>
@@ -3016,7 +3176,7 @@ function App({roomCode,role}) {
           <div style={{background:"#fff",borderRadius:6,border:"1px solid #D4C4A8",padding:14}}>
             <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Księgowość {pendingCount>0&&<span className="badge">{pendingCount}</span>}</div>
             {familyTxs.length===0?<div style={{textAlign:"center",padding:24,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Brak wpisów</div>
-            :familyTxs.map(t=><TxDisplay key={t.id} tx={t} cf={familyId} onAccept={acceptTx} onReject={rejectTx} onRespond={id=>{resetP();setRTx(id);setShowP(true);setPMode("barter_response");}}/>)}
+            :familyTxs.map(t=><TxDisplay key={t.id} tx={t} cf={familyId} onAccept={acceptTx} onReject={rejectTx} onRespond={id=>openTxForm("barter_response",()=>setRTx(id))}/>)}
           </div>
         </div>}
       </div>
@@ -3158,10 +3318,10 @@ function App({roomCode,role}) {
         <div style={{padding:"14px 18px",borderTop:"1px solid #D4C4A8",display:"flex",gap:8,justifyContent:"flex-end"}}>
           {(pMode==="sale"||pMode==="barter")&&pStep>1&&<button style={btnS("default")} onClick={()=>setPStep(s=>s-1)}>Wstecz</button>}
           <div style={{flex:1}}/>
-          {(pMode==="sale"||pMode==="barter")&&pStep<3&&<button style={btnS("primary",(pStep===1&&!tFam)||(pStep===2&&!selItems.length))} onClick={()=>{if(pStep===1&&!tFam)return;if(pStep===2&&!selItems.length)return;setPStep(s=>s+1);}}>Dalej</button>}
-          {pMode==="sale"&&pStep===3&&<button style={btnS("success",price<=0)} onClick={submitSale}>Wyślij ofertę</button>}
-          {pMode==="barter"&&pStep===3&&<button style={btnS("barter")} onClick={submitBarter}>Wyślij propozycję</button>}
-          {pMode==="barter_response"&&<button style={btnS("barter",!selItems.length)} onClick={submitResponse}>Wyślij kontr-ofertę</button>}
+          {(pMode==="sale"||pMode==="barter")&&pStep<3&&<button style={btnS("primary",(pStep===1&&!tFam)||(pStep===2&&!selItems.length))} onClick={()=>{var fs=formStateRef.current;if(fs.pStep===1&&!fs.tFam)return;if(fs.pStep===2&&!selItems.length)return;setPStep(s=>s+1);}}>Dalej</button>}
+          {pMode==="sale"&&pStep===3&&<button style={btnS("success",price<=0||sending)} onClick={submitSale}>{sending?"Wysyłanie…":"Wyślij ofertę"}</button>}
+          {pMode==="barter"&&pStep===3&&<button style={btnS("barter",sending)} onClick={submitBarter}>{sending?"Wysyłanie…":"Wyślij propozycję"}</button>}
+          {pMode==="barter_response"&&<button style={btnS("barter",!selItems.length||sending)} onClick={submitResponse}>{sending?"Wysyłanie…":"Wyślij kontr-ofertę"}</button>}
         </div>
       </div>
     </div>)}
@@ -3180,7 +3340,24 @@ function GameWrapper(){
     var room=params.get("room");
     var role=params.get("role");
     if(room&&role&&ROOM_RE.test(room)&&ALLOWED_ROLES.indexOf(role)>=0){
-      setGameInfo({roomCode:room,role:role});
+      if(!db){setGameInfo({roomCode:room,role:role});return;}
+      // S6 — sprawdź w Firebase czy rola nie jest zajęta przez inną sesję
+      db.ref("rooms/"+room+"/players/"+role).once("value").then(snap=>{
+        var p=snap.val();
+        // connected===false lub brak wpisu = wolna rola (nasz powrót)
+        if(p&&p.connected===true){
+          // Rola zajęta — wyczyść URL i pokaż lobby
+          var url=new URL(window.location);
+          url.searchParams.delete("room");url.searchParams.delete("role");
+          window.history.replaceState({},"",url);
+          // gameInfo pozostaje null → Lobby
+        } else {
+          setGameInfo({roomCode:room,role:role});
+        }
+      }).catch(()=>{
+        // Przy błędzie Firebase pozwól wejść (fallback bezpieczny)
+        setGameInfo({roomCode:room,role:role});
+      });
     }
   },[]);
 
