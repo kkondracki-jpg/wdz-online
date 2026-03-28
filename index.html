@@ -828,6 +828,7 @@ function InstructionSlides({familyId, roomCode}) {
   const [rolesSubmitted, setRolesSubmitted] = useState(false);
   const [roles, setRoles] = useState({head:'',rep:'',acc:'',nestor:'',heart:''});
   const [roleSaving, setRoleSaving] = useState(false);
+  const [tradeTab, setTradeTab] = useState("sale");
   const d = INSTRUCTION_DATA[familyId];
 
   useEffect(()=>{
@@ -974,34 +975,31 @@ function InstructionSlides({familyId, roomCode}) {
     </div>);
     case 6: return (<div>
       {hdr("Jak handlować",false)}
-      <img src="img/instrukcja_sprzedaz.png" alt="Instrukcja sprzedaży" style={{width:"100%",display:"block",borderRadius:4,marginBottom:14}}/>
-      <div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
-        <div style={{marginBottom:14,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
-          <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:8}} className="wt">Sprzedaż — karta za gotówkę</div>
-          {para("<strong>Krok 1</strong> — Sprzedający: &bdquo;Sprzedaż&rdquo; → rodzina kupującego → karta → cena → wyślij ofertę.")}
-          {para("<strong>Krok 2</strong> — Kupujący: Powiadomienie → &bdquo;Akceptuj&rdquo; lub &bdquo;Odrzuć&rdquo;.")}
-          {para("<strong>Krok 3</strong> — Gotowe: Karta i gotówka się wymieniają. Zapis w Księgowości.")}
+      <div style={{display:"flex",gap:6,marginBottom:12}}>
+        <div onClick={()=>setTradeTab("sale")}
+          style={{padding:"7px 20px",borderRadius:"4px 4px 0 0",fontSize:14,
+            fontWeight:tradeTab==="sale"?700:400,
+            background:tradeTab==="sale"?"#842504":"#F3CA82",
+            color:tradeTab==="sale"?"#fff":"#4C130F",
+            cursor:"pointer",
+            borderBottom:tradeTab==="sale"?"2px solid #842504":"2px solid transparent"}}>
+          Sprzedaż
         </div>
-        <div style={{marginBottom:14,padding:"12px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
-          <div style={{fontWeight:700,fontSize:15,color:"#842504",marginBottom:8}} className="wt">Barter — karta za kartę (± dopłata)</div>
-          {para("<strong>Krok 1</strong> — Inicjator: &bdquo;Barter&rdquo; → rodzina → karty do oddania → wyślij propozycję.")}
-          {para("<strong>Krok 2</strong> — Odbiorca: Propozycja → zaznacz karty w zamian → opcjonalnie dopłata → wyślij kontr-ofertę.")}
-          {para("<strong>Krok 3</strong> — Inicjator: Kontr-oferta → &bdquo;Akceptuj&rdquo; lub &bdquo;Odrzuć&rdquo;.")}
-          {para("<strong>Krok 4</strong> — Gotowe: Wymiana automatyczna. Zapis w Księgowości.")}
+        <div onClick={()=>setTradeTab("barter")}
+          style={{padding:"7px 20px",borderRadius:"4px 4px 0 0",fontSize:14,
+            fontWeight:tradeTab==="barter"?700:400,
+            background:tradeTab==="barter"?"#5E5971":"#F3CA82",
+            color:tradeTab==="barter"?"#fff":"#4C130F",
+            cursor:"pointer",
+            borderBottom:tradeTab==="barter"?"2px solid #5E5971":"2px solid transparent"}}>
+          Barter
         </div>
-        <div style={{fontWeight:700,fontSize:14,color:"#4C130F",marginBottom:6}}>Ważne zasady handlu:</div>
-        {para("Karta w transakcji jest zablokowana — niedostępna aż do akceptacji lub odrzucenia.")}
-        {para("Gotówka musi wystarczyć — brak środków = automatyczne odrzucenie.")}
-        {para("Każda transakcja jest zapisywana — sekcja &bdquo;Księgowość&rdquo; po prawej.")}
-        {para("Pomyłka? Zgłoście Szeryfowi — może cofnąć transakcję.")}
       </div>
+      {tradeTab==="sale"&&instrImg("instrukcja_sprzedaz")}
+      {tradeTab==="barter"&&instrImg("instrukcja_barter")}
     </div>);
-    case 7: return (<div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
-      {hdr("Powodzenia!",true)}
-      {para("Przejrzyjcie karty w &bdquo;Majątku&rdquo;, ustalcie strategię. <strong>Informacja to waluta</strong> — nie ujawniajcie wszystkiego od razu.")}
-      <div style={{marginTop:20,padding:"16px 20px",background:"#FDF8EE",borderRadius:8,textAlign:"center"}}>
-        <div style={{fontSize:18,fontStyle:"italic",color:"#842504",fontWeight:600}} className="wt">{d.goodLuck}</div>
-      </div>
+    case 7: return (<div>
+      {instrImg("ekran_8")}
     </div>);
     default: return null;
     }
@@ -2927,9 +2925,9 @@ function App({roomCode,role}) {
           {activeTab==="fate"&&<BlindFateFamily fId={familyId} blindFate={blindFate}/>}
           {activeTab==="rel"&&relationsUnlocked&&(()=>{
             var CATS=[
-              {key:"partnership",   label:"Partnerstwo",          left:"Zespół dbał tylko o swoje interesy",                  right:"Zespół dbał o interesy dwóch stron"},
-              {key:"rules",         label:"Przestrzeganie zasad", left:"Zespół łamał lub omijał zasady",                      right:"Zespół przestrzegał i dbał o zasady"},
-              {key:"communication", label:"Komunikacja",          left:"W komunikacji z zespołem występowały duże trudności", right:"Zespół komunikował się czytelnie i słuchał uważnie"}
+              {key:"partnership",   label:"Partnerstwo",          desc:["Zespół dbał tylko o swoje interesy","Zespół dbał o interesy dwóch stron"]},
+              {key:"rules",         label:"Przestrzeganie zasad", desc:["Zespół łamał lub omijał zasady","Zespół przestrzegał i dbał o zasady"]},
+              {key:"communication", label:"Komunikacja",          desc:["W komunikacji z zespołem występowały duże trudności","Zespół komunikował się czytelnie i słuchał uważnie"]}
             ];
             var others=FO.filter(f=>f!==familyId);
             function setRating(target,cat,val){
@@ -2937,17 +2935,18 @@ function App({roomCode,role}) {
             }
             function getRating(target,cat){return (relations[familyId]&&relations[familyId][target]&&relations[familyId][target][cat])||0;}
             return (<div>
-              <div style={{textAlign:"center",fontSize:22,fontWeight:700,letterSpacing:"1px",color:"#842504",marginBottom:16}} className="wt">
-                Jak wspominacie współpracę z każdą rodziną? Zaznaczcie swoje odczucia w trzech obszarach.
+              <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:14}}>
+                <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,marginBottom:8}} className="wt">Relacje długoterminowe</div>
+                <div style={{fontSize:14,color:"#5C4A3A",lineHeight:1.6}}>Jak wspominacie współpracę z każdą rodziną? Zaznaczcie swoje odczucia w trzech obszarach.</div>
               </div>
-              {others.map(target=>{var f=FM[target];return (<div key={target} style={{background:"transparent",border:"1px solid "+f.col,borderRadius:6,padding:12,marginBottom:10}}>
+              {others.map(target=>{var f=FM[target];return (<div key={target} style={{background:"rgba(255,255,255,0.6)",border:"1px solid "+f.col,borderRadius:6,padding:12,marginBottom:10}}>
                 <div style={{fontSize:16,fontWeight:700,color:f.col,marginBottom:10}} className="wt">{f.nom}</div>
                 {CATS.map(cat=>(<div key={cat.key} style={{marginBottom:12}}>
                   <div style={{textAlign:"center",fontWeight:700,fontSize:18,color:"#842504",marginBottom:6}} className="wt">{cat.label}</div>
-                  <div style={{display:"flex",alignItems:"center"}}>
-                    <div style={{flex:1,textAlign:"right",fontSize:14,fontStyle:"italic",color:"#5C4A3A",paddingRight:12,lineHeight:1.3}}>{cat.left}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <div style={{flex:1,textAlign:"right",fontSize:14,fontStyle:"italic",color:"#5C4A3A",lineHeight:1.4}}>{cat.desc[0]}</div>
                     <div style={{flex:"0 0 auto"}}><StarRating value={getRating(target,cat.key)} onChange={v=>setRating(target,cat.key,v)} disabled={viewSheriff}/></div>
-                    <div style={{flex:1,textAlign:"left",fontSize:14,fontStyle:"italic",color:"#5C4A3A",paddingLeft:12,lineHeight:1.3}}>{cat.right}</div>
+                    <div style={{flex:1,textAlign:"left",fontSize:14,fontStyle:"italic",color:"#5C4A3A",lineHeight:1.4}}>{cat.desc[1]}</div>
                   </div>
                 </div>))}
               </div>);})}
@@ -3204,18 +3203,33 @@ function App({roomCode,role}) {
           </div>}
           {(pMode==="sale"||pMode==="barter")&&pStep===2&&<div>
             <div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase",letterSpacing:"1px",marginBottom:8}}>{pMode==="sale"?"Wybierz towar":"Wybierz co oferujesz"}</div>
-            <div style={{maxHeight:380,overflowY:"auto"}}>{my.items.filter(item=>item.cat!==C_BNB).map(item=>{var sel=!!selItems.find(i=>i.id===item.id);return <div key={item.id} style={{marginBottom:4}}>
-              {item.cat===C_RES&&<ResourceCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
-              {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
-              {item.cat===C_NRES&&<NoteCard item={item} selected={sel} type="res" textOnly onClick={()=>toggleItem(item)}/>}
-              {item.cat===C_NCOMP&&<NoteCard item={item} selected={sel} type="comp" textOnly onClick={()=>toggleItem(item)}/>}
-              {item.cat===C_PLOT&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #C4B090"),background:sel?"#FFF8E7":"#FDFAF4",padding:"8px 10px",cursor:"pointer",position:"relative"}}>{sel&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}<div style={{fontSize:13,fontWeight:600}}>{item.name}</div><div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A08050",marginTop:2}}>DZIAŁKA</div></div>}
-              {item.cat===C_MAP&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #D4C870"),background:sel?"#FFF8E7":"#FFFDF0",padding:"8px 10px",cursor:"pointer",position:"relative"}}>
-                {sel&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
-                <div style={{fontSize:13,fontWeight:600}}>{item.name}</div>
-                <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A09020",marginTop:2}}>FRAGMENT MAPY</div>
-              </div>}
-            </div>;})}
+            <div style={{maxHeight:380,overflowY:"auto"}}>{(()=>{
+              var items=my.items.filter(item=>item.cat!==C_BNB);
+              var cats=[
+                {cat:C_RES,   label:"Zasoby",                       col:"#A08050",bg:"#FDFAF4"},
+                {cat:C_NRES,  label:"Notatki dziadka — zasoby",     col:"#A08050",bg:"#FFFCF6"},
+                {cat:C_COMP,  label:"Kompetencje",                   col:"#6090B0",bg:"#F4F8FC"},
+                {cat:C_NCOMP, label:"Notatki dziadka — kompetencje",col:"#6090B0",bg:"#F6F8FF"},
+                {cat:C_PLOT,  label:"Działka",                       col:"#A08050",bg:"#FDFAF4"},
+                {cat:C_MAP,   label:"Fragment mapy",                 col:"#A09020",bg:"#FFFDF0"},
+              ];
+              var hdrS={fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",marginBottom:6,marginTop:10};
+              return cats.map(({cat,label,col,bg})=>{
+                var group=items.filter(i=>i.cat===cat);
+                if(!group.length)return null;
+                return (<div key={cat}>
+                  <div style={{...hdrS,color:col}}>{label}</div>
+                  {group.map(item=>{var sel=!!selItems.find(i=>i.id===item.id);return <div key={item.id} style={{marginBottom:4}}>
+                    {cat===C_RES&&<ResourceCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
+                    {cat===C_COMP&&<CompCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
+                    {cat===C_NRES&&<NoteCard item={item} selected={sel} type="res" textOnly onClick={()=>toggleItem(item)} txBg={bg}/>}
+                    {cat===C_NCOMP&&<NoteCard item={item} selected={sel} type="comp" textOnly onClick={()=>toggleItem(item)} txBg={bg}/>}
+                    {cat===C_PLOT&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #C4B090"),background:sel?"#FFF8E7":bg,padding:"8px 10px",cursor:"pointer",position:"relative"}}>{sel&&<span style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700}}>V</span>}<div style={{fontSize:14,fontWeight:600}}>{item.name}</div><div style={{fontSize:14,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A08050",marginTop:2}}>DZIAŁKA</div></div>}
+                    {cat===C_MAP&&<div onClick={()=>toggleItem(item)} style={{borderRadius:5,border:(sel?"2px solid #D4A853":"1px solid #D4C870"),background:sel?"#FFF8E7":bg,padding:"8px 10px",cursor:"pointer",position:"relative"}}>{sel&&<span style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700}}>V</span>}<div style={{fontSize:14,fontWeight:600}}>{item.name}</div><div style={{fontSize:14,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A09020",marginTop:2}}>FRAGMENT MAPY</div></div>}
+                  </div>;})}
+                </div>);
+              });
+            })()}
             {bnbEnabled&&(()=>{
               var bnbItems=my.items.filter(i=>i.cat===C_BNB);
               var grouped={};bnbItems.forEach(i=>{if(!grouped[i.bnbOrigin])grouped[i.bnbOrigin]=[];grouped[i.bnbOrigin].push(i);});
