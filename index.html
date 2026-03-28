@@ -321,7 +321,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.2.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.2.1</div>
       </div>
 
       {/* Initial choice */}
@@ -329,13 +329,13 @@ function Lobby({onJoin}){
         <div style={titleStyle}>Dołącz do gry</div>
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
           <button onClick={handleCreate} disabled={loading} style={{...btnS("sheriff"),padding:"14px 20px",fontSize:16,width:"100%",textAlign:"center"}}>
-            Stwórz pokój (Szeryf / Trener)
+            Stwórz pokój (Szeryf)
           </button>
           <button onClick={()=>{setMode("rejoin_sheriff");setError(null);}} style={{...btnS("default"),padding:"10px 20px",fontSize:14,width:"100%",textAlign:"center"}}>
-            Wróć do sesji jako trener
+            Wróć do sesji jako Szeryf
           </button>
           <button onClick={()=>{setMode("rejoin_sheriff2");setError(null);}} style={{...btnS("default"),padding:"10px 20px",fontSize:14,width:"100%",textAlign:"center"}}>
-            Dołącz jako Trener 2
+            Dołącz jako Szeryf 2
           </button>
           <div style={{textAlign:"center",fontSize:13,color:"#8B7355",margin:"4px 0"}}>— lub —</div>
           <div style={{display:"flex",gap:8}}>
@@ -348,7 +348,7 @@ function Lobby({onJoin}){
 
       {/* SH1 — Sheriff rejoin panel */}
       {mode==="rejoin_sheriff"&&<div style={boxStyle}>
-        <div style={titleStyle}>Wróć do sesji jako trener</div>
+        <div style={titleStyle}>Wróć do sesji jako Szeryf</div>
         <div style={{fontSize:13,color:"#5C4A3A",marginBottom:12}}>Wpisz kod pokoju trwającej sesji:</div>
         <div style={{display:"flex",gap:8,marginBottom:10}}>
           <input value={rejoinCode} onChange={e=>setRejoinCode(e.target.value.toUpperCase())} placeholder="Kod pokoju (np. WDZ-A3K7)" style={{flex:1,padding:"12px 14px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:15,fontFamily:"monospace",letterSpacing:2,textTransform:"uppercase",background:"#fff"}} onKeyDown={e=>{if(e.key==="Enter")handleRejoinSheriff();}}/>
@@ -358,9 +358,9 @@ function Lobby({onJoin}){
         {error&&<div style={{background:"#FEE",border:"1px solid #C88",borderRadius:4,padding:"8px 12px",marginTop:10,fontSize:13,color:"#8B2500"}}>{error}</div>}
       </div>}
 
-      {/* SH2 — Trener 2 rejoin panel */}
+      {/* SH2 — Szeryf 2 rejoin panel */}
       {mode==="rejoin_sheriff2"&&<div style={boxStyle}>
-        <div style={titleStyle}>Dołącz jako Trener 2</div>
+        <div style={titleStyle}>Dołącz jako Szeryf 2</div>
         <div style={{fontSize:13,color:"#5C4A3A",marginBottom:12}}>Wpisz kod pokoju trwającej sesji:</div>
         <div style={{display:"flex",gap:8,marginBottom:10}}>
           <input value={rejoinCode2} onChange={e=>setRejoinCode2(e.target.value.toUpperCase())} placeholder="Kod pokoju (np. WDZ-A3K7)" style={{flex:1,padding:"12px 14px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:15,fontFamily:"monospace",letterSpacing:2,textTransform:"uppercase",background:"#fff"}} onKeyDown={e=>{if(e.key==="Enter")handleRejoinSheriff2();}}/>
@@ -386,7 +386,7 @@ function Lobby({onJoin}){
           </div>
           <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:sheriff2Connected?"#F0FAF0":"#F5F0E8",borderRadius:4,border:"1px solid "+(sheriff2Connected?"#90C090":"#D4C4A8")}}>
             <div style={{width:10,height:10,borderRadius:"50%",background:sheriff2Connected?"#2E5B3C":"#C4B090"}}/>
-            <span style={{fontSize:13,fontWeight:sheriff2Connected?700:400,color:sheriff2Connected?"#2E5B3C":"#C4B090"}}>Trener 2</span>
+            <span style={{fontSize:13,fontWeight:sheriff2Connected?700:400,color:sheriff2Connected?"#2E5B3C":"#C4B090"}}>Szeryf 2</span>
             {sheriff2Connected&&<span style={{fontSize:13,color:"#2E5B3C",marginLeft:"auto"}}>✓ połączony</span>}
             {!sheriff2Connected&&<span style={{fontSize:13,color:"#C4B090",marginLeft:"auto"}}>opcjonalny</span>}
           </div>
@@ -531,14 +531,21 @@ function AgendaBar({familyId,stageIdx}){
   });
   var curIdx=stageIdx>=0&&stageIdx<AGENDA_ITEMS.length?stageIdx:0;
   function st(idx){return idx<curIdx?"done":idx===curIdx?"current":"future";}
-  var CD="rgba(255,255,255,0.90)",CL="rgba(255,255,255,0.65)",CT="rgba(255,255,255,0.60)";
-  var FF="rgba(255,255,255,0.14)",FL="rgba(255,255,255,0.14)",FT="rgba(255,255,255,0.25)";
+  // done = biały, current = biały+ring, future = kolor rodziny (nieprzezroczysty) + obrys
+  var CD="#FFFFFF",CL="rgba(255,255,255,0.85)",CT="rgba(255,255,255,0.85)";
+  var FF=f.col,FL="rgba(255,255,255,0.18)",FT="rgba(255,255,255,0.30)";
+  var FS="rgba(255,255,255,0.28)"; // future symbol stroke
   var CF="#FFFFFF",CX="#FFFFFF",CR="#D4A853",SZ=4,LY=10,BY=42;
+  var TC="rgba(255,255,255,0.55)"; // tick color
   var WT="'Aka Posse','Alegreya Sans',serif";
   var elems=[];var k=0;
+  // linia future (pod symbolami)
   elems.push(<line key={k++} x1={PAD} y1={Y} x2={W-PAD} y2={Y} stroke={FL} strokeWidth="1"/>);
+  // linia done
   elems.push(<line key={k++} x1={PAD} y1={Y} x2={positions[curIdx]} y2={Y} stroke={CL} strokeWidth="1.5"/>);
-  phaseTicks.forEach(function(x){elems.push(<line key={k++} x1={x} y1={Y-5} x2={x} y2={Y+5} stroke={FL} strokeWidth="1"/>);});
+  // kreski graniczne faz — grubsze i widoczne
+  phaseTicks.forEach(function(x){elems.push(<line key={k++} x1={x} y1={Y-6} x2={x} y2={Y+6} stroke={TC} strokeWidth="2"/>);});
+  // etykiety faz
   elems.push(<text key={k++} x={positions[0]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="7" letterSpacing="0.06em" fill={CT} fontFamily={WT}>PRZYGOTOWANIE</text>);
   elems.push(<text key={k++} x={positions[18]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="7" letterSpacing="0.06em" fill={FT} fontFamily={WT}>OM\u00d3WIENIE</text>);
   [1,2,3].forEach(function(ph){
@@ -553,31 +560,32 @@ function AgendaBar({familyId,stageIdx}){
     var fw=phSt==="current"?"600":"400",pSize=phSt==="current"?"8":"7";
     elems.push(<text key={k++} x={midX} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize={pSize} letterSpacing="0.07em" fill={col} fontWeight={fw} fontFamily={WT}>{"\u2190 "+turns[0].phaseLabel+" \u2192"}</text>);
   });
+  // symbole (rysowane PO liniach — przykrywają je)
   AGENDA_ITEMS.forEach(function(it,i){
     var s=st(it.idx),px=positions[i];
-    var cF=s==="future"?FF:s==="current"?CF:CD,cT=s==="done"?CT:s==="current"?CX:FT;
+    var isFut=s==="future";
+    var cF=isFut?FF:s==="current"?CF:CD;
+    var cT=s==="done"?CT:s==="current"?CX:FT;
     var fs=s==="current"?"9":"8",fw=s==="current"?"600":"400";
+    var strk=isFut?FS:"none",swid=isFut?"0.8":"0";
     if(it.type==="prep"||it.type==="omow"){
-      elems.push(<polygon key={k++} points={agHexPts(px,Y,SZ)} fill={cF}/>);
+      elems.push(<polygon key={k++} points={agHexPts(px,Y,SZ)} fill={cF} stroke={strk} strokeWidth={swid}/>);
       if(s==="current") elems.push(<polygon key={k++} points={agHexPts(px,Y,SZ+3)} fill="none" stroke={CR} strokeWidth="1" strokeDasharray="2 1.5"/>);
     } else if(it.type==="turn"){
-      elems.push(<circle key={k++} cx={px} cy={Y} r={SZ} fill={cF}/>);
+      elems.push(<circle key={k++} cx={px} cy={Y} r={SZ} fill={cF} stroke={strk} strokeWidth={swid}/>);
       if(s==="current") elems.push(<circle key={k++} cx={px} cy={Y} r={SZ+3} fill="none" stroke={CR} strokeWidth="1" strokeDasharray="2 1.5"/>);
       elems.push(<text key={k++} x={px} y={BY} textAnchor="middle" dominantBaseline="middle" fontSize={fs} fill={cT} fontWeight={fw} fontFamily={WT}>{it.label}</text>);
     } else if(it.type==="kn"){
-      elems.push(<polygon key={k++} points={agDiamondPts(px,Y,3)} fill={cF}/>);
+      elems.push(<polygon key={k++} points={agDiamondPts(px,Y,3)} fill={cF} stroke={strk} strokeWidth={swid}/>);
       elems.push(<text key={k++} x={px} y={BY} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fill={cT} fontStyle="italic" fontFamily={WT}>Narada</text>);
     } else if(it.type==="narada"){
-      elems.push(<polygon key={k++} points={agDiamondPts(px,Y,SZ)} fill={cF}/>);
+      elems.push(<polygon key={k++} points={agDiamondPts(px,Y,SZ)} fill={cF} stroke={strk} strokeWidth={swid}/>);
       if(s==="current") elems.push(<polygon key={k++} points={agDiamondPts(px,Y,SZ+3)} fill="none" stroke={CR} strokeWidth="1" strokeDasharray="2 1.5"/>);
       elems.push(<text key={k++} x={px} y={Y-14} textAnchor="middle" dominantBaseline="middle" fontSize={fs} fill={cT} fontWeight={fw} fontFamily={WT}>Narada</text>);
     }
   });
-  return (<div style={{background:f.col,padding:"5px 16px 5px"}}>
-    <div style={{display:"flex",alignItems:"center",gap:12}}>
-      <div style={{color:"#fff",fontSize:13,whiteSpace:"nowrap",fontFamily:WT,letterSpacing:"0.04em"}}>{f.nom} \u2014 {f.biz}</div>
-      <svg viewBox={"0 0 "+W+" 52"} style={{flex:1,display:"block",overflow:"visible"}} preserveAspectRatio="xMidYMid meet">{elems}</svg>
-    </div>
+  return (<div style={{background:f.col,padding:"3px 16px 3px"}}>
+    <svg viewBox={"0 0 "+W+" 52"} width="100%" style={{display:"block"}} preserveAspectRatio="xMidYMid meet">{elems}</svg>
   </div>);
 }
 
@@ -599,15 +607,15 @@ function FamilyTimerPanel({familyId,stageIdx,secondsLeft,gameStarted,timerPaused
     else if(stage.type==="end") stageLabel="ZAKO\u0143CZENIE";
   }
   var WT="'Aka Posse','Alegreya Sans',serif";
-  return(<div style={{background:f.col,padding:"20px 18px",marginBottom:16}}>
+  return(<div style={{backgroundImage:"url(img/faza_rozgrywki.png)",backgroundSize:"cover",backgroundPosition:"center",padding:"20px 18px",marginBottom:16}}>
     {!gameStarted?(<div>
       <div style={{fontSize:48,color:"#fff",fontFamily:WT,letterSpacing:3,lineHeight:1}}>0:00</div>
-      <div style={{fontSize:14,color:"rgba(255,255,255,0.65)",fontFamily:WT,marginTop:10,letterSpacing:"0.04em"}}>Oczekiwanie na start gry</div>
+      <div style={{fontSize:18,color:"rgba(255,255,255,0.8)",fontFamily:WT,marginTop:10,letterSpacing:"0.04em"}}>Oczekiwanie na start gry</div>
     </div>):(<div>
       <div style={{fontSize:48,color:"#fff",fontFamily:WT,letterSpacing:3,lineHeight:1}}>{timeStr}</div>
-      <div style={{fontSize:15,color:"#fff",fontFamily:WT,marginTop:10,letterSpacing:"0.04em"}}>{stageLabel}</div>
-      {partner&&<div style={{fontSize:15,color:"rgba(255,255,255,0.85)",fontFamily:WT,marginTop:6,letterSpacing:"0.04em"}}>Partner: {FM[partner].nom}</div>}
-      {nextPartner&&<div style={{fontSize:12,color:"rgba(255,255,255,0.55)",fontFamily:WT,marginTop:10,letterSpacing:"0.04em"}}>Kolejna rozmowa: {FM[nextPartner].nom}</div>}
+      <div style={{fontSize:18,color:"#fff",fontFamily:WT,marginTop:10,letterSpacing:"0.04em"}}>{stageLabel}</div>
+      {partner&&<div style={{fontSize:18,color:"rgba(255,255,255,0.85)",fontFamily:WT,marginTop:6,letterSpacing:"0.04em"}}>Partner: {FM[partner].nom}</div>}
+      {nextPartner&&<div style={{fontSize:15,color:"rgba(255,255,255,0.60)",fontFamily:WT,marginTop:10,letterSpacing:"0.04em"}}>Kolejna rozmowa: {FM[nextPartner].nom}</div>}
     </div>)}
   </div>);
 }
@@ -2949,7 +2957,7 @@ function App({roomCode,role}) {
         </div>);
       })}
       <div onClick={()=>{setViewSheriff(true);setSheriffViewFamily(null);}} style={{padding:"8px 16px",cursor:"pointer",fontWeight:viewSheriff?700:400,fontSize:14,background:viewSheriff?"#8B6914":"transparent",color:viewSheriff?"#fff":"#2C1810",borderBottom:viewSheriff?"3px solid #8B6914":"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap",marginLeft:"auto"}} className="wt">
-        Szeryf (Trener)
+        Szeryf
       </div>
     </div>):(<AgendaBar familyId={myFamily} stageIdx={stageIdx}/>)}
     {browserWarning&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:13,color:"#664D03",textAlign:"center",display:"flex",justifyContent:"center",alignItems:"center",gap:8}}>
