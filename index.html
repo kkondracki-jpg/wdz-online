@@ -876,7 +876,7 @@ function InstructionSlides({familyId, roomCode}) {
 
   const canNext = page !== 2 || rolesSubmitted;
   const totalPages = 8;
-  const hdr = (s,draft) => <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,lineHeight:1.3,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">{s}{draft&&<span style={{fontSize:13,fontWeight:400,fontStyle:"italic",color:"#A89070",marginLeft:8,letterSpacing:0}}>(wersja robocza)</span>}</div>;
+  const hdr = (s,draft) => <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}><div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:0,lineHeight:1.3,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">{s}{draft&&<span style={{fontSize:13,fontWeight:400,fontStyle:"italic",color:"#A89070",marginLeft:8,letterSpacing:0}}>(wersja robocza)</span>}</div></div>;
   const para = s => <p style={{margin:"8px 0",lineHeight:1.7,fontSize:14}} dangerouslySetInnerHTML={{__html:s}}/>;
   const instrImg = name => {var src=IMG_BASE+name+".png"; return <img key={src} src={src} style={{width:"100%",height:"auto",display:"block",borderRadius:6}} alt=""/>;};
   function renderPage(){
@@ -907,7 +907,7 @@ function InstructionSlides({familyId, roomCode}) {
       :<div style={{background:"#5B7674",color:"#fff",textAlign:"center",padding:"10px 0",borderRadius:4,fontWeight:700,fontSize:14}}>✓ Role zatwierdzone</div>}
       {!rolesSubmitted&&<div style={{fontSize:12,color:"#8B7355",marginTop:6,textAlign:"center"}}>* Pola wymagane: Głowa, Reprezentant, Księgowy</div>}
     </div>);
-    case 3: return (<div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
+    case 3: return (<div>
       {hdr("Wasze zadania",true)}
       {para("<strong>Waszym celem jest zwiększenie wartości rodzinnego biznesu.</strong> Wymaga to realizacji kilku zadań. Efekt każdego z nich przeliczany jest na punkty. Ich suma odzwierciedli wartość Waszego biznesu.")}
       {para("Punkty za zasoby i kompetencje otrzymujecie za ich posiadanie. Notatki dziadka nie dają punktów — mówią jedynie, czego szukać i jaką wagę ma każdy element. Bez nich działacie w ciemno.")}
@@ -956,7 +956,7 @@ function InstructionSlides({familyId, roomCode}) {
       {hdr("Przebieg rozgrywki",false)}
       <img src="img/przebieg_rozgrywki.png" alt="Przebieg rozgrywki" style={{width:"100%",display:"block",borderRadius:4}}/>
     </div>);
-    case 5: return (<div style={{background:"rgba(255,255,255,0.92)",borderRadius:6,padding:"14px 18px"}}>
+    case 5: return (<div>
       {hdr("Wasz panel \u2014 przegląd",true)}
       {para("Oto elementy, z których będziecie korzystać:")}
       <div style={{margin:"10px 0"}}>
@@ -1331,9 +1331,7 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
     {/* --- Instrukcja: 2/3 obrazek + 1/3 akordeon --- */}
     <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:16,marginBottom:16,alignItems:"start"}}>
       <img src={IMG_BASE+"instrukcja_zlotodajna-zyla.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Instrukcja — Złotodajna Żyła"/>
-      <Accordion title="Historia mapy">
-        <img src={IMG_BASE+"instrukcja_historia-mapy.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Historia mapy"/>
-      </Accordion>
+      <img src={IMG_BASE+"instrukcja_historia-mapy.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Historia mapy"/>
     </div>
     {/* --- Plansza puzzle --- */}
     {fId&&<div style={{marginBottom:12}}>
@@ -1488,9 +1486,7 @@ function BlindFateFamily({fId, blindFate}) {
     {/* --- Instrukcja: 2/3 obrazek + 1/3 akordeon --- */}
     <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:16,marginBottom:16,alignItems:"start"}}>
       <img src={IMG_BASE+"instrukcja_slepy-los.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Instrukcja — Ślepy los"/>
-      <Accordion title="Przezorny zawsze ubezpieczony">
-        <img src={IMG_BASE+"instrukcja_polisy.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Polisy ubezpieczeniowe"/>
-      </Accordion>
+      <img src={IMG_BASE+"instrukcja_polisy.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Polisy ubezpieczeniowe"/>
     </div>
     {/* --- Karty polis + zdarzenie — bezpośrednio na tle --- */}
     <div style={{display:"flex",gap:8,alignItems:"flex-start",marginBottom:12}}>
