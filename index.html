@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WDZ Online — Platforma Sieciowa v1.0.6</title>
+  <title>WDZ Online — Platforma Sieciowa v1.3.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -104,6 +104,33 @@ function generateRoomCode(){
   return code;
 }
 
+/* ========== PLAYER ID (per-device, persisted in sessionStorage) ========== */
+function getOrCreatePlayerId(){
+  var key="wdz_player_id";
+  var id=sessionStorage.getItem(key);
+  if(!id){
+    var arr=new Uint8Array(8);
+    crypto.getRandomValues(arr);
+    id=Array.from(arr).map(b=>b.toString(16).padStart(2,"0")).join("");
+    sessionStorage.setItem(key,id);
+  }
+  return id;
+}
+
+/* ========== URL PARAMS HELPER ========== */
+function getUrlParams(){
+  var p=new URLSearchParams(window.location.search);
+  var s=p.get("s")||p.get("session")||"";
+  var f=p.get("f")||p.get("family")||"";
+  return{sessionCode:s.toUpperCase(),familyId:f.toLowerCase()};
+}
+
+/* ========== BUILD FAMILY LINK ========== */
+function buildFamilyLink(roomCode,familyId){
+  var base=window.location.origin+window.location.pathname;
+  return base+"?s="+roomCode+"&f="+familyId;
+}
+
 /* ========== CONNECTION STATUS HOOK ========== */
 function useConnectionStatus(){
   const [online,setOnline]=useState(!IS_LOCAL);
@@ -114,6 +141,19 @@ function useConnectionStatus(){
     return()=>ref.off("value",cb);
   },[]);
   return online;
+}
+
+/* ========== PLAYER HEARTBEAT HOOK ========== */
+function usePlayerHeartbeat(roomCode,familyId,playerId){
+  useEffect(()=>{
+    if(!roomCode||!familyId||!playerId||!db) return;
+    var ref=db.ref("rooms/"+roomCode+"/players/"+familyId+"/members/"+playerId+"/lastSeen");
+    ref.set(firebase.database.ServerValue.TIMESTAMP);
+    var iv=setInterval(()=>{
+      ref.set(firebase.database.ServerValue.TIMESTAMP);
+    },30000);
+    return()=>clearInterval(iv);
+  },[roomCode,familyId,playerId]);
 }
 
 /* ========== CONNECTION INDICATOR ========== */
@@ -182,37 +222,70 @@ function revActiveFromFB(val){
 
 /* ========== LOBBY COMPONENT ========== */
 function Lobby({onJoin}){
-  const [mode,setMode]=useState(null); // null | 'create' | 'join' | 'rejoin_sheriff' | 'rejoin_sheriff2'
-  const [roomCode,setRoomCode]=useState("");
+  const playerId=useMemo(()=>getOrCreatePlayerId(),[]);
+  const urlParams=useMemo(()=>getUrlParams(),[]);
+  const initMode=useMemo(()=>{
+    if(urlParams.sessionCode&&/^WDZ-[A-HJ-NP-Z2-9]{4}$/.test(urlParams.sessionCode)&&FO.indexOf(urlParams.familyId)>=0) return "link_join";
+    return null;
+  },[]);
+  const [mode,setMode]=useState(initMode);
+  const [roomCode,setRoomCode]=useState(initMode==="link_join"?urlParams.sessionCode:"");
   const [joinCode,setJoinCode]=useState("");
   const [rejoinCode,setRejoinCode]=useState("");
   const [rejoinCode2,setRejoinCode2]=useState("");
-  const [selectedRole,setSelectedRole]=useState(null); // 'sheriff' | 'adams' | 'bennet' | 'clinton' | 'dexter'
+  const [selectedRole,setSelectedRole]=useState(initMode==="link_join"?urlParams.familyId:null);
+  const [playerName,setPlayerName]=useState("");
+  const [nameSubmitted,setNameSubmitted]=useState(false);
   const [error,setError]=useState(null);
   const [loading,setLoading]=useState(false);
-  const [roomStatus,setRoomStatus]=useState(null); // info about room after creation/join
   const [players,setPlayers]=useState({});
+  const [copied,setCopied]=useState({});
+  const [copiedAll,setCopiedAll]=useState(false);
   const online=useConnectionStatus();
+
+  // link_join: validate room exists
+  useEffect(()=>{
+    if(mode!=="link_join"||!db) return;
+    db.ref("rooms/"+roomCode+"/meta").once("value").then(snap=>{
+      if(!snap.exists()){setError("Pokój "+roomCode+" nie istnieje. Sprawdź link.");setMode(null);}
+    }).catch(e=>{setError("Błąd połączenia: "+e.message);});
+  },[]);
 
   // Listen to players in room
   useEffect(()=>{
     if(!roomCode||!db) return;
     var ref=db.ref("rooms/"+roomCode+"/players");
-    var cb=ref.on("value",snap=>{
-      setPlayers(snap.val()||{});
-    });
+    var cb=ref.on("value",snap=>{setPlayers(snap.val()||{});});
     return()=>ref.off("value",cb);
   },[roomCode]);
 
-  // Register presence
+  // Register presence for Sheriff
   useEffect(()=>{
-    if(!roomCode||!selectedRole||!db) return;
-    var roleKey=selectedRole;
-    var ref=db.ref("rooms/"+roomCode+"/players/"+roleKey);
+    if(!roomCode||selectedRole!=="sheriff"||!db) return;
+    var ref=db.ref("rooms/"+roomCode+"/players/sheriff");
     ref.set({connected:true,joinedAt:firebase.database.ServerValue.TIMESTAMP});
     ref.onDisconnect().update({connected:false});
     return()=>{ref.onDisconnect().cancel();};
   },[roomCode,selectedRole]);
+
+  // Register presence for family member after name submitted
+  useEffect(()=>{
+    if(!roomCode||!selectedRole||selectedRole==="sheriff"||selectedRole==="sheriff2"||!nameSubmitted||!db) return;
+    var ref=db.ref("rooms/"+roomCode+"/players/"+selectedRole+"/members/"+playerId);
+    ref.set({name:playerName,lastSeen:firebase.database.ServerValue.TIMESTAMP});
+    ref.onDisconnect().remove();
+    return()=>{ref.onDisconnect().cancel();};
+  },[roomCode,selectedRole,nameSubmitted]);
+
+  // Auto-transition for players when game starts
+  useEffect(()=>{
+    if(!roomCode||!selectedRole||selectedRole==="sheriff"||selectedRole==="sheriff2"||!nameSubmitted||!db) return;
+    var ref=db.ref("rooms/"+roomCode+"/meta/status");
+    var cb=ref.on("value",snap=>{
+      if(snap.val()==="playing"){ref.off("value",cb);onJoin(roomCode,selectedRole,playerId,playerName);}
+    });
+    return()=>ref.off("value",cb);
+  },[roomCode,selectedRole,nameSubmitted]);
 
   function handleCreate(){
     if(!db){setError("Brak połączenia z Firebase. Otwórz grę z GitHub Pages.");return;}
@@ -223,7 +296,6 @@ function Lobby({onJoin}){
       players:{sheriff:{connected:true,joinedAt:firebase.database.ServerValue.TIMESTAMP}}
     }).then(()=>{
       setRoomCode(code);setSelectedRole("sheriff");setMode("created");setLoading(false);
-      // Set disconnect handler
       db.ref("rooms/"+code+"/players/sheriff").onDisconnect().update({connected:false});
     }).catch(e=>{setError("Błąd tworzenia pokoju: "+e.message);setLoading(false);});
   }
@@ -239,18 +311,18 @@ function Lobby({onJoin}){
     }).catch(e=>{setError("Błąd połączenia: "+e.message);setLoading(false);});
   }
 
-  function selectFamily(fId){
-    setLoading(true);setError(null);
-    // Atomowe claimowanie rodziny przez transaction()
-    var ref=db.ref("rooms/"+roomCode+"/players/"+fId);
-    ref.transaction(function(current){
-      if(current&&current.connected) return; // abort — already taken
-      return {connected:true,joinedAt:firebase.database.ServerValue.TIMESTAMP};
-    },function(error,committed){
-      if(error){setError("Błąd: "+error.message);setLoading(false);return;}
-      if(!committed){setError("Rodzina "+FM[fId].nom+" jest już zajęta!");setLoading(false);return;}
-      setSelectedRole(fId);setLoading(false);
-      ref.onDisconnect().update({connected:false});
+  function selectFamily(fId){setSelectedRole(fId);}
+
+  function submitName(){
+    var name=playerName.trim();
+    if(!name){setError("Wpisz swoje imię lub pseudonim");return;}
+    setError(null);setNameSubmitted(true);
+    db.ref("rooms/"+roomCode+"/meta/status").once("value").then(snap=>{
+      if(snap.val()==="playing"){
+        db.ref("rooms/"+roomCode+"/players/"+selectedRole+"/members/"+playerId)
+          .set({name,lastSeen:firebase.database.ServerValue.TIMESTAMP})
+          .then(()=>onJoin(roomCode,selectedRole,playerId,name));
+      }
     });
   }
 
@@ -264,8 +336,7 @@ function Lobby({onJoin}){
       if(snap.val()!=="playing"){setError("Sesja w tym pokoju nie jest aktywna (status: "+(snap.val()||"brak")+")");setLoading(false);return;}
       db.ref("rooms/"+code+"/players/sheriff").set({connected:true,rejoinedAt:firebase.database.ServerValue.TIMESTAMP});
       db.ref("rooms/"+code+"/players/sheriff").onDisconnect().update({connected:false});
-      setLoading(false);
-      onJoin(code,"sheriff");
+      setLoading(false);onJoin(code,"sheriff",null,null);
     }).catch(e=>{setError("Błąd połączenia: "+e.message);setLoading(false);});
   }
 
@@ -279,52 +350,56 @@ function Lobby({onJoin}){
       if(snap.val()!=="playing"){setError("Sesja w tym pokoju nie jest aktywna (status: "+(snap.val()||"brak")+")");setLoading(false);return;}
       db.ref("rooms/"+code+"/players/sheriff2").set({connected:true,rejoinedAt:firebase.database.ServerValue.TIMESTAMP});
       db.ref("rooms/"+code+"/players/sheriff2").onDisconnect().update({connected:false});
-      setLoading(false);
-      onJoin(code,"sheriff2");
+      setLoading(false);onJoin(code,"sheriff2",null,null);
     }).catch(e=>{setError("Błąd połączenia: "+e.message);setLoading(false);});
   }
 
   function startGame(){
     db.ref("rooms/"+roomCode+"/meta/status").set("playing");
-    onJoin(roomCode,selectedRole);
+    onJoin(roomCode,selectedRole,null,null);
   }
 
-  function joinAsPlayer(){
-    onJoin(roomCode,selectedRole);
-  }
-
-  // Auto-transition for players: watch for game status change
-  useEffect(()=>{
-    if(!roomCode||!selectedRole||selectedRole==="sheriff"||!db) return;
-    var ref=db.ref("rooms/"+roomCode+"/meta/status");
-    var cb=ref.on("value",snap=>{
-      if(snap.val()==="playing"){
-        ref.off("value",cb);
-        onJoin(roomCode,selectedRole);
-      }
+  function copyLink(fId){
+    var link=buildFamilyLink(roomCode,fId);
+    navigator.clipboard.writeText(link).then(()=>{
+      setCopied(prev=>({...prev,[fId]:true}));
+      setTimeout(()=>setCopied(prev=>({...prev,[fId]:false})),2500);
     });
-    return()=>ref.off("value",cb);
-  },[roomCode,selectedRole]);
+  }
 
-  // Count connected players
-  var connectedFamilies=["adams","bennet","clinton","dexter"].filter(f=>players[f]&&players[f].connected);
+  function copyAllLinks(){
+    var text=FO.map(fId=>FM[fId].nom+": "+buildFamilyLink(roomCode,fId)).join("\n");
+    navigator.clipboard.writeText(text).then(()=>{setCopiedAll(true);setTimeout(()=>setCopiedAll(false),2500);});
+  }
+
+  function getFamilyMembers(fId){
+    var fd=players[fId];if(!fd||!fd.members) return [];
+    return Object.entries(fd.members).map(([id,m])=>({id,...m}));
+  }
+  function isOnline(m){return m.lastSeen&&(Date.now()-m.lastSeen)<90000;}
+
+  var connectedFamilies=FO.filter(f=>{
+    var fd=players[f];if(!fd) return false;
+    if(fd.members) return Object.keys(fd.members).length>0;
+    return fd.connected;
+  });
   var sheriffConnected=players.sheriff&&players.sheriff.connected;
   var sheriff2Connected=players.sheriff2&&players.sheriff2.connected;
-  var allReady=connectedFamilies.length===4&&sheriffConnected;
 
   var boxStyle={background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:8,padding:20,marginBottom:16};
   var titleStyle={fontSize:20,fontWeight:700,color:"#2C1810",marginBottom:12,fontFamily:"'Alegreya Sans',sans-serif"};
+  var errStyle={background:"#FEE",border:"1px solid #C88",borderRadius:4,padding:"8px 12px",marginTop:10,fontSize:13,color:"#8B2500"};
 
   return(<div style={{minHeight:"100vh",background:"linear-gradient(135deg,#4C130F 0%,#300904 50%,#4C130F 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
     <ConnectionIndicator online={online}/>
-    <div style={{maxWidth:500,width:"100%"}}>
+    <div style={{maxWidth:560,width:"100%"}}>
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.2.3</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.3.0</div>
       </div>
 
-      {/* Initial choice */}
+      {/* === INITIAL CHOICE === */}
       {!mode&&<div style={boxStyle}>
         <div style={titleStyle}>Dołącz do gry</div>
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -343,10 +418,10 @@ function Lobby({onJoin}){
             <button onClick={handleJoin} disabled={loading} style={{...btnS("primary"),padding:"12px 18px",fontSize:14}}>Dołącz</button>
           </div>
         </div>
-        {error&&<div style={{background:"#FEE",border:"1px solid #C88",borderRadius:4,padding:"8px 12px",marginTop:10,fontSize:13,color:"#8B2500"}}>{error}</div>}
+        {error&&<div style={errStyle}>{error}</div>}
       </div>}
 
-      {/* SH1 — Sheriff rejoin panel */}
+      {/* === REJOIN SHERIFF === */}
       {mode==="rejoin_sheriff"&&<div style={boxStyle}>
         <div style={titleStyle}>Wróć do sesji jako Szeryf</div>
         <div style={{fontSize:13,color:"#5C4A3A",marginBottom:12}}>Wpisz kod pokoju trwającej sesji:</div>
@@ -355,10 +430,10 @@ function Lobby({onJoin}){
           <button onClick={handleRejoinSheriff} disabled={loading} style={{...btnS("sheriff"),padding:"12px 18px",fontSize:14}}>{loading?"…":"Wróć"}</button>
         </div>
         <button onClick={()=>{setMode(null);setError(null);}} style={{...btnS("default"),fontSize:13,padding:"6px 14px"}}>← Wróć</button>
-        {error&&<div style={{background:"#FEE",border:"1px solid #C88",borderRadius:4,padding:"8px 12px",marginTop:10,fontSize:13,color:"#8B2500"}}>{error}</div>}
+        {error&&<div style={errStyle}>{error}</div>}
       </div>}
 
-      {/* SH2 — Szeryf 2 rejoin panel */}
+      {/* === REJOIN SHERIFF 2 === */}
       {mode==="rejoin_sheriff2"&&<div style={boxStyle}>
         <div style={titleStyle}>Dołącz jako Szeryf 2</div>
         <div style={{fontSize:13,color:"#5C4A3A",marginBottom:12}}>Wpisz kod pokoju trwającej sesji:</div>
@@ -367,86 +442,122 @@ function Lobby({onJoin}){
           <button onClick={handleRejoinSheriff2} disabled={loading} style={{...btnS("sheriff"),padding:"12px 18px",fontSize:14}}>{loading?"…":"Dołącz"}</button>
         </div>
         <button onClick={()=>{setMode(null);setError(null);}} style={{...btnS("default"),fontSize:13,padding:"6px 14px"}}>← Wróć</button>
-        {error&&<div style={{background:"#FEE",border:"1px solid #C88",borderRadius:4,padding:"8px 12px",marginTop:10,fontSize:13,color:"#8B2500"}}>{error}</div>}
+        {error&&<div style={errStyle}>{error}</div>}
       </div>}
 
-      {/* Sheriff created room - waiting for players */}
+      {/* === SHERIFF: ROOM CREATED — LINKS + LOBBY === */}
       {mode==="created"&&<div style={boxStyle}>
         <div style={titleStyle}>Pokój utworzony</div>
-        <div style={{background:"#4C130F",borderRadius:6,padding:16,textAlign:"center",marginBottom:16}}>
-          <div style={{fontSize:13,color:"#D4A853",fontWeight:700,letterSpacing:2,marginBottom:4}}>KOD POKOJU</div>
-          <div style={{fontSize:36,fontWeight:900,color:"#F5F0E8",letterSpacing:6,fontFamily:"monospace"}}>{roomCode}</div>
-          <div style={{fontSize:13,color:"#C4B090",marginTop:6}}>Podaj ten kod graczom</div>
+        <div style={{background:"#4C130F",borderRadius:6,padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+          <div>
+            <div style={{fontSize:11,color:"#D4A853",fontWeight:700,letterSpacing:2,marginBottom:2}}>KOD POKOJU</div>
+            <div style={{fontSize:26,fontWeight:900,color:"#F5F0E8",letterSpacing:4,fontFamily:"monospace"}}>{roomCode}</div>
+          </div>
+          <div style={{fontSize:12,color:"#C4B090",maxWidth:160,textAlign:"right"}}>Wyślij linki poniżej lub podaj kod graczom</div>
         </div>
-        <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:8}}>Podłączeni gracze:</div>
-        <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:16}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:"#FFF8E7",borderRadius:4,border:"1px solid #D4A853"}}>
-            <div style={{width:10,height:10,borderRadius:"50%",background:sheriffConnected?"#2E5B3C":"#C00"}}/>
+        <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:6}}>Linki dla rodzin:</div>
+        {FO.map(fId=>(
+          <div key={fId} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",background:"#F5F0E8",borderRadius:4,marginBottom:5}}>
+            <div style={{width:9,height:9,borderRadius:"50%",background:FM[fId].col,flexShrink:0}}/>
+            <span style={{fontSize:12,fontWeight:700,color:FM[fId].col,width:90,flexShrink:0}}>{FM[fId].nom}</span>
+            <span style={{fontSize:11,fontFamily:"monospace",color:"#5C4A3A",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{buildFamilyLink(roomCode,fId)}</span>
+            <button onClick={()=>copyLink(fId)} style={{fontSize:11,padding:"3px 10px",border:"1px solid #C4B090",borderRadius:3,background:copied[fId]?"#E8F5E9":"#fff",color:copied[fId]?"#2E5B3C":"#5C4A3A",cursor:"pointer",flexShrink:0,minWidth:82}}>
+              {copied[fId]?"✓ skopiowano":"Kopiuj"}
+            </button>
+          </div>
+        ))}
+        <button onClick={copyAllLinks} style={{...btnS(copiedAll?"success":"default"),width:"100%",padding:"8px",fontSize:13,marginTop:4,marginBottom:16}}>
+          {copiedAll?"✓ Skopiowano wszystkie linki":"Kopiuj wszystkie 4 linki naraz"}
+        </button>
+        <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:6}}>Kto dołączył:</div>
+        <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:14}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 10px",background:"#FFF8E7",borderRadius:4,border:"1px solid #D4A853"}}>
+            <div style={{width:8,height:8,borderRadius:"50%",background:sheriffConnected?"#2E5B3C":"#C00"}}/>
             <span style={{fontSize:13,fontWeight:700,color:"#8B6914"}}>Szeryf (Ty)</span>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:sheriff2Connected?"#F0FAF0":"#F5F0E8",borderRadius:4,border:"1px solid "+(sheriff2Connected?"#90C090":"#D4C4A8")}}>
-            <div style={{width:10,height:10,borderRadius:"50%",background:sheriff2Connected?"#2E5B3C":"#C4B090"}}/>
-            <span style={{fontSize:13,fontWeight:sheriff2Connected?700:400,color:sheriff2Connected?"#2E5B3C":"#C4B090"}}>Szeryf 2</span>
-            {sheriff2Connected&&<span style={{fontSize:13,color:"#2E5B3C",marginLeft:"auto"}}>✓ połączony</span>}
-            {!sheriff2Connected&&<span style={{fontSize:13,color:"#C4B090",marginLeft:"auto"}}>opcjonalny</span>}
+          <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 10px",background:sheriff2Connected?"#F0FAF0":"#F5F0E8",borderRadius:4,border:"1px solid "+(sheriff2Connected?"#90C090":"#D4C4A8")}}>
+            <div style={{width:8,height:8,borderRadius:"50%",background:sheriff2Connected?"#2E5B3C":"#C4B090"}}/>
+            <span style={{fontSize:13,color:sheriff2Connected?"#2E5B3C":"#C4B090"}}>Szeryf 2</span>
+            <span style={{fontSize:12,color:sheriff2Connected?"#2E5B3C":"#C4B090",marginLeft:"auto"}}>{sheriff2Connected?"✓ połączony":"opcjonalny"}</span>
           </div>
-          {["adams","bennet","clinton","dexter"].map(fId=>{
-            var connected=players[fId]&&players[fId].connected;
-            return(<div key={fId} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:connected?"#F0FAF0":"#F5F0E8",borderRadius:4,border:"1px solid "+(connected?"#90C090":"#D4C4A8")}}>
-              <div style={{width:10,height:10,borderRadius:"50%",background:connected?"#2E5B3C":"#C4B090"}}/>
-              <span style={{fontSize:13,fontWeight:connected?700:400,color:connected?FM[fId].col:"#C4B090"}}>{FM[fId].nom}</span>
-              {connected&&<span style={{fontSize:13,color:"#2E5B3C",marginLeft:"auto"}}>✓ gotowy</span>}
-              {!connected&&<span style={{fontSize:13,color:"#C4B090",marginLeft:"auto"}}>oczekiwanie...</span>}
+          {FO.map(fId=>{
+            var members=getFamilyMembers(fId);
+            var hasMembers=members.length>0;
+            var onlineCount=members.filter(m=>isOnline(m)).length;
+            return(<div key={fId} style={{padding:"6px 10px",background:hasMembers?"#F0FAF0":"#F5F0E8",borderRadius:4,border:"1px solid "+(hasMembers?"#90C090":"#D4C4A8")}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <div style={{width:8,height:8,borderRadius:"50%",background:hasMembers?FM[fId].col:"#C4B090"}}/>
+                <span style={{fontSize:13,fontWeight:hasMembers?700:400,color:hasMembers?FM[fId].col:"#C4B090"}}>{FM[fId].nom}</span>
+                <span style={{fontSize:12,marginLeft:"auto",color:hasMembers?"#2E5B3C":"#C4B090"}}>{hasMembers?(onlineCount+" online"):"oczekiwanie..."}</span>
+              </div>
+              {hasMembers&&<div style={{marginTop:4,paddingLeft:16,display:"flex",flexWrap:"wrap",gap:"4px 10px"}}>
+                {members.map(m=>(<span key={m.id} style={{fontSize:12,display:"flex",alignItems:"center",gap:4}}>
+                  <span style={{width:6,height:6,borderRadius:"50%",background:isOnline(m)?"#2E5B3C":"#C4B090",display:"inline-block"}}/>
+                  {m.name}
+                </span>))}
+              </div>}
             </div>);
           })}
         </div>
-        <button onClick={startGame} disabled={!allReady&&connectedFamilies.length===0} style={{...btnS(allReady?"success":"primary",!allReady&&connectedFamilies.length===0),width:"100%",padding:"12px 20px",fontSize:15,textAlign:"center"}}>
-          {allReady?"Rozpocznij grę (wszyscy gotowi)":"Rozpocznij grę ("+connectedFamilies.length+"/4 rodzin)"}
+        <button onClick={startGame} disabled={connectedFamilies.length===0} style={{...btnS(connectedFamilies.length===4?"success":"primary",connectedFamilies.length===0),width:"100%",padding:"12px 20px",fontSize:15,textAlign:"center"}}>
+          {connectedFamilies.length===4?"Rozpocznij grę (wszyscy gotowi)":"Rozpocznij grę ("+connectedFamilies.length+"/4 rodzin)"}
         </button>
         {connectedFamilies.length>0&&connectedFamilies.length<4&&<div style={{fontSize:13,color:"#A08050",textAlign:"center",marginTop:6}}>Możesz wystartować bez kompletu — brakujące rodziny będą sterowane z panelu Szeryfa</div>}
       </div>}
 
-      {/* Player joining - select family */}
+      {/* === PLAYER: SELECT FAMILY (manual code join) === */}
       {mode==="joining"&&!selectedRole&&<div style={boxStyle}>
         <div style={titleStyle}>Pokój: {roomCode}</div>
         <div style={{fontSize:13,color:"#5C4A3A",marginBottom:14}}>Wybierz swoją rodzinę:</div>
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
-          {["adams","bennet","clinton","dexter"].map(fId=>{
-            var taken=players[fId]&&players[fId].connected;
-            return(<button key={fId} onClick={()=>!taken&&selectFamily(fId)} disabled={taken||loading} style={{padding:"12px 16px",border:"2px solid "+(taken?"#D4C4A8":FM[fId].col),borderRadius:6,background:taken?"#F0F0F0":"#fff",cursor:taken?"not-allowed":"pointer",display:"flex",alignItems:"center",gap:10,fontFamily:"inherit",fontSize:14}}>
-              <div style={{width:14,height:14,borderRadius:"50%",background:taken?"#C4B090":FM[fId].col}}/>
-              <span style={{fontWeight:700,color:taken?"#C4B090":FM[fId].col}}>{FM[fId].nom}</span>
+          {FO.map(fId=>{
+            var mc=getFamilyMembers(fId).length;
+            return(<button key={fId} onClick={()=>selectFamily(fId)} disabled={loading} style={{padding:"12px 16px",border:"2px solid "+FM[fId].col,borderRadius:6,background:"#fff",cursor:"pointer",display:"flex",alignItems:"center",gap:10,fontFamily:"inherit",fontSize:14}}>
+              <div style={{width:14,height:14,borderRadius:"50%",background:FM[fId].col}}/>
+              <span style={{fontWeight:700,color:FM[fId].col}}>{FM[fId].nom}</span>
               <span style={{fontSize:13,color:"#A89070"}}>— {FM[fId].biz}</span>
-              {taken&&<span style={{marginLeft:"auto",fontSize:13,color:"#C00"}}>zajęta</span>}
+              {mc>0&&<span style={{marginLeft:"auto",fontSize:12,color:"#5B7A5B"}}>+{mc} graczy</span>}
             </button>);
           })}
         </div>
-        {error&&<div style={{background:"#FEE",border:"1px solid #C88",borderRadius:4,padding:"8px 12px",marginTop:10,fontSize:13,color:"#8B2500"}}>{error}</div>}
+        {error&&<div style={errStyle}>{error}</div>}
       </div>}
 
-      {/* Player selected family - waiting for game start */}
-      {mode==="joining"&&selectedRole&&<div style={boxStyle}>
-        <div style={titleStyle}>Pokój: {roomCode}</div>
+      {/* === PLAYER: ENTER NAME === */}
+      {(mode==="joining"||mode==="link_join")&&selectedRole&&!nameSubmitted&&<div style={boxStyle}>
+        <div style={{background:FM[selectedRole].col,color:"#fff",borderRadius:6,padding:14,textAlign:"center",marginBottom:16}}>
+          <div style={{fontSize:22,fontWeight:700}} className="wt">{FM[selectedRole].nom}</div>
+          <div style={{fontSize:13,opacity:0.8,marginTop:2}}>Pokój: {roomCode}</div>
+        </div>
+        <div style={{fontSize:14,fontWeight:700,color:"#2C1810",marginBottom:8}}>Jak masz na imię?</div>
+        <div style={{display:"flex",gap:8}}>
+          <input value={playerName} onChange={e=>setPlayerName(e.target.value)} placeholder="Imię lub pseudonim" autoFocus style={{flex:1,padding:"12px 14px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:15,background:"#fff"}} onKeyDown={e=>{if(e.key==="Enter")submitName();}}/>
+          <button onClick={submitName} style={{...btnS("primary"),padding:"12px 18px",fontSize:14}}>Dołącz</button>
+        </div>
+        {error&&<div style={errStyle}>{error}</div>}
+      </div>}
+
+      {/* === PLAYER: WAITING FOR GAME START === */}
+      {(mode==="joining"||mode==="link_join")&&selectedRole&&nameSubmitted&&<div style={boxStyle}>
         <div style={{background:FM[selectedRole].col,color:"#fff",borderRadius:6,padding:14,textAlign:"center",marginBottom:14}}>
           <div style={{fontSize:22,fontWeight:700}} className="wt">{FM[selectedRole].nom}</div>
-          <div style={{fontSize:13,opacity:0.8,marginTop:2}}>Biznes: {FM[selectedRole].biz}</div>
+          <div style={{fontSize:13,opacity:0.8,marginTop:2}}>Cześć, {playerName}!</div>
         </div>
-        <div style={{fontSize:13,color:"#5C4A3A",marginBottom:10}}>Podłączeni gracze:</div>
+        <div style={{fontSize:13,color:"#5C4A3A",marginBottom:8}}>Twoi współgracze z drużyny:</div>
         <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:14}}>
-          {sheriffConnected&&<div style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:"#8B6914"}}><div style={{width:8,height:8,borderRadius:"50%",background:"#2E5B3C"}}/>Szeryf</div>}
-          {["adams","bennet","clinton","dexter"].map(fId=>{
-            var connected=players[fId]&&players[fId].connected;
-            if(!connected)return null;
-            return(<div key={fId} style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:FM[fId].col,fontWeight:fId===selectedRole?700:400}}>
-              <div style={{width:8,height:8,borderRadius:"50%",background:FM[fId].col}}/>{FM[fId].nom}{fId===selectedRole?" (Ty)":""}
-            </div>);
-          })}
+          {getFamilyMembers(selectedRole).map(m=>(
+            <div key={m.id} style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:FM[selectedRole].col,fontWeight:m.id===playerId?700:400}}>
+              <div style={{width:7,height:7,borderRadius:"50%",background:isOnline(m)?FM[selectedRole].col:"#C4B090"}}/>
+              {m.name}{m.id===playerId?" (Ty)":""}
+            </div>
+          ))}
         </div>
         <div style={{textAlign:"center",padding:14,background:"#FFF8E7",borderRadius:6,border:"1px solid #D4C870"}}>
           <div style={{fontSize:13,color:"#8B7714",fontWeight:600}}>Oczekiwanie na start gry...</div>
           <div style={{fontSize:13,color:"#A89070",marginTop:4}}>Szeryf rozpocznie grę, gdy wszyscy będą gotowi</div>
         </div>
       </div>}
+
     </div>
   </div>);
 }
@@ -2246,12 +2357,14 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
 }
 
 /* ========== MAIN APP ========== */
-function App({roomCode,role}) {
+function App({roomCode,role,playerId,playerName}) {
   const isSheriff=role==="sheriff";
   const isSheriff2=role==="sheriff2";
   const isSheriffAny=isSheriff||isSheriff2;
   const myFamily=isSheriffAny?null:role;
   const online=useConnectionStatus();
+  // Heartbeat for family players
+  usePlayerHeartbeat(roomCode,myFamily,playerId);
   // T5 — unikalny ID sesji (dla blokady formularza TX)
   const sessionId=useRef(Date.now().toString(36)+Math.random().toString(36).slice(2,6));
   const [cf,setCf]=useState(isSheriffAny?"adams":(myFamily||"adams"));
@@ -2948,7 +3061,7 @@ function App({roomCode,role}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.0.6</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.3.0</div>
       </div>
     </div>
     {isSheriffAny?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
@@ -3062,7 +3175,7 @@ function App({roomCode,role}) {
                 <InfoPopup icon="ikona_mapa" wide>
                   <img src={IMG_BASE+"kairoscity_mapa.png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Mapa miasta"/>
                 </InfoPopup>
-                <InfoPopup title="Zadanie 3: Działka" wide>
+                <InfoPopup title="DZIAŁKA — instrukcja" wide>
                   <img src={IMG_BASE+"instrukcja_dzialka-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — działka"/>
                 </InfoPopup>
               </div>
@@ -3075,7 +3188,7 @@ function App({roomCode,role}) {
             {/* --- GOTÓWKA --- */}
             <div style={taskBg}>
               <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt"><span style={{flex:1}}>Pomnożenie gotówki</span>
-                <InfoPopup title="Zadanie 4: Gotówka" wide>
+                <InfoPopup title="GOTÓWKA — instrukcja" wide>
                   <img src={IMG_BASE+"instrukcja_gotowka.png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — gotówka"/>
                 </InfoPopup>
               </div>
@@ -3544,48 +3657,18 @@ function App({roomCode,role}) {
 }
 /* ========== GAME WRAPPER — LOBBY → GAME ========== */
 function GameWrapper(){
-  const [gameInfo,setGameInfo]=useState(null); // {roomCode, role}
+  const [gameInfo,setGameInfo]=useState(null); // {roomCode, role, playerId, playerName}
 
-  // Check URL params for auto-rejoin (z walidacją)
-  var ROOM_RE=/^WDZ-[A-HJ-NP-Z2-9]{4}$/;
-  var ALLOWED_ROLES=["sheriff","adams","bennet","clinton","dexter"];
-  useEffect(()=>{
-    var params=new URLSearchParams(window.location.search);
-    var room=params.get("room");
-    var role=params.get("role");
-    if(room&&role&&ROOM_RE.test(room)&&ALLOWED_ROLES.indexOf(role)>=0){
-      if(!db){setGameInfo({roomCode:room,role:role});return;}
-      // S6 — sprawdź w Firebase czy rola nie jest zajęta przez inną sesję
-      db.ref("rooms/"+room+"/players/"+role).once("value").then(snap=>{
-        var p=snap.val();
-        // connected===false lub brak wpisu = wolna rola (nasz powrót)
-        if(p&&p.connected===true){
-          // Rola zajęta — wyczyść URL i pokaż lobby
-          var url=new URL(window.location);
-          url.searchParams.delete("room");url.searchParams.delete("role");
-          window.history.replaceState({},"",url);
-          // gameInfo pozostaje null → Lobby
-        } else {
-          setGameInfo({roomCode:room,role:role});
-        }
-      }).catch(()=>{
-        // Przy błędzie Firebase pozwól wejść (fallback bezpieczny)
-        setGameInfo({roomCode:room,role:role});
-      });
-    }
-  },[]);
-
-  function handleJoin(roomCode,role){
-    // Save to URL for rejoin
+  function handleJoin(roomCode,role,playerId,playerName){
     var url=new URL(window.location);
     url.searchParams.set("room",roomCode);
     url.searchParams.set("role",role);
     window.history.replaceState({},"",url);
-    setGameInfo({roomCode,role});
+    setGameInfo({roomCode,role,playerId:playerId||null,playerName:playerName||null});
   }
 
   if(gameInfo){
-    return <App roomCode={gameInfo.roomCode} role={gameInfo.role}/>;
+    return <App roomCode={gameInfo.roomCode} role={gameInfo.role} playerId={gameInfo.playerId} playerName={gameInfo.playerName}/>;
   }
   return <Lobby onJoin={handleJoin}/>;
 }
