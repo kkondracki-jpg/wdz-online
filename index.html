@@ -487,8 +487,8 @@ function TimerBar({stage,secondsLeft,totalSeconds,paused,familyId}){
   return(<div style={{background:isCrit?"#8B2500":isLow?"#A04020":"#4C130F",padding:"10px 20px",position:"relative",overflow:"hidden",transition:"background 0.5s"}}>
     <div style={{position:"absolute",top:0,left:0,height:"100%",width:pct+"%",background:"rgba(212,168,83,0.15)",transition:"width 1s linear"}}/>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",position:"relative",zIndex:1}}>
-      <div><div style={{fontSize:13,color:"#D4A853",fontWeight:700}}>{stLabel}</div>
-        {meetInfo&&<div style={{fontSize:13,color:"#F5F0E8",opacity:0.8,marginTop:2}}>{meetInfo}</div>}
+      <div><div style={{fontSize:14,color:"#D4A853",fontWeight:700}}>{stLabel}</div>
+        {meetInfo&&<div style={{fontSize:14,color:"#F5F0E8",opacity:0.8,marginTop:2}}>{meetInfo}</div>}
       </div>
       <div style={{textAlign:"right"}}><div style={{fontSize:28,fontWeight:700,color:isCrit?"#FFD700":"#F5F0E8",fontFamily:"monospace",letterSpacing:2}}>{timeStr}</div>
         {paused&&<div style={{fontSize:13,color:"#D4A853",fontWeight:700}}>PAUZA</div>}
@@ -1055,11 +1055,11 @@ function ResourceCard({item, note, selected, onClick, compact, isSheriff, textOn
   return (<div onClick={onClick} style={{borderRadius:"5px",position:"relative",border:selected?"2px solid #D4A853":"1px solid "+borderCol,background:bgCol,cursor:onClick?"pointer":"default",transition:"all 0.15s",overflow:"hidden"}}>
     <div style={{padding:compact?"8px 10px":"10px 12px"}}>
       {selected&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
-      <div style={{fontSize:compact?12:13,fontWeight:600,lineHeight:1.3,paddingRight:selected?16:0}}>{item.name}</div>
-      {isBl&&isSheriff&&<div style={{fontSize:13,color:"#B44",fontWeight:700,marginTop:2}}>ZMYŁKA</div>}
-      <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A08050",marginTop:3}}>ZASÓB</div>
+      <div style={{fontSize:compact?13:14,fontWeight:600,lineHeight:1.3,paddingRight:selected?16:0}}>{item.name}</div>
+      {isBl&&isSheriff&&<div style={{fontSize:14,color:"#B44",fontWeight:700,marginTop:2}}>ZMYŁKA</div>}
+      <div style={{fontSize:14,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A08050",marginTop:3}}>ZASÓB</div>
     </div>
-    {merged&&<div style={{background:"#EEF2E6",borderTop:"1px dashed #B0C090",padding:compact?"4px 10px":"6px 12px",fontSize:13,color:"#5A6B40"}}><b>{note.forBiz}</b> — <b>{note.weight}%</b></div>}
+    {merged&&<div style={{background:"#EEF2E6",borderTop:"1px dashed #B0C090",padding:compact?"4px 10px":"6px 12px",fontSize:14,color:"#5A6B40"}}><b>{note.forBiz}</b> — <b>{note.weight}%</b></div>}
   </div>);
 }
 
@@ -1081,19 +1081,19 @@ function CompCard({item, note, selected, onClick, compact, isSheriff, textOnly})
   return (<div onClick={onClick} style={{borderRadius:"5px",position:"relative",border:selected?"2px solid #D4A853":"1px solid "+borderCol,background:bgCol,cursor:onClick?"pointer":"default",transition:"all 0.15s",overflow:"hidden"}}>
     <div style={{padding:compact?"8px 10px":"10px 12px"}}>
       {selected&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
-      <div style={{fontSize:compact?12:13,fontWeight:600,lineHeight:1.3,paddingRight:selected?16:0}}>{item.name}</div>
-      {isBl&&isSheriff&&<div style={{fontSize:13,color:"#B44",fontWeight:700,marginTop:2}}>ZMYŁKA</div>}
-      {!compact&&item.author&&<div style={{fontSize:13,color:"#6090B0",fontStyle:"italic",marginTop:2,lineHeight:1.2}}>
+      <div style={{fontSize:compact?13:14,fontWeight:600,lineHeight:1.3,paddingRight:selected?16:0}}>{item.name}</div>
+      {isBl&&isSheriff&&<div style={{fontSize:14,color:"#B44",fontWeight:700,marginTop:2}}>ZMYŁKA</div>}
+      {!compact&&item.author&&<div style={{fontSize:14,color:"#6090B0",fontStyle:"italic",marginTop:2,lineHeight:1.2}}>
         {item.author}: {"\u201e"}{item.title}{"\u201d"}
       </div>}
-      <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#6090B0",marginTop:3}}>KOMPETENCJA</div>
+      <div style={{fontSize:14,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#6090B0",marginTop:3}}>KOMPETENCJA</div>
     </div>
-    {merged&&<div style={{background:"#E4EAF4",borderTop:"1px dashed #90A8C8",padding:compact?"4px 10px":"6px 12px",fontSize:13,color:"#40506B"}}><b>{note.forBiz}</b> — <b>{note.weight}%</b></div>}
+    {merged&&<div style={{background:"#E4EAF4",borderTop:"1px dashed #90A8C8",padding:compact?"4px 10px":"6px 12px",fontSize:14,color:"#40506B"}}><b>{note.forBiz}</b> — <b>{note.weight}%</b></div>}
   </div>);
 }
 
 /* ========== NOTE CARD ========== */
-function NoteCard({item, selected, onClick, type, textOnly}) {
+function NoteCard({item, selected, onClick, type, textOnly, txBg}) {
   var isR=type==="res";
   var src=isR?imgUrl("note-res",item.name):imgUrl("note-comp",item.name);
   const [imgOk,setImgOk]=useState(!textOnly);
@@ -1103,14 +1103,14 @@ function NoteCard({item, selected, onClick, type, textOnly}) {
       {selected&&<div style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700,textShadow:"0 0 3px #fff"}}>V</div>}
     </div>);
   }
-  var accent=isR?"#B08040":"#4060B0";
-  var bg=selected?"#FFF8E7":isR?"#FFF8F0":"#F0F4FF";
+  var accent=isR?"#A08050":"#6090B0";
+  var bg=selected?"#FFF8E7":txBg||(isR?"#FFFCF6":"#F6F8FF");
   var border=selected?"#D4A853":isR?"#D4B896":"#96A8D4";
   return (<div onClick={onClick} style={{borderRadius:"5px",border:(selected?"2px":"1px")+" solid "+border,background:bg,padding:"8px 10px",cursor:onClick?"pointer":"default",transition:"all 0.15s",position:"relative"}}>
     {selected&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
-    <div style={{fontSize:13,fontWeight:600,lineHeight:1.3}}>{item.name}</div>
-    <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:accent,marginTop:2}}>INFORMACJA</div>
-    <div style={{fontSize:13,color:accent,marginTop:2}}>{item.forBiz} — {item.weight}%</div>
+    <div style={{fontSize:14,fontWeight:600,lineHeight:1.3}}>{item.name}</div>
+    <div style={{fontSize:14,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:accent,marginTop:2}}>INFORMACJA</div>
+    <div style={{fontSize:14,color:accent,marginTop:2}}>{item.forBiz} — {item.weight}%</div>
   </div>);
 }
 
@@ -1216,13 +1216,13 @@ function TxDisplay({tx,cf,onAccept,onReject,onRespond}) {
 
   return (<div style={{padding:12,borderRadius:5,border:"1px solid "+(tx.status==="accepted"?"#90C090":tx.status==="rejected"?"#C09090":"#D4C4A8"),background:bgC,marginBottom:8}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-      <span style={{fontSize:13,fontWeight:700}}>
-        <span style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",color:tx.type==="sale"?"#8B7355":"#4A3B6B",marginRight:6}}>{dirLabel}</span>
+      <span style={{fontSize:14,fontWeight:700}}>
+        <span style={{fontSize:14,textTransform:"uppercase",letterSpacing:"1px",color:tx.type==="sale"?"#8B7355":"#4A3B6B",marginRight:6}}>{dirLabel}</span>
         {isFrom?"\u2192 ":"\u2190 "}{other}
       </span>
       <span style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",padding:"2px 6px",borderRadius:3,background:sBg,color:"#fff"}}>{sLabel}</span>
     </div>
-    <div style={{fontSize:13,color:"#5C4A3A",lineHeight:1.5}}>
+    <div style={{fontSize:14,color:"#5C4A3A",lineHeight:1.5}}>
       {tx.type==="sale"&&<div><b>Towar:</b> {fmtItems(tx.offeredItems)}<br/><b>Cena:</b> {tx.price} $</div>}
       {tx.type==="barter"&&<div>
         <b>Rodzina {FM[tx.from].gen} oferuje:</b> {fmtItems(tx.offeredItems)}{tx.offeredCash>0?" + "+tx.offeredCash+" $":""}
@@ -2926,29 +2926,32 @@ function App({roomCode,role}) {
           {activeTab==="map"&&<MapTracker items={familyData.items} mapBonusClaimed={mapBonusClaimed} fId={familyId} mapLayout={mapLayout} setMapLayout={setMapLayout} onClaim={claimMapBonus} readonly={!!(viewSheriff&&sheriffViewFamily)}/>}
           {activeTab==="fate"&&<BlindFateFamily fId={familyId} blindFate={blindFate}/>}
           {activeTab==="rel"&&relationsUnlocked&&(()=>{
-            var CATS=[{key:"partnership",label:"Partnerstwo",desc:["\u201edbał tylko o swoje interesy\u201d","\u201edbał o interesy dwóch stron\u201d"]},{key:"rules",label:"Przestrzeganie zasad",desc:["\u201ełamał/omijał zasady\u201d","\u201eprzestrzegał i dbał o zasady\u201d"]},{key:"communication",label:"Komunikacja",desc:["\u201eduże trudności\u201d","\u201eczytelnie komunikował i słuchał uważnie\u201d"]}];
+            var CATS=[
+              {key:"partnership",   label:"Partnerstwo",          left:"Zespół dbał tylko o swoje interesy",                  right:"Zespół dbał o interesy dwóch stron"},
+              {key:"rules",         label:"Przestrzeganie zasad", left:"Zespół łamał lub omijał zasady",                      right:"Zespół przestrzegał i dbał o zasady"},
+              {key:"communication", label:"Komunikacja",          left:"W komunikacji z zespołem występowały duże trudności", right:"Zespół komunikował się czytelnie i słuchał uważnie"}
+            ];
             var others=FO.filter(f=>f!==familyId);
             function setRating(target,cat,val){
               setRelations(prev=>{var n={...prev};if(!n[familyId])n[familyId]={};if(!n[familyId][target])n[familyId][target]={};n[familyId][target]={...n[familyId][target],[cat]:val};return n;});
             }
             function getRating(target,cat){return (relations[familyId]&&relations[familyId][target]&&relations[familyId][target][cat])||0;}
             return (<div>
-              <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
-                <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Budowanie długoterminowych relacji</div>
+              <div style={{textAlign:"center",fontSize:22,fontWeight:700,letterSpacing:"1px",color:"#842504",marginBottom:16}} className="wt">
+                Jak wspominacie współpracę z każdą rodziną? Zaznaczcie swoje odczucia w trzech obszarach.
               </div>
-              <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:16}}>
-              <div style={{fontSize:13,color:"#5C4A3A",marginBottom:16}}>Oceń współpracę z każdą z pozostałych rodzin w trzech kategoriach (1–5 gwiazdek).</div>
-              {others.map(target=>{var f=FM[target];return (<div key={target} style={{background:"#fff",border:"1px solid "+f.col,borderRadius:6,padding:12,marginBottom:10}}>
-                <div style={{fontSize:14,fontWeight:700,color:f.col,marginBottom:8}} className="wt">{f.nom}</div>
-                {CATS.map(cat=>(<div key={cat.key} style={{marginBottom:8}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
-                    <span style={{fontSize:13,fontWeight:600,color:"#5C4A3A"}}>{cat.label}</span>
-                    <StarRating value={getRating(target,cat.key)} onChange={v=>setRating(target,cat.key,v)} disabled={viewSheriff}/>
+              {others.map(target=>{var f=FM[target];return (<div key={target} style={{background:"transparent",border:"1px solid "+f.col,borderRadius:6,padding:12,marginBottom:10}}>
+                <div style={{fontSize:16,fontWeight:700,color:f.col,marginBottom:10}} className="wt">{f.nom}</div>
+                {CATS.map(cat=>(<div key={cat.key} style={{marginBottom:12}}>
+                  <div style={{textAlign:"center",fontWeight:700,fontSize:18,color:"#842504",marginBottom:6}} className="wt">{cat.label}</div>
+                  <div style={{display:"flex",alignItems:"center"}}>
+                    <div style={{flex:1,textAlign:"right",fontSize:14,fontStyle:"italic",color:"#5C4A3A",paddingRight:12,lineHeight:1.3}}>{cat.left}</div>
+                    <div style={{flex:"0 0 auto"}}><StarRating value={getRating(target,cat.key)} onChange={v=>setRating(target,cat.key,v)} disabled={viewSheriff}/></div>
+                    <div style={{flex:1,textAlign:"left",fontSize:14,fontStyle:"italic",color:"#5C4A3A",paddingLeft:12,lineHeight:1.3}}>{cat.right}</div>
                   </div>
-                  <div style={{display:"flex",justifyContent:"space-between",fontSize:13,color:"#A89070"}}><span>1★ {cat.desc[0]}</span><span>5★ {cat.desc[1]}</span></div>
                 </div>))}
               </div>);})}
-            </div></div>);
+            </div>);
           })()}
           {activeTab==="results"&&resultsReveal>=1&&(()=>{
             var sc=calcScore(familyId,fd,plotPenalties,biznesNaBoku,bnbEnabled);
