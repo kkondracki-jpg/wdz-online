@@ -182,10 +182,11 @@ function revActiveFromFB(val){
 
 /* ========== LOBBY COMPONENT ========== */
 function Lobby({onJoin}){
-  const [mode,setMode]=useState(null); // null | 'create' | 'join' | 'rejoin_sheriff'
+  const [mode,setMode]=useState(null); // null | 'create' | 'join' | 'rejoin_sheriff' | 'rejoin_sheriff2'
   const [roomCode,setRoomCode]=useState("");
   const [joinCode,setJoinCode]=useState("");
   const [rejoinCode,setRejoinCode]=useState("");
+  const [rejoinCode2,setRejoinCode2]=useState("");
   const [selectedRole,setSelectedRole]=useState(null); // 'sheriff' | 'adams' | 'bennet' | 'clinton' | 'dexter'
   const [error,setError]=useState(null);
   const [loading,setLoading]=useState(false);
@@ -268,6 +269,21 @@ function Lobby({onJoin}){
     }).catch(e=>{setError("Błąd połączenia: "+e.message);setLoading(false);});
   }
 
+  function handleRejoinSheriff2(){
+    var code=rejoinCode2.trim().toUpperCase();
+    if(!/^WDZ-[A-HJ-NP-Z2-9]{4}$/.test(code)){setError("Nieprawidłowy format kodu (WDZ-XXXX)");return;}
+    if(!db){setError("Brak połączenia z Firebase.");return;}
+    setLoading(true);setError(null);
+    db.ref("rooms/"+code+"/meta/status").once("value").then(snap=>{
+      if(!snap.exists()){setError("Pokój "+code+" nie istnieje");setLoading(false);return;}
+      if(snap.val()!=="playing"){setError("Sesja w tym pokoju nie jest aktywna (status: "+(snap.val()||"brak")+")");setLoading(false);return;}
+      db.ref("rooms/"+code+"/players/sheriff2").set({connected:true,rejoinedAt:firebase.database.ServerValue.TIMESTAMP});
+      db.ref("rooms/"+code+"/players/sheriff2").onDisconnect().update({connected:false});
+      setLoading(false);
+      onJoin(code,"sheriff2");
+    }).catch(e=>{setError("Błąd połączenia: "+e.message);setLoading(false);});
+  }
+
   function startGame(){
     db.ref("rooms/"+roomCode+"/meta/status").set("playing");
     onJoin(roomCode,selectedRole);
@@ -293,6 +309,7 @@ function Lobby({onJoin}){
   // Count connected players
   var connectedFamilies=["adams","bennet","clinton","dexter"].filter(f=>players[f]&&players[f].connected);
   var sheriffConnected=players.sheriff&&players.sheriff.connected;
+  var sheriff2Connected=players.sheriff2&&players.sheriff2.connected;
   var allReady=connectedFamilies.length===4&&sheriffConnected;
 
   var boxStyle={background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:8,padding:20,marginBottom:16};
@@ -304,7 +321,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.0.6</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.1.0</div>
       </div>
 
       {/* Initial choice */}
@@ -316,6 +333,9 @@ function Lobby({onJoin}){
           </button>
           <button onClick={()=>{setMode("rejoin_sheriff");setError(null);}} style={{...btnS("default"),padding:"10px 20px",fontSize:14,width:"100%",textAlign:"center"}}>
             Wróć do sesji jako trener
+          </button>
+          <button onClick={()=>{setMode("rejoin_sheriff2");setError(null);}} style={{...btnS("default"),padding:"10px 20px",fontSize:14,width:"100%",textAlign:"center"}}>
+            Dołącz jako Trener 2
           </button>
           <div style={{textAlign:"center",fontSize:13,color:"#8B7355",margin:"4px 0"}}>— lub —</div>
           <div style={{display:"flex",gap:8}}>
@@ -338,6 +358,18 @@ function Lobby({onJoin}){
         {error&&<div style={{background:"#FEE",border:"1px solid #C88",borderRadius:4,padding:"8px 12px",marginTop:10,fontSize:13,color:"#8B2500"}}>{error}</div>}
       </div>}
 
+      {/* SH2 — Trener 2 rejoin panel */}
+      {mode==="rejoin_sheriff2"&&<div style={boxStyle}>
+        <div style={titleStyle}>Dołącz jako Trener 2</div>
+        <div style={{fontSize:13,color:"#5C4A3A",marginBottom:12}}>Wpisz kod pokoju trwającej sesji:</div>
+        <div style={{display:"flex",gap:8,marginBottom:10}}>
+          <input value={rejoinCode2} onChange={e=>setRejoinCode2(e.target.value.toUpperCase())} placeholder="Kod pokoju (np. WDZ-A3K7)" style={{flex:1,padding:"12px 14px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:15,fontFamily:"monospace",letterSpacing:2,textTransform:"uppercase",background:"#fff"}} onKeyDown={e=>{if(e.key==="Enter")handleRejoinSheriff2();}}/>
+          <button onClick={handleRejoinSheriff2} disabled={loading} style={{...btnS("sheriff"),padding:"12px 18px",fontSize:14}}>{loading?"…":"Dołącz"}</button>
+        </div>
+        <button onClick={()=>{setMode(null);setError(null);}} style={{...btnS("default"),fontSize:13,padding:"6px 14px"}}>← Wróć</button>
+        {error&&<div style={{background:"#FEE",border:"1px solid #C88",borderRadius:4,padding:"8px 12px",marginTop:10,fontSize:13,color:"#8B2500"}}>{error}</div>}
+      </div>}
+
       {/* Sheriff created room - waiting for players */}
       {mode==="created"&&<div style={boxStyle}>
         <div style={titleStyle}>Pokój utworzony</div>
@@ -351,6 +383,12 @@ function Lobby({onJoin}){
           <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:"#FFF8E7",borderRadius:4,border:"1px solid #D4A853"}}>
             <div style={{width:10,height:10,borderRadius:"50%",background:sheriffConnected?"#2E5B3C":"#C00"}}/>
             <span style={{fontSize:13,fontWeight:700,color:"#8B6914"}}>Szeryf (Ty)</span>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:sheriff2Connected?"#F0FAF0":"#F5F0E8",borderRadius:4,border:"1px solid "+(sheriff2Connected?"#90C090":"#D4C4A8")}}>
+            <div style={{width:10,height:10,borderRadius:"50%",background:sheriff2Connected?"#2E5B3C":"#C4B090"}}/>
+            <span style={{fontSize:13,fontWeight:sheriff2Connected?700:400,color:sheriff2Connected?"#2E5B3C":"#C4B090"}}>Trener 2</span>
+            {sheriff2Connected&&<span style={{fontSize:13,color:"#2E5B3C",marginLeft:"auto"}}>✓ połączony</span>}
+            {!sheriff2Connected&&<span style={{fontSize:13,color:"#C4B090",marginLeft:"auto"}}>opcjonalny</span>}
           </div>
           {["adams","bennet","clinton","dexter"].map(fId=>{
             var connected=players[fId]&&players[fId].connected;
@@ -1533,7 +1571,7 @@ function BlindFateFamily({fId, blindFate}) {
 }
 
 /* ========== SHERIFF PANEL ========== */
-function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setConsultNotes,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,resultsReveal,setResultsReveal,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,manualMode,setManualMode,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,fateEnabled,setFateEnabled,mapEnabled,setMapEnabled,revEnabled,setRevEnabled,revMaxBet,setRevMaxBet,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle,revMode,setRevMode,revActive,setRevActive,revStartTournament,getRevTimer,revRevealDuel,revSettleDuel}) {
+function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNotes,setConsultNotes,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,resultsReveal,setResultsReveal,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,manualMode,setManualMode,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,fateEnabled,setFateEnabled,mapEnabled,setMapEnabled,revEnabled,setRevEnabled,revMaxBet,setRevMaxBet,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle,revMode,setRevMode,revActive,setRevActive,revStartTournament,getRevTimer,revRevealDuel,revSettleDuel}) {
   function applyPlotPenalties(){
     FO.forEach(fId=>{
       if(plotPenalties[fId]) return;
@@ -1624,23 +1662,33 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
 
   return (<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-      <div style={{fontSize:22,fontWeight:700,color:"#842504"}} className="wt">Panel Szeryfa</div>
+      <div style={{fontSize:22,fontWeight:700,color:"#842504"}} className="wt">{readOnly?"Panel Szeryfa 2":"Panel Szeryfa"}</div>
       <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-        {allTx.length>0&&!undoConfirm&&<button style={btnS("danger")} onClick={()=>setUndoConfirm(true)}>Cofnij ostatnią transakcję</button>}
-        {undoConfirm&&<div style={{display:"flex",gap:4,alignItems:"center",background:"#FEE",padding:"4px 8px",borderRadius:4,border:"1px solid #C88"}}>
+        {!readOnly&&allTx.length>0&&!undoConfirm&&<button style={btnS("danger")} onClick={()=>setUndoConfirm(true)}>Cofnij ostatnią transakcję</button>}
+        {!readOnly&&undoConfirm&&<div style={{display:"flex",gap:4,alignItems:"center",background:"#FEE",padding:"4px 8px",borderRadius:4,border:"1px solid #C88"}}>
           <span style={{fontSize:13,color:"#8B2500"}}>Cofnąć: {allTx[0]&&(FM[allTx[0].from].nom+"→"+FM[allTx[0].to].nom)}?</span>
           <button style={{...btnS("danger"),fontSize:13,padding:"3px 8px"}} onClick={undoLastTx}>Tak</button>
           <button style={{...btnS("primary"),fontSize:13,padding:"3px 8px"}} onClick={()=>setUndoConfirm(false)}>Nie</button>
         </div>}
-        <button style={btnS(resultsReveal>=1?"danger":"success")} onClick={()=>{if(resultsReveal===0){applyPlotPenalties();if(bnbEnabled)settleBnb();setResultsReveal(1);}else{setResultsReveal(0);}}}>{resultsReveal>=1?"Ukryj wyniki":"1. Biznes"}</button>
-        {resultsReveal>=1&&<button style={btnS(resultsReveal>=2?"danger":"success")} onClick={()=>setResultsReveal(resultsReveal>=2?1:2)}>{resultsReveal>=2?"Cofnij relacje":"2. Relacje"}</button>}
-        {resultsReveal>=2&&<button style={btnS(resultsReveal>=3?"danger":"success")} onClick={()=>setResultsReveal(resultsReveal>=3?2:3)}>{resultsReveal>=3?"Cofnij sumę":"3. Suma"}</button>}
+        {!readOnly&&<button style={btnS(resultsReveal>=1?"danger":"success")} onClick={()=>{if(resultsReveal===0){applyPlotPenalties();if(bnbEnabled)settleBnb();setResultsReveal(1);}else{setResultsReveal(0);}}}>{resultsReveal>=1?"Ukryj wyniki":"1. Biznes"}</button>}
+        {!readOnly&&resultsReveal>=1&&<button style={btnS(resultsReveal>=2?"danger":"success")} onClick={()=>setResultsReveal(resultsReveal>=2?1:2)}>{resultsReveal>=2?"Cofnij relacje":"2. Relacje"}</button>}
+        {!readOnly&&resultsReveal>=2&&<button style={btnS(resultsReveal>=3?"danger":"success")} onClick={()=>setResultsReveal(resultsReveal>=3?2:3)}>{resultsReveal>=3?"Cofnij sumę":"3. Suma"}</button>}
       </div>
     </div>
     {/* === PRZEBIEG ROZGRYWKI === */}
     <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{fontSize:20,fontWeight:700,color:"#842504",marginBottom:12}} className="wt">Przebieg rozgrywki</div>
-      {!gameStarted?(<div>
+      {readOnly?(<div>
+        {timerRunning&&<div style={{fontSize:18,fontWeight:700,color:"#842504",fontFamily:"monospace",marginBottom:6}}>{Math.floor(secondsLeft/60)+":"+(secondsLeft%60<10?"0":"")+(secondsLeft%60)}</div>}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:4}}>
+          {STAGES.map((s,idx)=>{var isCur=idx===stageIdx,isDone=idx<stageIdx;
+            return(<div key={s.id} style={{padding:"4px 8px",borderRadius:3,fontSize:13,fontWeight:isCur?700:400,background:isCur?"#D4A853":isDone?"#E8F0E8":"#F5F2E8",color:isCur?"#2C1810":isDone?"#2E5B3C":"#A89070",border:isCur?"2px solid #8B6914":"1px solid transparent",opacity:isDone?0.6:1}}>
+              {isCur&&"\u25B6 "}{s.label} ({stageDurations[s.id]} min){isDone&&" \u2713"}
+            </div>);
+          })}
+        </div>
+      </div>):
+      !gameStarted?(<div>
         <div style={{fontSize:13,color:"#5C4A3A",marginBottom:10}}>Ustaw czasy trwania etapów (minuty), a następnie kliknij Start.</div>
         {(()=>{
           var grouped=[
@@ -1779,14 +1827,14 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Złotodajna Żyła</div>
-        <button style={btnS(mapEnabled?"danger":"success")} onClick={()=>{setMapEnabled(!mapEnabled);showMsg(mapEnabled?"Złotodajna Żyła — zablokowana":"Złotodajna Żyła — odblokowana");}}>{mapEnabled?"Zablokuj ZŁOTODAJNĄ ŻYŁĘ":"Odblokuj ZŁOTODAJNĄ ŻYŁĘ"}</button>
+        {!readOnly&&<button style={btnS(mapEnabled?"danger":"success")} onClick={()=>{setMapEnabled(!mapEnabled);showMsg(mapEnabled?"Złotodajna Żyła — zablokowana":"Złotodajna Żyła — odblokowana");}}>{mapEnabled?"Zablokuj ZŁOTODAJNĄ ŻYŁĘ":"Odblokuj ZŁOTODAJNĄ ŻYŁĘ"}</button>}
       </div>
     </div>
     {/* === 4. ŚLEPY LOS — KONTROLA === */}
     <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
         <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Ślepy los — kontrola</div>
-        <button style={btnS(fateEnabled?"danger":"success")} onClick={()=>{setFateEnabled(!fateEnabled);showMsg(fateEnabled?"Ślepy los — zablokowany":"Ślepy los — odblokowany");}}>{fateEnabled?"Zablokuj ŚLEPY LOS":"Odblokuj ŚLEPY LOS"}</button>
+        {!readOnly&&<button style={btnS(fateEnabled?"danger":"success")} onClick={()=>{setFateEnabled(!fateEnabled);showMsg(fateEnabled?"Ślepy los — zablokowany":"Ślepy los — odblokowany");}}>{fateEnabled?"Zablokuj ŚLEPY LOS":"Odblokuj ŚLEPY LOS"}</button>}
       </div>
       {fateEnabled&&<div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
         {FO.map(fId=>{var f=FM[fId],bf=blindFate[fId]||{},pol=bf.policies||{p50:null,p100:null},rolls=bf.rolls||[];
@@ -1837,10 +1885,10 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Biznes na boku</div>
-        {!bnbEnabled&&<button style={btnS("success")} onClick={activateBnb}>Odblokuj BIZNES NA BOKU</button>}
+        {!readOnly&&!bnbEnabled&&<button style={btnS("success")} onClick={activateBnb}>Odblokuj BIZNES NA BOKU</button>}
         {bnbEnabled&&<div style={{display:"flex",gap:8,alignItems:"center"}}>
           <span style={{fontSize:13,fontWeight:700,color:bnbSettled?"#2E5B3C":"#8B7714",padding:"3px 10px",background:bnbSettled?"#E8F5E8":"#FFF8E7",borderRadius:4,border:"1px solid "+(bnbSettled?"#90C090":"#D4C870")}}>{bnbSettled?"Rozliczono":"Aktywny"}</span>
-          {!bnbSettled&&!gameStarted&&<button style={btnS("danger",false)} onClick={()=>{setFd(prev=>{var n={...prev};FO.forEach(fId=>{n[fId]={...n[fId],items:n[fId].items.filter(i=>i.cat!==C_BNB)};});return n;});setBnbEnabled(false);showMsg("Biznes na boku — zablokowany");}}>Zablokuj BIZNES NA BOKU</button>}
+          {!readOnly&&!bnbSettled&&!gameStarted&&<button style={btnS("danger",false)} onClick={()=>{setFd(prev=>{var n={...prev};FO.forEach(fId=>{n[fId]={...n[fId],items:n[fId].items.filter(i=>i.cat!==C_BNB)};});return n;});setBnbEnabled(false);showMsg("Biznes na boku — zablokowany");}}>Zablokuj BIZNES NA BOKU</button>}
         </div>}
       </div>
       {bnbEnabled&&<div>
@@ -1878,8 +1926,8 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Budowanie relacji</div>
-        {!relationsUnlocked&&<button style={btnS("success",false)} onClick={()=>setRelationsUnlocked(true)}>Odblokuj BUDOWANIE RELACJI</button>}
-        {relationsUnlocked&&<button style={btnS("danger",false)} onClick={()=>{if(window.confirm("Na pewno zablokować zakładkę BUDOWANIE RELACJI dla wszystkich graczy?"))setRelationsUnlocked(false);}}>Zablokuj BUDOWANIE RELACJI</button>}
+        {!readOnly&&!relationsUnlocked&&<button style={btnS("success",false)} onClick={()=>setRelationsUnlocked(true)}>Odblokuj BUDOWANIE RELACJI</button>}
+        {!readOnly&&relationsUnlocked&&<button style={btnS("danger",false)} onClick={()=>{if(window.confirm("Na pewno zablokować zakładkę BUDOWANIE RELACJI dla wszystkich graczy?"))setRelationsUnlocked(false);}}>Zablokuj BUDOWANIE RELACJI</button>}
       </div>
       {relationsUnlocked&&<div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
         {FO.map(fId=>{var f=FM[fId];var relS=calcRelationScore(fId,relations);
@@ -1897,21 +1945,21 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
         <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Rewolwerowiec</div>
-        {!revEnabled&&<button style={btnS("success")} onClick={()=>setRevEnabled(true)}>Odblokuj REWOLWEROWIEC</button>}
+        {!readOnly&&!revEnabled&&<button style={btnS("success")} onClick={()=>setRevEnabled(true)}>Odblokuj REWOLWEROWIEC</button>}
         {revEnabled&&<div style={{display:"flex",gap:8,alignItems:"center"}}>
           <span style={{fontSize:13,fontWeight:700,color:"#8B2500",padding:"3px 10px",background:"#FFE8E0",borderRadius:4,border:"1px solid #842504"}}>Aktywny</span>
-          {revActive.length===0&&<button style={btnS("danger",false)} onClick={()=>setRevEnabled(false)}>Zablokuj REWOLWEROWIEC</button>}
+          {!readOnly&&revActive.length===0&&<button style={btnS("danger",false)} onClick={()=>setRevEnabled(false)}>Zablokuj REWOLWEROWIEC</button>}
         </div>}
       </div>
       {revEnabled&&<div>
         {/* Mode toggle + Max bet */}
-        <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:12,flexWrap:"wrap"}}>
+        {!readOnly&&<div style={{display:"flex",gap:12,alignItems:"center",marginBottom:12,flexWrap:"wrap"}}>
           <div style={{display:"flex",gap:4,alignItems:"center",background:"#fff",border:"1px solid #842504",borderRadius:6,overflow:"hidden"}}>
             {["arena","tournament"].map(m=><button key={m} style={{padding:"6px 14px",fontSize:13,fontWeight:700,border:"none",cursor:revActive.length>0?"not-allowed":"pointer",background:revMode===m?"#842504":"transparent",color:revMode===m?"#fff":"#842504",opacity:revActive.length>0&&revMode!==m?0.4:1}} onClick={()=>{if(revActive.length===0)setRevMode(m);}} disabled={revActive.length>0}>{m==="arena"?"Arena":"Turniej"}</button>)}
           </div>
           <label style={{fontSize:13,color:"#5C4A3A"}}>Max stawka ($):</label>
           <input type="number" min={1} step={1} value={revMaxBet} onChange={e=>setRevMaxBet(Math.max(1,parseInt(e.target.value)||1))} style={{width:70,padding:4,borderRadius:4,border:"1px solid #842504",fontSize:13}} disabled={revActive.length>0}/>
-        </div>
+        </div>}
 
         {/* === ARENA MODE === */}
         {revMode==="arena"&&revActive.length===0&&<div>
@@ -2069,16 +2117,18 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
 /* ========== MAIN APP ========== */
 function App({roomCode,role}) {
   const isSheriff=role==="sheriff";
-  const myFamily=isSheriff?null:role;
+  const isSheriff2=role==="sheriff2";
+  const isSheriffAny=isSheriff||isSheriff2;
+  const myFamily=isSheriffAny?null:role;
   const online=useConnectionStatus();
   // T5 — unikalny ID sesji (dla blokady formularza TX)
   const sessionId=useRef(Date.now().toString(36)+Math.random().toString(36).slice(2,6));
-  const [cf,setCf]=useState(isSheriff?"adams":(myFamily||"adams"));
-  const [viewSheriff,setViewSheriff]=useState(isSheriff);
+  const [cf,setCf]=useState(isSheriffAny?"adams":(myFamily||"adams"));
+  const [viewSheriff,setViewSheriff]=useState(isSheriffAny);
   const [sheriffViewFamily,setSheriffViewFamily]=useState(null);
   const [fd,setFd]=useState(()=>{
     // Only sheriff initializes game data; players receive from Firebase
-    if(!isSheriff) return {adams:{cash:0,items:[]},bennet:{cash:0,items:[]},clinton:{cash:0,items:[]},dexter:{cash:0,items:[]}};
+    if(!isSheriffAny) return {adams:{cash:0,items:[]},bennet:{cash:0,items:[]},clinton:{cash:0,items:[]},dexter:{cash:0,items:[]}};
     var d={};FO.forEach(f=>{d[f]={cash:600,items:START[f].cards.slice()};});return d;
   });
   const [txs,setTxs]=useState([]);
@@ -2272,7 +2322,7 @@ function App({roomCode,role}) {
 
   // Background per role
   useEffect(()=>{
-    var bgFile=isSheriff?"background_szeryf":"background_"+myFamily;
+    var bgFile=isSheriffAny?"background_szeryf":"background_"+myFamily;
     document.body.style.backgroundImage="url('img/"+bgFile+".jpg'), url('img/background.jpg')";
   },[]);
 
@@ -2440,7 +2490,7 @@ function App({roomCode,role}) {
   // Register presence in room
   useEffect(()=>{
     if(!db) return;
-    var roleKey=isSheriff?"sheriff":myFamily;
+    var roleKey=isSheriff?"sheriff":isSheriff2?"sheriff2":myFamily;
     var ref=db.ref("rooms/"+roomCode+"/players/"+roleKey);
     ref.set({connected:true,joinedAt:firebase.database.ServerValue.TIMESTAMP});
     ref.onDisconnect().update({connected:false});
@@ -2665,10 +2715,30 @@ function App({roomCode,role}) {
   function rejectTx(txId){setTxs(p=>p.map(t=>t.id===txId?{...t,status:"rejected"}:t));showMsg("Operacja odrzucona.");}
 
   function rollDice(fId,rollIdx){
-    // P1 — blokada przed równoczesnym/podwójnym rzutem
+    // P1 — blokada lokalna przed podwójnym kliknięciem
     var lockKey=fId+"-"+rollIdx;
     if(rollingInProgress.current[lockKey])return;
     rollingInProgress.current[lockKey]=true;
+
+    // P5 — blokada Firebase przed równoczesnym rzutem dwóch szeryfów
+    if(!db){_doRoll(fId,rollIdx,lockKey);return;}
+    var lockRef=db.ref("rooms/"+roomCode+"/rollLock/"+lockKey);
+    lockRef.transaction(function(current){
+      if(current)return; // już zajęty — abort
+      return sessionId.current;
+    },function(err,committed){
+      if(!committed){
+        // Inny szeryf już rzuca — odblokuj lokalnie i wyjdź
+        delete rollingInProgress.current[lockKey];
+        showMsg("Rzut dla "+FM[fId].nom+" jest już w toku!");
+        return;
+      }
+      lockRef.onDisconnect().remove();
+      _doRoll(fId,rollIdx,lockKey,lockRef);
+    });
+  }
+
+  function _doRoll(fId,rollIdx,lockKey,lockRef){
 
     // P4 — odczyt policyUsed z closure (stateRef) zamiast setter-hack
     var policyUsed=(stateRef.current.blindFate&&stateRef.current.blindFate[fId]&&stateRef.current.blindFate[fId].rolls&&stateRef.current.blindFate[fId].rolls[rollIdx])?stateRef.current.blindFate[fId].rolls[rollIdx].policyUsed||null:null;
@@ -2732,6 +2802,7 @@ function App({roomCode,role}) {
             bf.rolls=rls;n[fId]=bf;return n;});
           diceRolling.current=false;           // P2 — odblokuj sync
           delete rollingInProgress.current[lockKey]; // P1 — odblokuj rzut
+          if(lockRef)lockRef.remove();         // P5 — zwolnij Firebase lock
         },30000));
       },1500));
     },2000));
@@ -2749,7 +2820,7 @@ function App({roomCode,role}) {
         <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.0.6</div>
       </div>
     </div>
-    {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
+    {isSheriffAny?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
       {FO.map(fId=>{var act=!viewSheriff&&cf===fId,col=FM[fId].col;
         return (<div key={fId} onClick={()=>{setCf(fId);setViewSheriff(false);setSheriffViewFamily(null);setActiveTab("inv");}}
           style={{padding:"8px 16px",cursor:"pointer",fontWeight:act?700:400,fontSize:14,background:act?col:"transparent",color:act?"#fff":"#2C1810",borderBottom:act?"3px solid "+col:"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap"}} className="wt">
@@ -2771,7 +2842,7 @@ function App({roomCode,role}) {
     {viewSheriff&&sheriffViewFamily&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:13,color:"#664D03",textAlign:"center"}}>
       Podgląd panelu rodziny {FM[sheriffViewFamily].gen} <button style={{marginLeft:8,fontSize:13,padding:"2px 8px",cursor:"pointer",background:"#8B6914",color:"#fff",border:"none",borderRadius:3,fontFamily:"inherit"}} onClick={()=>setSheriffViewFamily(null)}>Wróć do panelu Szeryfa</button>
     </div>}
-    {viewSheriff&&!sheriffViewFamily&&<SheriffPanel fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} consultNotes={consultNotes} setConsultNotes={setConsultNotes} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} resultsReveal={resultsReveal} setResultsReveal={setResultsReveal} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} manualMode={manualMode} setManualMode={setManualMode} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle} revMode={revMode} setRevMode={setRevMode} revActive={revActive} setRevActive={setRevActive} revStartTournament={revStartTournament} getRevTimer={getRevTimer} revRevealDuel={revRevealDuel} revSettleDuel={revSettleDuel}/>}
+    {viewSheriff&&!sheriffViewFamily&&<SheriffPanel readOnly={isSheriff2} fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} consultNotes={consultNotes} setConsultNotes={setConsultNotes} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} resultsReveal={resultsReveal} setResultsReveal={setResultsReveal} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} manualMode={manualMode} setManualMode={setManualMode} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle} revMode={revMode} setRevMode={setRevMode} revActive={revActive} setRevActive={setRevActive} revStartTournament={revStartTournament} getRevTimer={getRevTimer} revRevealDuel={revRevealDuel} revSettleDuel={revSettleDuel}/>}
 
     {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
