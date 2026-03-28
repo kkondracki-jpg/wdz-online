@@ -321,7 +321,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.2.1</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.2.2</div>
       </div>
 
       {/* Initial choice */}
@@ -489,7 +489,7 @@ const STAGES = [
   {id:"F3T3", label:"Faza III \u2014 Tura 3",      type:"turn",   defMin:5,  pairingIdx:2,    phase:3},
   {id:"END",  label:"Zako\u0144czenie rozgrywki",  type:"end",    defMin:0,  pairingIdx:null, phase:null},
 ];
-const PHASE_NAMES = {1:"WYMIANA INFORMACJI",2:"PIERWSZE TRANSAKCJE",3:"FINA\u0141"};
+const PHASE_NAMES = {1:"WYMIANA INFORMACJI",2:"PIERWSZE TRANSAKCJE",3:"FINAŁ"};
 
 /* ========== AGENDA TIMELINE — dane i helpery ========== */
 const AGENDA_ITEMS=[
@@ -506,12 +506,12 @@ const AGENDA_ITEMS=[
   {idx:10,type:"kn",label:"Narada",phase:2},
   {idx:11,type:"turn",label:"Tura 3",phase:2},
   {idx:12,type:"narada",label:"Narada"},
-  {idx:13,type:"turn",label:"Tura 1",phase:3,phaseLabel:"FAZA FINA\u0141OWA"},
+  {idx:13,type:"turn",label:"Tura 1",phase:3,phaseLabel:"FAZA FINAŁOWA"},
   {idx:14,type:"kn",label:"Narada",phase:3},
   {idx:15,type:"turn",label:"Tura 2",phase:3},
   {idx:16,type:"kn",label:"Narada",phase:3},
   {idx:17,type:"turn",label:"Tura 3",phase:3},
-  {idx:18,type:"omow",label:"OM\u00d3WIENIE"},
+  {idx:18,type:"omow",label:"OMÓWIENIE"},
 ];
 const AGENDA_W={turn:2,kn:1,narada:1.6,prep:1.3,omow:1.3};
 const AGENDA_TOTAL=AGENDA_ITEMS.reduce(function(s,it){return s+AGENDA_W[it.type];},0);
@@ -533,21 +533,21 @@ function AgendaBar({familyId,stageIdx}){
   function st(idx){return idx<curIdx?"done":idx===curIdx?"current":"future";}
   // done = biały, current = biały+ring, future = kolor rodziny (nieprzezroczysty) + obrys
   var CD="#FFFFFF",CL="rgba(255,255,255,0.85)",CT="rgba(255,255,255,0.85)";
-  var FF=f.col,FL="rgba(255,255,255,0.18)",FT="rgba(255,255,255,0.30)";
-  var FS="rgba(255,255,255,0.28)"; // future symbol stroke
+  var FF=f.col,FL="rgba(255,255,255,0.07)",FT="rgba(255,255,255,0.12)";
+  var FS="rgba(255,255,255,0.07)"; // future symbol stroke
   var CF="#FFFFFF",CX="#FFFFFF",CR="#D4A853",SZ=4,LY=10,BY=42;
   var TC="rgba(255,255,255,0.55)"; // tick color
   var WT="'Aka Posse','Alegreya Sans',serif";
   var elems=[];var k=0;
   // linia future (pod symbolami)
-  elems.push(<line key={k++} x1={PAD} y1={Y} x2={W-PAD} y2={Y} stroke={FL} strokeWidth="1"/>);
+  elems.push(<line key={k++} x1={PAD} y1={Y} x2={W-PAD} y2={Y} stroke={FL} strokeWidth="1.5"/>);
   // linia done
-  elems.push(<line key={k++} x1={PAD} y1={Y} x2={positions[curIdx]} y2={Y} stroke={CL} strokeWidth="1.5"/>);
+  elems.push(<line key={k++} x1={PAD} y1={Y} x2={positions[curIdx]} y2={Y} stroke={CL} strokeWidth="2.5"/>);
   // kreski graniczne faz — grubsze i widoczne
   phaseTicks.forEach(function(x){elems.push(<line key={k++} x1={x} y1={Y-6} x2={x} y2={Y+6} stroke={TC} strokeWidth="2"/>);});
   // etykiety faz
-  elems.push(<text key={k++} x={positions[0]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="7" letterSpacing="0.06em" fill={CT} fontFamily={WT}>PRZYGOTOWANIE</text>);
-  elems.push(<text key={k++} x={positions[18]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="7" letterSpacing="0.06em" fill={FT} fontFamily={WT}>OM\u00d3WIENIE</text>);
+  elems.push(<text key={k++} x={positions[0]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="7" letterSpacing="0.06em" fill={CT} fontFamily={WT}>{AGENDA_ITEMS[0].label}</text>);
+  elems.push(<text key={k++} x={positions[18]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="7" letterSpacing="0.06em" fill={FT} fontFamily={WT}>{AGENDA_ITEMS[18].label}</text>);
   [1,2,3].forEach(function(ph){
     var turns=AGENDA_ITEMS.filter(function(it){return it.phase===ph&&it.type==="turn";});
     var allIt=AGENDA_ITEMS.filter(function(it){return it.phase===ph;});
@@ -577,7 +577,7 @@ function AgendaBar({familyId,stageIdx}){
       elems.push(<text key={k++} x={px} y={BY} textAnchor="middle" dominantBaseline="middle" fontSize={fs} fill={cT} fontWeight={fw} fontFamily={WT}>{it.label}</text>);
     } else if(it.type==="kn"){
       elems.push(<polygon key={k++} points={agDiamondPts(px,Y,3)} fill={cF} stroke={strk} strokeWidth={swid}/>);
-      elems.push(<text key={k++} x={px} y={BY} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fill={cT} fontStyle="italic" fontFamily={WT}>Narada</text>);
+      elems.push(<text key={k++} x={px} y={BY} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fill={cT} fontFamily={WT}>Narada</text>);
     } else if(it.type==="narada"){
       elems.push(<polygon key={k++} points={agDiamondPts(px,Y,SZ)} fill={cF} stroke={strk} strokeWidth={swid}/>);
       if(s==="current") elems.push(<polygon key={k++} points={agDiamondPts(px,Y,SZ+3)} fill="none" stroke={CR} strokeWidth="1" strokeDasharray="2 1.5"/>);
@@ -600,14 +600,14 @@ function FamilyTimerPanel({familyId,stageIdx,secondsLeft,gameStarted,timerPaused
   var timeStr=(timerPaused?"(P) ":"")+mm+":"+(ss<10?"0":"")+ss;
   var stageLabel="";
   if(stage){
-    if(stage.type==="turn") stageLabel="FAZA "+(stage.phase===1?"INFORMACYJNA":stage.phase===2?"TRANSAKCYJNA":"FINA\u0141OWA")+" \u00b7 TURA "+stage.id.slice(-1);
-    else if(stage.type==="kn") stageLabel="KR\u00d3TKA NARADA";
+    if(stage.type==="turn") stageLabel="FAZA "+(stage.phase===1?"INFORMACYJNA":stage.phase===2?"TRANSAKCYJNA":"FINAŁOWA")+" · TURA "+stage.id.slice(-1);
+    else if(stage.type==="kn") stageLabel="KRÓTKA NARADA";
     else if(stage.type==="narada") stageLabel="NARADA RODZINNA";
     else if(stage.type==="prep") stageLabel="PRZYGOTOWANIE";
-    else if(stage.type==="end") stageLabel="ZAKO\u0143CZENIE";
+    else if(stage.type==="end") stageLabel="ZAKOŃCZENIE";
   }
   var WT="'Aka Posse','Alegreya Sans',serif";
-  return(<div style={{backgroundImage:"url(img/faza_rozgrywki.png)",backgroundSize:"cover",backgroundPosition:"center",padding:"20px 18px",marginBottom:16}}>
+  return(<div style={{backgroundColor:f.col,padding:"20px 18px",marginBottom:16,textAlign:"center"}}>
     {!gameStarted?(<div>
       <div style={{fontSize:48,color:"#fff",fontFamily:WT,letterSpacing:3,lineHeight:1}}>0:00</div>
       <div style={{fontSize:18,color:"rgba(255,255,255,0.8)",fontFamily:WT,marginTop:10,letterSpacing:"0.04em"}}>Oczekiwanie na start gry</div>
