@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WDZ Online — Platforma Sieciowa v1.0.0</title>
+  <title>WDZ Online — Platforma Sieciowa v1.0.6</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -304,7 +304,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.0.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.0.6</div>
       </div>
 
       {/* Initial choice */}
@@ -604,7 +604,7 @@ adams:{cards:[
   NK("Biegła Obsługa Liczydła","Bank",18),
   NK("Leczenie Chorób Bydła","Ranczo",27),
   NK("Podstawy Stolarstwa","Zakład Pogrzebowy",43),
-  PL(6), MP(1), MP(1), MP(1),
+  PL(6), MP(1), MP(1), MP(1), MP(1),
 ]},
 bennet:{cards:[
   R("Lasso","Ranczo",30,"aby chwytać bydło i dyscyplinować stado"),
@@ -626,7 +626,7 @@ bennet:{cards:[
   NK("Szybkostrzelność i Celność Oka","Ranczo",18),
   NK("Pędzenie Szkockiej Whisky","Saloon",27),
   NK("Zapewnienie Bezpieczeństwa","Bank",43),
-  PL(4), MP(2), MP(2), MP(2),
+  PL(4), MP(2), MP(2), MP(2), MP(2),
 ]},
 clinton:{cards:[
   R("Stara Destylarnia","Saloon",30,"aby nigdy nie zabrakło tego, co zaspokaja pragnienia"),
@@ -650,7 +650,7 @@ clinton:{cards:[
   NK("Sztuka Balsamowania","Zakład Pogrzebowy",27),
   NK("Prowadzenie Kuchni Zbiorowej","Saloon",18),
   NK("Odnajdywanie Źródeł Wody","Ranczo",12),
-  PL(20), MP(3), MP(3), MP(3),
+  PL(20), MP(3), MP(3), MP(3), MP(3),
 ]},
 dexter:{cards:[
   R("Sejf","Bank",30,"aby pieniądze były bezpieczne jak w banku"),
@@ -676,7 +676,7 @@ dexter:{cards:[
   NK("Podstawy Makijażu Pośmiertnego","Zakład Pogrzebowy",18),
   NK("Obsługa Zamka Szyfrowego","Bank",27),
   NK("Organizowanie Turniejów Pokera","Saloon",43),
-  PL(1), MP(4), MP(4), MP(4),
+  PL(1), MP(4), MP(4), MP(4), MP(4),
 ]},
 };
 
@@ -718,7 +718,7 @@ function buildView(items) {
 }
 
 /* ========== SCORE ========== */
-function calcScore(fId, fd, plotPenalties, biznesNaBoku, bnbEnabled) {
+function calcScore(fId, fd, plotPenalties, biznesNaBoku, bnbEnabled, blindFate) {
   var f=FM[fId], d=fd[fId], items=d.items;
   // BnB cards owned (bought from other families)
   var bnbCards=items.filter(i=>i.cat===C_BNB);
@@ -730,6 +730,15 @@ function calcScore(fId, fd, plotPenalties, biznesNaBoku, bnbEnabled) {
   var resItems=items.filter(i=>i.cat===C_RES&&!i.blind&&i.forBiz===f.biz);
   var resPct=resItems.reduce((s,i)=>s+i.weight,0);
   if(bnbEnabled) resPct=Math.min(100, resPct + bnbKurier*4);
+  // loss_resources — kara za zdarzenie Ślepego Losu (rekwizycja zasobów)
+  if(blindFate&&blindFate[fId]&&blindFate[fId].rolls){
+    blindFate[fId].rolls.forEach(function(roll){
+      if(roll.resolved&&roll.event&&roll.event.type==="loss_resources"){
+        var penalty=roll.policyUsed===100?0:roll.policyUsed===50?5:10;
+        resPct=Math.max(0,resPct-penalty);
+      }
+    });
+  }
   var resScore=(resPct/100)*30;
   // Competencies
   var compItems=items.filter(i=>i.cat===C_COMP&&!i.blind&&i.forBiz===f.biz);
@@ -784,7 +793,7 @@ function StarRating({value, onChange, disabled}) {
 }
 function btnS(v,dis) {
   var b={padding:"10px 18px",borderRadius:"4px",border:"none",fontSize:"14px",fontWeight:700,cursor:dis?"not-allowed":"pointer",fontFamily:"inherit",letterSpacing:"0.3px",transition:"all 0.15s",opacity:dis?0.5:1};
-  var m={primary:{background:"#D4A853",color:"#4C130F"},success:{background:"#5B7674",color:"#fff"},danger:{background:"#842504",color:"#fff"},barter:{background:"#5E5971",color:"#fff"},sheriff:{background:"#B14A2A",color:"#fff"},fate:{background:"#842504",color:"#fff"}};
+  var m={primary:{background:"#D4A853",color:"#4C130F"},success:{background:"#5B7674",color:"#fff"},danger:{background:"#842504",color:"#fff"},barter:{background:"#5E5971",color:"#fff"},sheriff:{background:"#B14A2A",color:"#fff"},fate:{background:"#842504",color:"#fff"},warning:{background:"#C07820",color:"#fff"},secondary:{background:"#8B7355",color:"#fff"}};
   return Object.assign({},b,m[v]||{background:"#E8E0D0",color:"#2C1810"});
 }
 
@@ -1284,7 +1293,7 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
   var uniqueNrs=[...new Set(frags.map(f=>f.fragNr))];
   var myFrag=fId?FM[fId].mapFrag:null;
   var ownFragCount=myFrag?frags.filter(f=>f.fragNr===myFrag).length:0;
-  var forSale=ownFragCount;
+  var forSale=Math.max(0,ownFragCount-1); // -1 = oryginał niezbywalny
   var layout=(mapLayout&&fId&&mapLayout[fId])||[0,0,0,0];
   var claimed=!!(mapBonusClaimed&&fId&&mapBonusClaimed[fId]);
   var winnerFam=null;
@@ -1675,7 +1684,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     </div>
     {/* === 2. PODGLĄD I WYNIKI RODZIN === */}
     <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20}}>
-      {FO.map(fId=>{var f=FM[fId],d=fd[fId],sc=calcScore(fId,fd,plotPenalties,biznesNaBoku,bnbEnabled);
+      {FO.map(fId=>{var f=FM[fId],d=fd[fId],sc=calcScore(fId,fd,plotPenalties,biznesNaBoku,bnbEnabled,blindFate);
         var plotI=d.items.find(i=>i.cat===C_PLOT),plotOk=plotI&&plotI.plotNr===f.tPlot;
         return (<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:12}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
@@ -1693,7 +1702,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
     {resultsReveal>=1&&<div style={{background:"#fff",border:"2px solid #842504",borderRadius:8,padding:20,marginBottom:20}}>
       <div style={{fontSize:22,fontWeight:700,color:"#842504",marginBottom:16,textAlign:"center"}} className="wt">Wyniki rozgrywki</div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
-        {FO.map(fId=>{var sc=calcScore(fId,fd,plotPenalties,biznesNaBoku,bnbEnabled),f=FM[fId];return (<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:14}}>
+        {FO.map(fId=>{var sc=calcScore(fId,fd,plotPenalties,biznesNaBoku,bnbEnabled,blindFate),f=FM[fId];return (<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:14}}>
           <div style={{fontSize:15,fontWeight:700,color:f.col,marginBottom:8,textAlign:"center"}} className="wt">{f.nom}</div>
           <div style={{fontSize:13,color:"#5C4A3A",lineHeight:2}}>
             <div>Zasoby: <b>{sc.resPct}%</b> = <b>{sc.resScore} pkt</b>{bnbEnabled&&sc.bnbKurier>0&&<span style={{fontSize:13,color:"#8B2500"}}> (w tym Kurier ×{sc.bnbKurier}: +{sc.bnbKurier*4}%)</span>}</div>
@@ -1920,7 +1929,7 @@ function SheriffPanel({fd,txs,consultations,setConsultations,consultNotes,setCon
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
             <input type="number" id="revBetInput" min={1} max={revMaxBet} step={1} defaultValue={Math.min(30,revMaxBet)} style={{width:80,padding:4,borderRadius:4,border:"1px solid #842504",fontSize:13}}/>
             <button style={btnS("success")} onClick={()=>{var v=parseInt(document.getElementById("revBetInput").value)||0;if(v<1||v>revMaxBet){showMsg("Stawka musi wynosić od 1 do "+revMaxBet+" $");return;}revSetBet(v);}}>Zatwierdź stawkę</button>
-            <button style={btnS("danger")} onClick={()=>setRevCurrent(null)}>Anuluj</button>
+            <button style={btnS("danger")} onClick={()=>setRevActive(prev=>prev.filter((_,i)=>i!==0))}>Anuluj</button>
           </div>
         </div>}
 
@@ -2737,7 +2746,7 @@ function App({roomCode,role}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.0.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.0.6</div>
       </div>
     </div>
     {isSheriff?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
@@ -2949,7 +2958,7 @@ function App({roomCode,role}) {
             </div>);
           })()}
           {activeTab==="results"&&resultsReveal>=1&&(()=>{
-            var sc=calcScore(familyId,fd,plotPenalties,biznesNaBoku,bnbEnabled);
+            var sc=calcScore(familyId,fd,plotPenalties,biznesNaBoku,bnbEnabled,blindFate);
             var relS=calcRelationScore(familyId,relations);
             var total=Math.round((sc.bizTotal+relS)*10)/10;
             return (<div>
@@ -3212,6 +3221,12 @@ function App({roomCode,role}) {
               var hdrS={fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",marginBottom:6,marginTop:10};
               return cats.map(({cat,label,col,bg})=>{
                 var group=items.filter(i=>i.cat===cat);
+                // Ukryj oryginał mapy — 1 kopia własnego fragmentu jest niezbywalna
+                if(cat===C_MAP){
+                  var ownFragNr=FM[cf].mapFrag;
+                  var ownIdx=group.findIndex(i=>i.fragNr===ownFragNr);
+                  if(ownIdx>=0)group=group.filter((_,idx)=>idx!==ownIdx);
+                }
                 if(!group.length)return null;
                 return (<div key={cat}>
                   <div style={{...hdrS,color:col}}>{label}</div>
@@ -3277,7 +3292,15 @@ function App({roomCode,role}) {
           {pMode==="barter_response"&&(()=>{var tx=txs.find(t=>t.id===rTx);if(!tx)return null;return <div>
             <div style={{background:"#F0EBE0",padding:10,borderRadius:5,marginBottom:12,fontSize:13,lineHeight:1.5}}><b>Rodzina {FM[tx.from].gen} oferuje:</b> {fmtItems(tx.offeredItems)}{tx.offeredCash>0?" + "+tx.offeredCash+" $":""}</div>
             <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:8}}>Co oferujesz w zamian?</div>
-            <div style={{maxHeight:300,overflowY:"auto"}}>{my.items.filter(item=>item.cat!==C_BNB).map(item=>{var sel=!!selItems.find(i=>i.id===item.id);return <div key={item.id} style={{marginBottom:4}}>
+            <div style={{maxHeight:300,overflowY:"auto"}}>{(()=>{
+              var ownFragNr=FM[cf].mapFrag;
+              var respItems=my.items.filter(item=>item.cat!==C_BNB).filter((item,idx,arr)=>{
+                if(item.cat!==C_MAP||item.fragNr!==ownFragNr)return true;
+                // Ukryj oryginał — pierwszą kopię własnego fragmentu pomijamy
+                var firstOwnIdx=arr.findIndex(i=>i.cat===C_MAP&&i.fragNr===ownFragNr);
+                return idx!==firstOwnIdx;
+              });
+              return respItems.map(item=>{var sel=!!selItems.find(i=>i.id===item.id);return <div key={item.id} style={{marginBottom:4}}>
               {item.cat===C_RES&&<ResourceCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
               {item.cat===C_COMP&&<CompCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
               {item.cat===C_NRES&&<NoteCard item={item} selected={sel} type="res" textOnly onClick={()=>toggleItem(item)}/>}
@@ -3288,7 +3311,7 @@ function App({roomCode,role}) {
                 <div style={{fontSize:13,fontWeight:600}}>{item.name}</div>
                 <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A09020",marginTop:2}}>FRAGMENT MAPY</div>
               </div>}
-            </div>;})}
+            </div>;})})()}
             {bnbEnabled&&(()=>{
               var bnbItems=my.items.filter(i=>i.cat===C_BNB);
               var grouped={};bnbItems.forEach(i=>{if(!grouped[i.bnbOrigin])grouped[i.bnbOrigin]=[];grouped[i.bnbOrigin].push(i);});
