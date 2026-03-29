@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WDZ Online — Platforma Sieciowa v1.3.1</title>
+  <title>WDZ Online — Platforma Sieciowa v1.0.6</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -396,7 +396,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.3.1</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.3.2</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -633,66 +633,72 @@ function agDiamondPts(cx,cy,hs){return cx+","+(cy-hs)+" "+(cx+hs)+","+cy+" "+cx+
 function lightShade(hex,amt){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);r=Math.round(r+(255-r)*amt);g=Math.round(g+(255-g)*amt);b=Math.round(b+(255-b)*amt);return"#"+r.toString(16).padStart(2,"0")+g.toString(16).padStart(2,"0")+b.toString(16).padStart(2,"0");}
 function AgendaBar({familyId,stageIdx}){
   var f=FM[familyId];
-  var W=1000,AY=14,PAD=8,usable=W-PAD*2,unit=usable/AGENDA_TOTAL;
-  var WT="'Aka Posse','Alegreya Sans',serif";
+  var W=1000,Y=26,PAD=20,usable=W-PAD*2,unit=usable/AGENDA_TOTAL;
   var positions=[],cx=PAD;
   AGENDA_ITEMS.forEach(function(it){var w=AGENDA_W[it.type]*unit;positions.push(cx+w/2);cx+=w;});
-  // 6 kresek granicznych: przed Turą 1 i po Turze 3 każdej fazy
   var phaseTicks=[];
   AGENDA_ITEMS.forEach(function(it,i){var w=AGENDA_W[it.type]*unit;
     if(it.idx===1||it.idx===7||it.idx===13) phaseTicks.push(positions[i]-w/2);
     if(it.idx===5||it.idx===11||it.idx===17) phaseTicks.push(positions[i]+w/2);
   });
-  var curIdx=stageIdx>=0&&stageIdx<AGENDA_ITEMS.length?stageIdx:-1;
-  var curX=curIdx>=0?positions[curIdx]:PAD;
-  function st(idx){return curIdx<0?"future":idx<curIdx?"done":idx===curIdx?"current":"future";}
+  var curIdx=stageIdx>=0&&stageIdx<AGENDA_ITEMS.length?stageIdx:0;
+  function st(idx){return idx<curIdx?"done":idx===curIdx?"current":"future";}
+  // done/current = biały, future = jasny odcień koloru rodziny
+  var LS=lightShade(f.col,0.70); // jasny odcień per rodzina (~#E9CDC2 dla Adamsów)
+  var CD="#FFFFFF",CL="#FFFFFF",CT="#FFFFFF";
+  var FF=LS,FL=LS,FT=LS;
+  var FS="none"; // future symbol stroke — brak (kolor wypełnienia wystarczy)
+  var CF="#FFFFFF",CX="#FFFFFF",CR="#D4A853",SZ=4,LY=10,BY=42;
+  var TC="rgba(255,255,255,0.55)"; // tick color
+  var WT="'Aka Posse','Alegreya Sans',serif";
   var elems=[];var k=0;
-  // Linia osi: segment miniony (#E9CDC2) + segment przyszły (#FFFFFF)
-  if(curIdx>0) elems.push(<line key={k++} x1={PAD} y1={AY} x2={curX} y2={AY} stroke="#E9CDC2" strokeWidth="1"/>);
-  elems.push(<line key={k++} x1={curX} y1={AY} x2={W-PAD} y2={AY} stroke="#FFFFFF" strokeWidth="1"/>);
-  // 6 kresek granicznych faz
-  phaseTicks.forEach(function(x){
-    elems.push(<line key={k++} x1={x} y1={8} x2={x} y2={20} stroke={x<=curX?"#E9CDC2":"#FFFFFF"} strokeWidth="1"/>);
-  });
-  // Etykiety faz Y=6
-  // Przygotowanie i Omówienie: bez strzałek
-  elems.push(<text key={k++} x={positions[0]} y={6} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" letterSpacing="0.08em" fill={st(0)==="done"?"#E9CDC2":"#FFFFFF"} fontFamily={WT}>{AGENDA_ITEMS[0].label}</text>);
-  elems.push(<text key={k++} x={positions[18]} y={6} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" letterSpacing="0.08em" fill={st(18)==="done"?"#E9CDC2":"#FFFFFF"} fontFamily={WT}>{AGENDA_ITEMS[18].label}</text>);
-  // Fazy 1–3: "← NAZWA →" wyśrodkowane między kreskami granicznymi
+  // linia future (pod symbolami)
+  elems.push(<line key={k++} x1={PAD} y1={Y} x2={W-PAD} y2={Y} stroke={FL} strokeWidth="1.5"/>);
+  // linia done
+  elems.push(<line key={k++} x1={PAD} y1={Y} x2={positions[curIdx]} y2={Y} stroke={CL} strokeWidth="2.5"/>);
+  // kreski graniczne faz — grubsze i widoczne
+  phaseTicks.forEach(function(x){elems.push(<line key={k++} x1={x} y1={Y-6} x2={x} y2={Y+6} stroke={TC} strokeWidth="2"/>);});
+  // etykiety faz
+  elems.push(<text key={k++} x={positions[0]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="7" letterSpacing="0.06em" fill={CT} fontFamily={WT}>{AGENDA_ITEMS[0].label}</text>);
+  elems.push(<text key={k++} x={positions[18]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="7" letterSpacing="0.06em" fill={FT} fontFamily={WT}>{AGENDA_ITEMS[18].label}</text>);
   [1,2,3].forEach(function(ph){
     var turns=AGENDA_ITEMS.filter(function(it){return it.phase===ph&&it.type==="turn";});
-    var allPhIt=AGENDA_ITEMS.filter(function(it){return it.phase===ph;});
+    var allIt=AGENDA_ITEMS.filter(function(it){return it.phase===ph;});
     var fi=AGENDA_ITEMS.indexOf(turns[0]),li=AGENDA_ITEMS.indexOf(turns[turns.length-1]);
-    var midX=(positions[fi]-AGENDA_W.turn*unit/2+positions[li]+AGENDA_W.turn*unit/2)/2;
-    var allDone=allPhIt.every(function(it){return it.idx<curIdx;});
-    elems.push(<text key={k++} x={midX} y={6} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" letterSpacing="0.08em" fill={allDone?"#E9CDC2":"#FFFFFF"} fontFamily={WT}>{"\u2190 "+turns[0].phaseLabel+" \u2192"}</text>);
+    var wF=AGENDA_W[AGENDA_ITEMS[fi].type]*unit,wL=AGENDA_W[AGENDA_ITEMS[li].type]*unit;
+    var midX=(positions[fi]-wF/2+positions[li]+wL/2)/2;
+    var allDone=allIt.every(function(it){return it.idx<curIdx;}),hasCur=allIt.some(function(it){return it.idx===curIdx;});
+    var phSt=allDone?"done":hasCur?"current":"future";
+    var col=phSt==="done"?CT:phSt==="current"?CX:FT;
+    var fw=phSt==="current"?"600":"400",pSize=phSt==="current"?"8":"7";
+    elems.push(<text key={k++} x={midX} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize={pSize} letterSpacing="0.07em" fill={col} fontWeight={fw} fontFamily={WT}>{"\u2190 "+turns[0].phaseLabel+" \u2192"}</text>);
   });
-  // Symbole i etykiety (rysowane PO liniach — przykrywają je)
+  // symbole (rysowane PO liniach — przykrywają je)
   AGENDA_ITEMS.forEach(function(it,i){
     var s=st(it.idx),px=positions[i];
-    var symCol=s==="done"?"#E9CDC2":"#FFFFFF";
-    var txtCol=s==="done"?"#E9CDC2":"#FFFFFF";
-    // Symbol
-    if(it.type==="turn"||it.type==="prep"||it.type==="omow"){
-      elems.push(<circle key={k++} cx={px} cy={AY} r={s==="current"?5:2.5} fill={symCol}/>);
+    var isFut=s==="future";
+    var cF=isFut?FF:s==="current"?CF:CD;
+    var cT=s==="done"?CT:s==="current"?CX:FT;
+    var fs=s==="current"?"9":"8",fw=s==="current"?"600":"400";
+    var strk=isFut?FS:"none",swid=isFut?"0.8":"0";
+    if(it.type==="prep"||it.type==="omow"){
+      elems.push(<polygon key={k++} points={agHexPts(px,Y,SZ)} fill={cF} stroke={strk} strokeWidth={swid}/>);
+      if(s==="current") elems.push(<polygon key={k++} points={agHexPts(px,Y,SZ+3)} fill="none" stroke={CR} strokeWidth="1" strokeDasharray="2 1.5"/>);
+    } else if(it.type==="turn"){
+      elems.push(<circle key={k++} cx={px} cy={Y} r={SZ} fill={cF} stroke={strk} strokeWidth={swid}/>);
+      if(s==="current") elems.push(<circle key={k++} cx={px} cy={Y} r={SZ+3} fill="none" stroke={CR} strokeWidth="1" strokeDasharray="2 1.5"/>);
+      elems.push(<text key={k++} x={px} y={BY} textAnchor="middle" dominantBaseline="middle" fontSize={fs} fill={cT} fontWeight={fw} fontFamily={WT}>{it.label}</text>);
     } else if(it.type==="kn"){
-      elems.push(<polygon key={k++} points={agDiamondPts(px,AY,s==="current"?7:4)} fill={symCol}/>);
+      elems.push(<polygon key={k++} points={agDiamondPts(px,Y,3)} fill={cF} stroke={strk} strokeWidth={swid}/>);
+      elems.push(<text key={k++} x={px} y={BY} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fill={cT} fontFamily={WT}>Narada</text>);
     } else if(it.type==="narada"){
-      elems.push(<polygon key={k++} points={agDiamondPts(px,AY,s==="current"?9:6)} fill={symCol}/>);
-    }
-    // Etykiety pod linią Y=22 (tylko turn/kn/narada; prep i omow mają etykietę przy Y=6)
-    if(it.type!=="prep"&&it.type!=="omow"){
-      if(s==="current"){
-        var lbl=it.label,ew=lbl.length*3.6+6;
-        elems.push(<rect key={k++} x={px-ew/2} y={18} width={ew} height={8} fill="#FFFFFF" rx="0"/>);
-        elems.push(<text key={k++} x={px} y={22} textAnchor="middle" dominantBaseline="middle" fontSize="6" fill={f.col} fontFamily={WT}>{lbl}</text>);
-      } else {
-        elems.push(<text key={k++} x={px} y={22} textAnchor="middle" dominantBaseline="middle" fontSize="6" fill={txtCol} fontFamily={WT}>{it.label}</text>);
-      }
+      elems.push(<polygon key={k++} points={agDiamondPts(px,Y,SZ)} fill={cF} stroke={strk} strokeWidth={swid}/>);
+      if(s==="current") elems.push(<polygon key={k++} points={agDiamondPts(px,Y,SZ+3)} fill="none" stroke={CR} strokeWidth="1" strokeDasharray="2 1.5"/>);
+      elems.push(<text key={k++} x={px} y={Y-14} textAnchor="middle" dominantBaseline="middle" fontSize={fs} fill={cT} fontWeight={fw} fontFamily={WT}>Narada</text>);
     }
   });
-  return (<div style={{background:f.col,padding:"3px 8px"}}>
-    <svg viewBox={"0 0 "+W+" 24"} width="100%" style={{display:"block"}}>{elems}</svg>
+  return (<div style={{background:f.col,padding:"3px 16px 3px"}}>
+    <svg viewBox={"0 0 "+W+" 52"} width="100%" style={{display:"block"}} preserveAspectRatio="xMidYMid meet">{elems}</svg>
   </div>);
 }
 
@@ -1112,7 +1118,7 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
   const [roles, setRoles] = useState({head:'',rep:'',acc:'',nestor:'',heart:''});
   const [roleSaving, setRoleSaving] = useState(false);
   const [tradeTab, setTradeTab] = useState("sale");
-  const [slide4, setSlide4] = useState(0);
+  const [slide3, setSlide3] = useState(0);
   const d = INSTRUCTION_DATA[familyId];
 
   useEffect(()=>{
@@ -1191,78 +1197,39 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
       :<div style={{background:"#5B7674",color:"#fff",textAlign:"center",padding:"10px 0",borderRadius:4,fontWeight:700,fontSize:14}}>✓ Role zatwierdzone</div>}
       {!rolesSubmitted&&<div style={{fontSize:12,color:"#8B7355",marginTop:6,textAlign:"center"}}>* Pola wymagane: Głowa, Reprezentant, Księgowy</div>}
     </div>);
-    case 3: return (<div>
-      {hdr("Wasze zadania",true)}
-      {para("<strong>Waszym celem jest zwiększenie wartości rodzinnego biznesu.</strong> Wymaga to realizacji kilku zadań. Efekt każdego z nich przeliczany jest na punkty. Ich suma odzwierciedli wartość Waszego biznesu.")}
-      {para("Punkty za zasoby i kompetencje otrzymujecie za ich posiadanie. Notatki dziadka nie dają punktów — mówią jedynie, czego szukać i jaką wagę ma każdy element. Bez nich działacie w ciemno.")}
-
-      <div style={{marginTop:16,marginBottom:12,padding:"10px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
-        <div style={{fontWeight:700,fontSize:16,color:"#842504",marginBottom:4}} className="wt">1: Pozyskanie zasobów — max 30 pkt</div>
-        {para("Wasz dziadek opisał zasoby niezbędne do uruchomienia Waszego biznesu i każdemu przypisał wagę w procentach. Huragan rozrzucił jego zapiski — większość trafiła w ręce innych rodzin. Pozyskanie notatek ułatwi Wam trafne decyzje.")}
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>➤ Zakładka „Majątek" — ikona „?" przy sekcji „Zasoby".</div>
-      </div>
-
-      <div style={{marginBottom:12,padding:"10px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
-        <div style={{fontWeight:700,fontSize:16,color:"#842504",marginBottom:4}} className="wt">2: Pozyskanie kompetencji — max 25 pkt</div>
-        {para("Dziadek opisał też kompetencje potrzebne do prowadzenia Waszego biznesu. Odpowiednie księgi są rozproszone po rodzinach w miasteczku. Zapiski z wagami porwał ten sam wiatr — ich odzyskanie pomoże w doborze właściwych kompetencji.")}
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>➤ Zakładka „Majątek" — ikona „?" przy sekcji „Kompetencje".</div>
-      </div>
-
-      <div style={{marginBottom:12,padding:"10px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
-        <div style={{fontWeight:700,fontSize:16,color:"#842504",marginBottom:4}} className="wt">3: Właściwa działka — max 10 pkt</div>
-        {para("Wasza obecna działka nie jest idealna dla planowanego biznesu. Pozyskajcie lepszą lokalizację. Pozostanie na obecnej oznacza dodatkowe koszty: <strong>50 $</strong> na koniec gry.")}
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>➤ Zakładka „Majątek" — ikona „?" przy sekcji „Działka".</div>
-      </div>
-
-      <div style={{marginBottom:12,padding:"10px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
-        <div style={{fontWeight:700,fontSize:16,color:"#842504",marginBottom:4}} className="wt">4: Pomnożenie gotówki — max 25 pkt</div>
-        {para("Na start macie <strong>600 $</strong>. Więcej = punkty. Mniej = punkty ujemne. Proporcjonalnie. Miasteczko daje możliwości zarabiania — dużo zależy od Waszej operatywności.")}
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>➤ Wyświetlacz gotówki u góry panelu.</div>
-      </div>
-
-      <div style={{marginBottom:12,padding:"10px 14px",background:"#FDF8EE",border:"1px solid #E8D9B8",borderRadius:6}}>
-        <div style={{fontWeight:700,fontSize:16,color:"#842504",marginBottom:4}} className="wt">5: Złotodajna Żyła — max 10 pkt</div>
-        {para("Stary Joe Rhymester ukrył lokalizację żyły złota na mapie podzielonej na 5 fragmentów. Jeden jest Wasz, trzy u pozostałych rodzin, piąty u Szeryfa. Każdy fragment to <strong>2 punkty</strong>. Rodzina, która <strong>jako pierwsza</strong> zgromadzi komplet, otrzyma <strong>300 $</strong>.")}
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>➤ Zakładka „Złotodajna Żyła".</div>
-      </div>
-
-      <div style={{marginBottom:12,padding:"10px 14px",background:"#F0EBE0",borderRadius:6}}>
-        <div style={{fontWeight:700,fontSize:16,color:"#4C130F",marginBottom:4}} className="wt">ŚLEPY LOS</div>
-        {para("Sukces w prowadzeniu biznesu, prócz rozumu, wymaga szczęścia. W trakcie gry Szeryf odwiedzi Was trzykrotnie w sprawie losowego wydarzenia, które może przynieść zysk lub stratę. Szczegóły poznacie w swoim czasie.")}
-      </div>
-
-      <div style={{padding:"10px 14px",background:"#F0EBE0",borderRadius:6}}>
-        <div style={{fontWeight:700,fontSize:16,color:"#4C130F",marginBottom:4}} className="wt">6: Biznes na Boku</div>
-        {para("W trakcie gry może pojawić się okazja dodatkowego zarobku — mały &bdquo;biznes na boku&rdquo;. Szczegóły poznacie w swoim czasie.")}
-      </div>
-    </div>);
-    case 4: return (()=>{
-      var SLIDES_4=[
-        {key:"ekran_4-cel",         label:"Cel"},
-        {key:"ekran_4-zasoby",      label:"Zasoby"},
-        {key:"ekran_4-kompetencje", label:"Kompetencje"},
-        {key:"ekran_4-dzialka",     label:"Działka"},
-        {key:"ekran_4-gotowka",     label:"Gotówka"},
-        ...(bnbEnabled?[{key:"ekran_4-bnb",label:"Biznes na boku"}]:[]),
-        {key:"ekran_4-zyla",        label:"Złotodajna żyła"},
-        {key:"ekran_4-los",         label:"Ślepy los"},
+    case 3: {
+      const SLIDES_3=[
+        {key:"ekran_3-cel",         label:"Cel"},
+        {key:"ekran_3-zasoby",      label:"Zasoby"},
+        {key:"ekran_3-kompetencje", label:"Kompetencje"},
+        {key:"ekran_3-dzialka",     label:"Działka"},
+        {key:"ekran_3-gotowka",     label:"Gotówka"},
+        ...(bnbEnabled?[{key:"ekran_3-bnb",label:"Biznes na boku"}]:[]),
+        {key:"ekran_3-zyla",        label:"Złotodajna żyła"},
+        {key:"ekran_3-los",         label:"Ślepy los"},
       ];
-      var si=Math.min(slide4,SLIDES_4.length-1);
-      var btnLbl=(active)=>({background:active?"#D4A853":"#F5EDD8",color:active?"#2C1810":"#8B7355",padding:"3px 8px",fontSize:12,fontWeight:active?700:400,border:active?"none":"1px solid #D4C4A8",cursor:"pointer",fontFamily:"inherit"});
-      var btnNav=(dis)=>({background:"#E8D9B8",color:"#4C130F",padding:"4px 12px",fontSize:12,fontWeight:600,border:"1px solid #C4B090",cursor:dis?"not-allowed":"pointer",fontFamily:"inherit",opacity:dis?0.4:1});
+      const safeIdx=Math.min(slide3,SLIDES_3.length-1);
+      const btnLbl=(active)=>({background:active?"#D4A853":"#F5EDD8",color:active?"#2C1810":"#8B7355",padding:"3px 8px",fontSize:12,fontWeight:active?700:400,border:active?"none":"1px solid #D4C4A8",cursor:"pointer",fontFamily:"inherit"});
+      const btnNav=(disabled)=>({background:"#E8D9B8",color:"#4C130F",padding:"4px 12px",fontSize:12,fontWeight:600,border:"1px solid #C4B090",cursor:disabled?"default":"pointer",fontFamily:"inherit",opacity:disabled?0.4:1});
       return (<div>
-        {hdr("Przebieg rozgrywki",false)}
+        {hdr("Wasze zadania",false)}
         <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:6}}>
-          {SLIDES_4.map((s,i)=>(<button key={s.key} onClick={()=>setSlide4(i)} style={btnLbl(i===si)}>{s.label}</button>))}
+          {SLIDES_3.map((s,i)=>(
+            <button key={s.key} onClick={()=>setSlide3(i)} style={btnLbl(i===safeIdx)}>{s.label}</button>
+          ))}
         </div>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
-          <button onClick={()=>setSlide4(Math.max(0,si-1))} disabled={si===0} style={btnNav(si===0)}>← Wstecz</button>
-          <span style={{fontSize:12,color:"#8B7355"}}>{si+1} / {SLIDES_4.length}</span>
-          <button onClick={()=>setSlide4(Math.min(SLIDES_4.length-1,si+1))} disabled={si===SLIDES_4.length-1} style={btnNav(si===SLIDES_4.length-1)}>Dalej →</button>
+          <button onClick={()=>setSlide3(Math.max(0,safeIdx-1))} disabled={safeIdx===0} style={btnNav(safeIdx===0)}>← Wstecz</button>
+          <span style={{fontSize:12,color:"#8B7355"}}>{safeIdx+1} / {SLIDES_3.length}</span>
+          <button onClick={()=>setSlide3(Math.min(SLIDES_3.length-1,safeIdx+1))} disabled={safeIdx===SLIDES_3.length-1} style={btnNav(safeIdx===SLIDES_3.length-1)}>Dalej →</button>
         </div>
-        <img src={IMG_BASE+SLIDES_4[si].key+".png"} alt={SLIDES_4[si].label} style={{width:"100%",height:"auto",display:"block"}}/>
+        <img src={IMG_BASE+SLIDES_3[safeIdx].key+".png"} alt={SLIDES_3[safeIdx].label} style={{width:"100%",height:"auto",display:"block"}}/>
       </div>);
-    })();
+    }
+    case 4: return (<div>
+      {hdr("Przebieg rozgrywki",false)}
+      <img src="img/przebieg_rozgrywki.png" alt="Przebieg rozgrywki" style={{width:"100%",display:"block",borderRadius:4}}/>
+    </div>);
     case 5: return (<div>
       {hdr("Wasz panel \u2014 przegląd",true)}
       {para("Oto elementy, z których będziecie korzystać:")}
@@ -3079,7 +3046,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.3.1</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.0.6</div>
       </div>
     </div>
     {isSheriffAny?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
@@ -3193,7 +3160,7 @@ function App({roomCode,role,playerId,playerName}) {
                 <InfoPopup icon="ikona_mapa" wide>
                   <img src={IMG_BASE+"kairoscity_mapa.png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Mapa miasta"/>
                 </InfoPopup>
-                <InfoPopup title="DZIAŁKA — instrukcja" wide>
+                <InfoPopup title="Zadanie 3: Działka" wide>
                   <img src={IMG_BASE+"instrukcja_dzialka-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — działka"/>
                 </InfoPopup>
               </div>
@@ -3206,7 +3173,7 @@ function App({roomCode,role,playerId,playerName}) {
             {/* --- GOTÓWKA --- */}
             <div style={taskBg}>
               <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt"><span style={{flex:1}}>Pomnożenie gotówki</span>
-                <InfoPopup title="GOTÓWKA — instrukcja" wide>
+                <InfoPopup title="Zadanie 4: Gotówka" wide>
                   <img src={IMG_BASE+"instrukcja_gotowka.png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — gotówka"/>
                 </InfoPopup>
               </div>
