@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WDZ Online — Platforma Sieciowa v1.3.0</title>
+  <title>WDZ Online — Platforma Sieciowa v1.3.1</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -396,7 +396,7 @@ function Lobby({onJoin}){
       <div style={{textAlign:"center",marginBottom:30}}>
         <div style={{fontSize:36,fontWeight:900,color:"#D4A853",letterSpacing:2,fontFamily:"'Alegreya Sans',sans-serif"}} className="wt">WDZ Online</div>
         <div style={{fontSize:14,color:"#C4B090",marginTop:4}}>Wschód Dzikiego Zachodu — Platforma Sieciowa</div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.3.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.3.1</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1104,7 +1104,7 @@ function InfoPopup({title, children, wide, icon}) {
 }
 
 /* ========== INSTRUCTION SLIDES ========== */
-function InstructionSlides({familyId, roomCode}) {
+function InstructionSlides({familyId, roomCode, bnbEnabled}) {
   const [page, setPage] = useState(0);
   const [maxVisited, setMaxVisited] = useState(0);
   const [allCompleted, setAllCompleted] = useState(false);
@@ -1112,6 +1112,7 @@ function InstructionSlides({familyId, roomCode}) {
   const [roles, setRoles] = useState({head:'',rep:'',acc:'',nestor:'',heart:''});
   const [roleSaving, setRoleSaving] = useState(false);
   const [tradeTab, setTradeTab] = useState("sale");
+  const [slide4, setSlide4] = useState(0);
   const d = INSTRUCTION_DATA[familyId];
 
   useEffect(()=>{
@@ -1235,10 +1236,33 @@ function InstructionSlides({familyId, roomCode}) {
         {para("W trakcie gry może pojawić się okazja dodatkowego zarobku — mały &bdquo;biznes na boku&rdquo;. Szczegóły poznacie w swoim czasie.")}
       </div>
     </div>);
-    case 4: return (<div>
-      {hdr("Przebieg rozgrywki",false)}
-      <img src="img/przebieg_rozgrywki.png" alt="Przebieg rozgrywki" style={{width:"100%",display:"block",borderRadius:4}}/>
-    </div>);
+    case 4: return (()=>{
+      var SLIDES_4=[
+        {key:"ekran_4-cel",         label:"Cel"},
+        {key:"ekran_4-zasoby",      label:"Zasoby"},
+        {key:"ekran_4-kompetencje", label:"Kompetencje"},
+        {key:"ekran_4-dzialka",     label:"Działka"},
+        {key:"ekran_4-gotowka",     label:"Gotówka"},
+        ...(bnbEnabled?[{key:"ekran_4-bnb",label:"Biznes na boku"}]:[]),
+        {key:"ekran_4-zyla",        label:"Złotodajna żyła"},
+        {key:"ekran_4-los",         label:"Ślepy los"},
+      ];
+      var si=Math.min(slide4,SLIDES_4.length-1);
+      var btnLbl=(active)=>({background:active?"#D4A853":"#F5EDD8",color:active?"#2C1810":"#8B7355",padding:"3px 8px",fontSize:12,fontWeight:active?700:400,border:active?"none":"1px solid #D4C4A8",cursor:"pointer",fontFamily:"inherit"});
+      var btnNav=(dis)=>({background:"#E8D9B8",color:"#4C130F",padding:"4px 12px",fontSize:12,fontWeight:600,border:"1px solid #C4B090",cursor:dis?"not-allowed":"pointer",fontFamily:"inherit",opacity:dis?0.4:1});
+      return (<div>
+        {hdr("Przebieg rozgrywki",false)}
+        <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:6}}>
+          {SLIDES_4.map((s,i)=>(<button key={s.key} onClick={()=>setSlide4(i)} style={btnLbl(i===si)}>{s.label}</button>))}
+        </div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+          <button onClick={()=>setSlide4(Math.max(0,si-1))} disabled={si===0} style={btnNav(si===0)}>← Wstecz</button>
+          <span style={{fontSize:12,color:"#8B7355"}}>{si+1} / {SLIDES_4.length}</span>
+          <button onClick={()=>setSlide4(Math.min(SLIDES_4.length-1,si+1))} disabled={si===SLIDES_4.length-1} style={btnNav(si===SLIDES_4.length-1)}>Dalej →</button>
+        </div>
+        <img src={IMG_BASE+SLIDES_4[si].key+".png"} alt={SLIDES_4[si].label} style={{width:"100%",height:"auto",display:"block"}}/>
+      </div>);
+    })();
     case 5: return (<div>
       {hdr("Wasz panel \u2014 przegląd",true)}
       {para("Oto elementy, z których będziecie korzystać:")}
@@ -3055,7 +3079,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Pokój: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.3.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.3.1</div>
       </div>
     </div>
     {isSheriffAny?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
@@ -3099,7 +3123,7 @@ function App({roomCode,role,playerId,playerName}) {
               return <div key={t[0]} onClick={()=>setActiveTab(t[0])} style={{padding:"7px 16px",borderRadius:"4px 4px 0 0",fontSize:13,fontWeight:act?700:400,background:act?"#fff":"#F3CA82",color:act?"#842504":"#4C130F",cursor:"pointer",borderBottom:act?"2px solid #842504":"2px solid transparent"}}>{t[1]}</div>;
             })}
           </div>
-          {activeTab==="tutorial"&&<InstructionSlides key={familyId} familyId={familyId} roomCode={roomCode}/>}
+          {activeTab==="tutorial"&&<InstructionSlides key={familyId} familyId={familyId} roomCode={roomCode} bnbEnabled={bnbEnabled}/>}
           {activeTab==="inv"&&(()=>{
             var f=FM[familyId];
             // Resources for own biz
