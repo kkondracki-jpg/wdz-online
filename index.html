@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.3.3</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.5.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -391,15 +391,13 @@ function Lobby({onJoin}){
   return(<div style={{minHeight:"100vh",background:"linear-gradient(135deg,#4C130F 0%,#300904 50%,#4C130F 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
     <ConnectionIndicator online={online}/>
     <div style={{maxWidth:560,width:"100%"}}>
-      <div style={{textAlign:"center",marginBottom:30}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginBottom:4}}>
-          <img src="img/alegra_logotyp.png" alt="aleGRA" style={{height:48,width:"auto"}}/>
-          <div>
-            <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
-            <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
-          </div>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",marginBottom:16}}>
+        <img src="img/alegra_logotyp.png" alt="aleGRA" style={{height:120,width:"auto"}}/>
+        <div style={{marginTop:22,textAlign:"center"}}>
+          <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
+          <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:4}}>v1.3.3</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.5.0</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -636,34 +634,51 @@ function agDiamondPts(cx,cy,hs){return cx+","+(cy-hs)+" "+(cx+hs)+","+cy+" "+cx+
 function lightShade(hex,amt){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);r=Math.round(r+(255-r)*amt);g=Math.round(g+(255-g)*amt);b=Math.round(b+(255-b)*amt);return"#"+r.toString(16).padStart(2,"0")+g.toString(16).padStart(2,"0")+b.toString(16).padStart(2,"0");}
 function AgendaBar({familyId,stageIdx}){
   var f=FM[familyId];
-  var W=1000,Y=26,PAD=20,usable=W-PAD*2,unit=usable/AGENDA_TOTAL;
+  var W=1000,H=24,Y=14,LY=6,BY=22,PAD=8;
+  var usable=W-PAD*2,unit=usable/AGENDA_TOTAL;
   var positions=[],cx=PAD;
   AGENDA_ITEMS.forEach(function(it){var w=AGENDA_W[it.type]*unit;positions.push(cx+w/2);cx+=w;});
+
+  // Phase boundary ticks (6 total: before T1 and after T3 of each phase)
   var phaseTicks=[];
   AGENDA_ITEMS.forEach(function(it,i){var w=AGENDA_W[it.type]*unit;
     if(it.idx===1||it.idx===7||it.idx===13) phaseTicks.push(positions[i]-w/2);
     if(it.idx===5||it.idx===11||it.idx===17) phaseTicks.push(positions[i]+w/2);
   });
-  var curIdx=stageIdx>=0&&stageIdx<AGENDA_ITEMS.length?stageIdx:0;
-  function st(idx){return idx<curIdx?"done":idx===curIdx?"current":"future";}
-  // done/current = biały, future = jasny odcień koloru rodziny
-  var LS=lightShade(f.col,0.70); // jasny odcień per rodzina (~#E9CDC2 dla Adamsów)
-  var CD="#FFFFFF",CL="#FFFFFF",CT="#FFFFFF";
-  var FF=LS,FL=LS,FT=LS;
-  var FS="none"; // future symbol stroke — brak (kolor wypełnienia wystarczy)
-  var CF="#FFFFFF",CX="#FFFFFF",CR="#D4A853",SZ=4,LY=10,BY=42;
-  var TC="rgba(255,255,255,0.55)"; // tick color
+
+  var curIdx=stageIdx>=0&&stageIdx<AGENDA_ITEMS.length?stageIdx:-1;
+  function st(idx){if(curIdx<0)return"future";return idx<curIdx?"done":idx===curIdx?"current":"future";}
+
+  var DONE="#E9CDC2",WHITE="#FFFFFF";
   var WT="'Aka Posse','Alegreya Sans',serif";
-  var elems=[];var k=0;
-  // linia future (pod symbolami)
-  elems.push(<line key={k++} x1={PAD} y1={Y} x2={W-PAD} y2={Y} stroke={FL} strokeWidth="1.5"/>);
-  // linia done
-  elems.push(<line key={k++} x1={PAD} y1={Y} x2={positions[curIdx]} y2={Y} stroke={CL} strokeWidth="2.5"/>);
-  // kreski graniczne faz — grubsze i widoczne
-  phaseTicks.forEach(function(x){elems.push(<line key={k++} x1={x} y1={Y-6} x2={x} y2={Y+6} stroke={TC} strokeWidth="2"/>);});
-  // etykiety faz
-  elems.push(<text key={k++} x={positions[0]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="7" letterSpacing="0.06em" fill={CT} fontFamily={WT}>{AGENDA_ITEMS[0].label}</text>);
-  elems.push(<text key={k++} x={positions[18]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="7" letterSpacing="0.06em" fill={FT} fontFamily={WT}>{AGENDA_ITEMS[18].label}</text>);
+  var elems=[],k=0;
+
+  // Line: two segments split at active symbol center
+  var splitX=curIdx>=0?positions[curIdx]:PAD;
+  if(curIdx>=0){
+    elems.push(<line key={k++} x1={PAD} y1={Y} x2={splitX} y2={Y} stroke={DONE} strokeWidth="1"/>);
+    elems.push(<line key={k++} x1={splitX} y1={Y} x2={W-PAD} y2={Y} stroke={WHITE} strokeWidth="1"/>);
+  } else {
+    elems.push(<line key={k++} x1={PAD} y1={Y} x2={W-PAD} y2={Y} stroke={WHITE} strokeWidth="1"/>);
+  }
+
+  // Phase boundary ticks
+  phaseTicks.forEach(function(tx){
+    var isDone=curIdx>=0&&tx<=positions[curIdx];
+    elems.push(<line key={k++} x1={tx} y1={Y-6} x2={tx} y2={Y+6} stroke={isDone?DONE:WHITE} strokeWidth="1"/>);
+  });
+
+  // PREP label at Y=6
+  var prepS=st(0);
+  if(prepS==="current"){
+    var pl=AGENDA_ITEMS[0].label,pw=pl.length*3.8+6;
+    elems.push(<rect key={k++} x={positions[0]-pw/2} y={LY-4} width={pw} height={8} fill={WHITE}/>);
+    elems.push(<text key={k++} x={positions[0]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" letterSpacing="0.08em" fill={f.col} fontFamily={WT}>{pl}</text>);
+  } else {
+    elems.push(<text key={k++} x={positions[0]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" letterSpacing="0.08em" fill={prepS==="done"?DONE:WHITE} fontFamily={WT}>{AGENDA_ITEMS[0].label}</text>);
+  }
+
+  // Phase name labels at Y=6
   [1,2,3].forEach(function(ph){
     var turns=AGENDA_ITEMS.filter(function(it){return it.phase===ph&&it.type==="turn";});
     var allIt=AGENDA_ITEMS.filter(function(it){return it.phase===ph;});
@@ -672,36 +687,52 @@ function AgendaBar({familyId,stageIdx}){
     var midX=(positions[fi]-wF/2+positions[li]+wL/2)/2;
     var allDone=allIt.every(function(it){return it.idx<curIdx;}),hasCur=allIt.some(function(it){return it.idx===curIdx;});
     var phSt=allDone?"done":hasCur?"current":"future";
-    var col=phSt==="done"?CT:phSt==="current"?CX:FT;
-    var fw=phSt==="current"?"600":"400",pSize=phSt==="current"?"8":"7";
-    elems.push(<text key={k++} x={midX} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize={pSize} letterSpacing="0.07em" fill={col} fontWeight={fw} fontFamily={WT}>{"\u2190 "+turns[0].phaseLabel+" \u2192"}</text>);
+    var phColor=phSt==="done"?DONE:WHITE;
+    elems.push(<text key={k++} x={midX} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" letterSpacing="0.08em" fill={phColor} fontFamily={WT}>{"\u2190 "+turns[0].phaseLabel+" \u2192"}</text>);
   });
-  // symbole (rysowane PO liniach — przykrywają je)
+
+  // OMOW label at Y=6
+  var omowS=st(18);
+  if(omowS==="current"){
+    var ol=AGENDA_ITEMS[18].label,ow=ol.length*3.8+6;
+    elems.push(<rect key={k++} x={positions[18]-ow/2} y={LY-4} width={ow} height={8} fill={WHITE}/>);
+    elems.push(<text key={k++} x={positions[18]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" letterSpacing="0.08em" fill={f.col} fontFamily={WT}>{ol}</text>);
+  } else {
+    elems.push(<text key={k++} x={positions[18]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" letterSpacing="0.08em" fill={omowS==="done"?DONE:WHITE} fontFamily={WT}>{AGENDA_ITEMS[18].label}</text>);
+  }
+
+  // Symbols and labels (drawn after lines so they cover them)
   AGENDA_ITEMS.forEach(function(it,i){
     var s=st(it.idx),px=positions[i];
-    var isFut=s==="future";
-    var cF=isFut?FF:s==="current"?CF:CD;
-    var cT=s==="done"?CT:s==="current"?CX:FT;
-    var fs=s==="current"?"9":"8",fw=s==="current"?"600":"400";
-    var strk=isFut?FS:"none",swid=isFut?"0.8":"0";
-    if(it.type==="prep"||it.type==="omow"){
-      elems.push(<polygon key={k++} points={agHexPts(px,Y,SZ)} fill={cF} stroke={strk} strokeWidth={swid}/>);
-      if(s==="current") elems.push(<polygon key={k++} points={agHexPts(px,Y,SZ+3)} fill="none" stroke={CR} strokeWidth="1" strokeDasharray="2 1.5"/>);
-    } else if(it.type==="turn"){
-      elems.push(<circle key={k++} cx={px} cy={Y} r={SZ} fill={cF} stroke={strk} strokeWidth={swid}/>);
-      if(s==="current") elems.push(<circle key={k++} cx={px} cy={Y} r={SZ+3} fill="none" stroke={CR} strokeWidth="1" strokeDasharray="2 1.5"/>);
-      elems.push(<text key={k++} x={px} y={BY} textAnchor="middle" dominantBaseline="middle" fontSize={fs} fill={cT} fontWeight={fw} fontFamily={WT}>{it.label}</text>);
+    var symColor=s==="done"?DONE:WHITE;
+
+    // Symbol
+    if(it.type==="turn"||it.type==="prep"||it.type==="omow"){
+      var r=s==="current"?5:2.5;
+      elems.push(<circle key={k++} cx={px} cy={Y} r={r} fill={symColor}/>);
     } else if(it.type==="kn"){
-      elems.push(<polygon key={k++} points={agDiamondPts(px,Y,3)} fill={cF} stroke={strk} strokeWidth={swid}/>);
-      elems.push(<text key={k++} x={px} y={BY} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fill={cT} fontFamily={WT}>Narada</text>);
+      var hs=s==="current"?7:4;
+      elems.push(<polygon key={k++} points={px+","+(Y-hs)+" "+(px+hs)+","+Y+" "+px+","+(Y+hs)+" "+(px-hs)+","+Y} fill={symColor}/>);
     } else if(it.type==="narada"){
-      elems.push(<polygon key={k++} points={agDiamondPts(px,Y,SZ)} fill={cF} stroke={strk} strokeWidth={swid}/>);
-      if(s==="current") elems.push(<polygon key={k++} points={agDiamondPts(px,Y,SZ+3)} fill="none" stroke={CR} strokeWidth="1" strokeDasharray="2 1.5"/>);
-      elems.push(<text key={k++} x={px} y={Y-14} textAnchor="middle" dominantBaseline="middle" fontSize={fs} fill={cT} fontWeight={fw} fontFamily={WT}>Narada</text>);
+      var hn=s==="current"?9:6;
+      elems.push(<polygon key={k++} points={px+","+(Y-hn)+" "+(px+hn)+","+Y+" "+px+","+(Y+hn)+" "+(px-hn)+","+Y} fill={symColor}/>);
+    }
+
+    // Labels at Y=22 for turn, kn, narada
+    if(it.type==="turn"||it.type==="kn"||it.type==="narada"){
+      var lbl=it.label;
+      if(s==="current"){
+        var lw=lbl.length*4+6;
+        elems.push(<rect key={k++} x={px-lw/2} y={BY-4} width={lw} height={8} fill={WHITE} rx="0"/>);
+        elems.push(<text key={k++} x={px} y={BY} textAnchor="middle" dominantBaseline="middle" fontSize="6" fontFamily={WT} fill={f.col}>{lbl}</text>);
+      } else {
+        elems.push(<text key={k++} x={px} y={BY} textAnchor="middle" dominantBaseline="middle" fontSize="6" fontFamily={WT} fill={s==="done"?DONE:WHITE}>{lbl}</text>);
+      }
     }
   });
-  return (<div style={{background:f.col,padding:"3px 16px 3px"}}>
-    <svg viewBox={"0 0 "+W+" 52"} width="100%" style={{display:"block"}} preserveAspectRatio="xMidYMid meet">{elems}</svg>
+
+  return (<div style={{background:f.col,padding:"3px 8px"}}>
+    <svg viewBox={"0 0 "+W+" "+H} width="100%" style={{display:"block",overflow:"visible"}} preserveAspectRatio="xMidYMid meet">{elems}</svg>
   </div>);
 }
 
@@ -1811,45 +1842,60 @@ function SheriffPlanningTab({roomCode,lobbyPlayers,gameStarted,showMsg,db}){
   function copyAll(){var txt=FO.map(fId=>FM[fId].nom+": "+buildFamilyLink(roomCode,fId)).join("\n");navigator.clipboard.writeText(txt).then(()=>{setCpAll(true);setTimeout(()=>setCpAll(false),2500);});}
   var connFam=FO.filter(f=>{var fd=lobbyPlayers[f];if(!fd)return false;if(fd.members)return Object.keys(fd.members).length>0;return fd.connected;});
 
-  return(<div style={{padding:16}}>
-    <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:6}}>Linki dla rodzin:</div>
-    {FO.map(fId=>(
-      <div key={fId} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",background:"#F5F0E8",borderRadius:4,marginBottom:5}}>
-        <div style={{width:9,height:9,borderRadius:"50%",background:FM[fId].col,flexShrink:0}}/>
-        <span style={{fontSize:12,fontWeight:700,color:FM[fId].col,width:90,flexShrink:0}}>{FM[fId].nom}</span>
-        <span style={{fontSize:11,fontFamily:"monospace",color:"#5C4A3A",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{buildFamilyLink(roomCode,fId)}</span>
-        <button onClick={()=>copyLnk(fId)} style={{fontSize:11,padding:"3px 10px",border:"1px solid #C4B090",borderRadius:3,background:cpd[fId]?"#E8F5E9":"#fff",color:cpd[fId]?"#2E5B3C":"#5C4A3A",cursor:"pointer",flexShrink:0,minWidth:82}}>
-          {cpd[fId]?"✓ skopiowano":"Kopiuj"}
-        </button>
+  return(<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
+    <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,marginBottom:16}} className="wt">Planowanie</div>
+    <div style={{display:"flex",gap:16,alignItems:"flex-start"}}>
+      {/* LEFT: linki */}
+      <div style={{flex:"0 0 auto",minWidth:0,width:"55%"}}>
+        <div style={{background:"#FDFAF4",border:"1px solid #D4C4A8",padding:"12px 14px"}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:8}}>Linki dla rodzin:</div>
+          {FO.map(fId=>(
+            <div key={fId} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",background:"#F5F0E8",marginBottom:5}}>
+              <div style={{width:9,height:9,borderRadius:"50%",background:FM[fId].col,flexShrink:0}}/>
+              <span style={{fontSize:12,fontWeight:700,color:FM[fId].col,width:90,flexShrink:0}}>{FM[fId].nom}</span>
+              <span style={{fontSize:11,fontFamily:"monospace",color:"#5C4A3A",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{buildFamilyLink(roomCode,fId)}</span>
+              <button onClick={()=>copyLnk(fId)} style={{fontSize:11,padding:"3px 10px",border:"1px solid #C4B090",background:cpd[fId]?"#E8F5E9":"#fff",color:cpd[fId]?"#2E5B3C":"#5C4A3A",cursor:"pointer",flexShrink:0,minWidth:82,fontFamily:"inherit"}}>
+                {cpd[fId]?"✓ skopiowano":"Kopiuj"}
+              </button>
+            </div>
+          ))}
+          <button onClick={copyAll} style={{width:"100%",padding:"8px",fontSize:13,marginTop:4,border:"1px solid #C4B090",background:cpAll?"#E8F5E9":"#F5F0E8",color:cpAll?"#2E5B3C":"#4C130F",cursor:"pointer",fontFamily:"inherit"}}>
+            {cpAll?"✓ Skopiowano wszystkie linki":"Kopiuj wszystkie 4 linki naraz"}
+          </button>
+        </div>
       </div>
-    ))}
-    <button onClick={copyAll} style={{width:"100%",padding:"8px",fontSize:13,marginTop:4,marginBottom:16,border:"1px solid #C4B090",borderRadius:4,background:cpAll?"#E8F5E9":"#F5F0E8",color:cpAll?"#2E5B3C":"#4C130F",cursor:"pointer",fontFamily:"inherit"}}>
-      {cpAll?"✓ Skopiowano wszystkie linki":"Kopiuj wszystkie 4 linki naraz"}
-    </button>
-    <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:6}}>Kto dołączył:</div>
-    <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:16}}>
-      {FO.map(fId=>{
-        var members=getLobbyMembers(fId);var hasM=members.length>0;
-        var onlCnt=members.filter(m=>isOnlineMember(m)).length;
-        return(<div key={fId} style={{padding:"6px 10px",background:hasM?"#F0FAF0":"#F5F0E8",borderRadius:4,border:"1px solid "+(hasM?"#90C090":"#D4C4A8")}}>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <div style={{width:8,height:8,borderRadius:"50%",background:hasM?FM[fId].col:"#C4B090"}}/>
-            <span style={{fontSize:13,fontWeight:hasM?700:400,color:hasM?FM[fId].col:"#C4B090"}}>{FM[fId].nom}</span>
-            <span style={{fontSize:12,marginLeft:"auto",color:hasM?"#2E5B3C":"#C4B090"}}>{hasM?(onlCnt+" online"):"oczekiwanie..."}</span>
+      {/* RIGHT: kto dołączył */}
+      <div style={{flex:"1 1 0",minWidth:0}}>
+        <div style={{background:"#FDFAF4",border:"1px solid #D4C4A8",padding:"12px 14px"}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:8}}>Kto dołączył:</div>
+          <div style={{display:"flex",flexDirection:"column",gap:4}}>
+            {FO.map(fId=>{
+              var members=getLobbyMembers(fId);var hasM=members.length>0;
+              var onlCnt=members.filter(m=>isOnlineMember(m)).length;
+              return(<div key={fId} style={{padding:"6px 10px",background:hasM?"#F0FAF0":"#F5F0E8",border:"1px solid "+(hasM?"#90C090":"#D4C4A8")}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:hasM?FM[fId].col:"#C4B090"}}/>
+                  <span style={{fontSize:13,fontWeight:hasM?700:400,color:hasM?FM[fId].col:"#C4B090"}}>{FM[fId].nom}</span>
+                  <span style={{fontSize:12,marginLeft:"auto",color:hasM?"#2E5B3C":"#C4B090"}}>{hasM?(onlCnt+" online"):"oczekiwanie..."}</span>
+                </div>
+                {hasM&&<div style={{marginTop:4,paddingLeft:16,display:"flex",flexWrap:"wrap",gap:"4px 10px"}}>
+                  {members.map(m=>(<span key={m.id} style={{fontSize:12,display:"flex",alignItems:"center",gap:4}}>
+                    <span style={{width:6,height:6,borderRadius:"50%",background:isOnlineMember(m)?"#2E5B3C":"#C4B090",display:"inline-block"}}/>
+                    {m.name}
+                  </span>))}
+                </div>}
+              </div>);
+            })}
           </div>
-          {hasM&&<div style={{marginTop:4,paddingLeft:16,display:"flex",flexWrap:"wrap",gap:"4px 10px"}}>
-            {members.map(m=>(<span key={m.id} style={{fontSize:12,display:"flex",alignItems:"center",gap:4}}>
-              <span style={{width:6,height:6,borderRadius:"50%",background:isOnlineMember(m)?"#2E5B3C":"#C4B090",display:"inline-block"}}/>
-              {m.name}
-            </span>))}
-          </div>}
-        </div>);
-      })}
+        </div>
+      </div>
     </div>
-    {!gameStarted&&<button onClick={()=>{db.ref("rooms/"+roomCode+"/meta/status").set("playing");showMsg("Rozgrywka rozpoczęta!");}} disabled={connFam.length===0} style={{width:"100%",padding:"12px 20px",fontSize:15,fontFamily:"inherit",fontWeight:700,background:connFam.length>0?"#2E5B3C":"#C4B090",color:"#fff",border:"none",borderRadius:4,cursor:connFam.length>0?"pointer":"default"}}>
-      {connFam.length===4?"Rozpocznij rozgrywkę (wszyscy gotowi)":"Rozpocznij rozgrywkę ("+connFam.length+"/4 rodzin)"}
-    </button>}
-    {gameStarted&&<div style={{textAlign:"center",padding:"10px",background:"#E8F5E9",border:"1px solid #90C090",borderRadius:4,fontSize:13,color:"#2E5B3C",fontWeight:700}}>✓ Rozgrywka trwa</div>}
+    <div style={{marginTop:16}}>
+      {!gameStarted&&<button onClick={()=>{db.ref("rooms/"+roomCode+"/meta/status").set("playing");showMsg("Rozgrywka rozpoczęta!");}} disabled={connFam.length===0} style={{width:"100%",padding:"12px 20px",fontSize:15,fontFamily:"inherit",fontWeight:700,background:connFam.length>0?"#2E5B3C":"#C4B090",color:"#fff",border:"none",cursor:connFam.length>0?"pointer":"default"}}>
+        {connFam.length===4?"Rozpocznij rozgrywkę (wszyscy gotowi)":"Rozpocznij rozgrywkę ("+connFam.length+"/4 rodzin)"}
+      </button>}
+      {gameStarted&&<div style={{textAlign:"center",padding:"10px",background:"#E8F5E9",border:"1px solid #90C090",fontSize:13,color:"#2E5B3C",fontWeight:700}}>✓ Rozgrywka trwa</div>}
+    </div>
   </div>);
 }
 
@@ -1945,7 +1991,7 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
 
   return (<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-      <div style={{fontSize:22,fontWeight:700,color:"#842504"}} className="wt">{readOnly?"Panel Szeryfa 2":"Panel Szeryfa"}</div>
+      <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">{readOnly?"Rozgrywka — Szeryf 2":"Rozgrywka"}</div>
       <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
         {!readOnly&&allTx.length>0&&!undoConfirm&&<button style={btnS("danger")} onClick={()=>setUndoConfirm(true)}>Cofnij ostatnią transakcję</button>}
         {!readOnly&&undoConfirm&&<div style={{display:"flex",gap:4,alignItems:"center",background:"#FEE",padding:"4px 8px",borderRadius:4,border:"1px solid #C88"}}>
@@ -3112,19 +3158,23 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.0.6</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.5.0</div>
       </div>
     </div>
-    {isSheriffAny?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto"}}>
-      {FO.map(fId=>{var act=!viewSheriff&&cf===fId,col=FM[fId].col;
-        return (<div key={fId} onClick={()=>{setCf(fId);setViewSheriff(false);setSheriffViewFamily(null);setActiveTab("inv");}}
-          style={{padding:"8px 16px",cursor:"pointer",fontWeight:act?700:400,fontSize:14,background:act?col:"transparent",color:act?"#fff":"#2C1810",borderBottom:act?"3px solid "+col:"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap"}} className="wt">
-          {FM[fId].nom} <span style={{fontSize:13,opacity:0.7,fontFamily:"'Alegreya Sans',sans-serif"}}>({FM[fId].biz})</span>
-        </div>);
-      })}
-      <div onClick={()=>{setViewSheriff(true);setSheriffViewFamily(null);}} style={{padding:"8px 16px",cursor:"pointer",fontWeight:viewSheriff?700:400,fontSize:14,background:viewSheriff?"#8B6914":"transparent",color:viewSheriff?"#fff":"#2C1810",borderBottom:viewSheriff?"3px solid #8B6914":"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap",marginLeft:"auto"}} className="wt">
+    {isSheriffAny?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto",background:"rgba(0,0,0,0.18)"}}>
+      <div onClick={()=>{setViewSheriff(true);setSheriffViewFamily(null);}} style={{padding:"8px 16px",cursor:"pointer",fontWeight:viewSheriff?700:400,fontSize:14,background:viewSheriff?"#8B6914":"transparent",color:viewSheriff?"#fff":"#F5F0E8",borderBottom:viewSheriff?"3px solid #D4A853":"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap"}} className="wt">
         Szeryf
       </div>
+      {FO.map(fId=>{var act=!viewSheriff&&cf===fId,col=FM[fId].col;
+        var lbFd=lobbyPlayers[fId];
+        var lbMembers=lbFd&&lbFd.members?Object.entries(lbFd.members).map(([id,m])=>m.name||id):[];
+        var lbCount=lbMembers.length;
+        return (<div key={fId} onClick={()=>{setCf(fId);setViewSheriff(false);setSheriffViewFamily(null);setActiveTab("inv");}}
+          style={{padding:"6px 16px 5px",cursor:"pointer",fontWeight:act?700:400,fontSize:14,background:act?col:"transparent",color:act?"#fff":"#F5F0E8",borderBottom:act?"3px solid "+col:"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap"}} className="wt">
+          <div style={{lineHeight:1.2}}>{FM[fId].nom}{lbCount>0&&<span style={{fontSize:12,fontWeight:400,opacity:0.85,marginLeft:4}}>({lbCount} {lbCount===1?"gracz":"graczy"})</span>}</div>
+          {lbCount>0&&<div style={{fontSize:11,fontWeight:400,opacity:0.8,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}}>{lbMembers.join(", ")}</div>}
+        </div>);
+      })}
     </div>):(<AgendaBar familyId={myFamily} stageIdx={stageIdx}/>)}
     {browserWarning&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:13,color:"#664D03",textAlign:"center",display:"flex",justifyContent:"center",alignItems:"center",gap:8}}>
       Dla najlepszej jakości gry użyj przeglądarki Google Chrome
@@ -3135,10 +3185,11 @@ function App({roomCode,role,playerId,playerName}) {
       Podgląd panelu rodziny {FM[sheriffViewFamily].gen} <button style={{marginLeft:8,fontSize:13,padding:"2px 8px",cursor:"pointer",background:"#8B6914",color:"#fff",border:"none",borderRadius:3,fontFamily:"inherit"}} onClick={()=>setSheriffViewFamily(null)}>Wróć do panelu Szeryfa</button>
     </div>}
     {viewSheriff&&!sheriffViewFamily&&<div>
-      <div style={{display:"flex",borderBottom:"2px solid #4C130F",marginBottom:0}}>
-        {[["planning","Planowanie"],["game","Rozgrywka"],["results","Wyniki"]].map(([id,label])=>(
-          <button key={id} onClick={()=>setSheriffTab(id)} style={{padding:"8px 20px",fontFamily:"inherit",fontSize:14,fontWeight:sheriffTab===id?700:400,background:sheriffTab===id?"#842504":"transparent",color:sheriffTab===id?"#fff":"#2C1810",border:"none",borderBottom:sheriffTab===id?"3px solid #842504":"3px solid transparent",cursor:"pointer",whiteSpace:"nowrap"}} className="wt">{label}</button>
-        ))}
+      <div style={{display:"flex",padding:"8px 16px 0",background:"#F5F0E8",borderBottom:"2px solid #4C130F",gap:4}}>
+        {[["planning","Planowanie"],["game","Rozgrywka"],["results","Wyniki"]].map(([id,label])=>{
+          var act=sheriffTab===id;
+          return <div key={id} onClick={()=>setSheriffTab(id)} style={{padding:"7px 16px",fontSize:13,fontWeight:act?700:400,background:act?"#fff":"#F3CA82",color:act?"#842504":"#4C130F",cursor:"pointer",borderBottom:act?"2px solid #842504":"2px solid transparent"}} className="wt">{label}</div>;
+        })}
       </div>
       {sheriffTab==="planning"&&<SheriffPlanningTab roomCode={roomCode} lobbyPlayers={lobbyPlayers} gameStarted={gameStarted} showMsg={showMsg} db={db}/>}
       {sheriffTab==="game"&&<SheriffPanel readOnly={isSheriff2} fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} consultNotes={consultNotes} setConsultNotes={setConsultNotes} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} resultsReveal={resultsReveal} setResultsReveal={setResultsReveal} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} manualMode={manualMode} setManualMode={setManualMode} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle} revMode={revMode} setRevMode={setRevMode} revActive={revActive} setRevActive={setRevActive} revStartTournament={revStartTournament} getRevTimer={getRevTimer} revRevealDuel={revRevealDuel} revSettleDuel={revSettleDuel}/>}
