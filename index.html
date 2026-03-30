@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.5.1</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.5.2</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -398,7 +398,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.5.1</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.5.2</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -594,7 +594,8 @@ function lightShade(hex,amt){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.sl
 function AgendaBar({familyId,stageIdx}){
   var f=FM[familyId];
   var cur=stageIdx>=0&&stageIdx<AGENDA_ITEMS.length?stageIdx:-1;
-  var GREY="#E9CDC2",WHITE="#FFFFFF";
+  var GREYS={adams:"#E9CDC2",bennet:"#C0B8C0",clinton:"#CECDD4",dexter:"#CED6D5"};
+  var GREY=GREYS[familyId]||"#E9CDC2",WHITE="#FFFFFF";
   var WT="'Aka Posse','Alegreya Sans',serif";
   function inPhase(ph){
     if(ph===1) return cur>=1&&cur<=5;
@@ -610,52 +611,63 @@ function AgendaBar({familyId,stageIdx}){
   function arrCol(idx){return cur===idx?WHITE:GREY;}
   var fs=14;
   var sp=function(label,color,underline,key,bold){
-    return <span key={key} style={{color:color,textDecoration:underline?"underline":"none",fontFamily:WT,fontSize:fs,fontWeight:bold?700:400,whiteSpace:"nowrap"}}>{label}</span>;
+    var baseStyle={color:color,fontFamily:WT,fontSize:fs,fontWeight:bold?700:400,whiteSpace:"nowrap"};
+    if(underline){
+      var trimmed=label.trim();
+      var lead=label.slice(0,label.length-label.trimStart().length);
+      var trail=label.slice(label.trimEnd().length);
+      return <span key={key} style={baseStyle}>
+        {lead?<span style={{textDecoration:"none"}}>{lead}</span>:null}
+        <span style={{textDecoration:"underline"}}>{trimmed}</span>
+        {trail?<span style={{textDecoration:"none"}}>{trail}</span>:null}
+      </span>;
+    }
+    return <span key={key} style={{...baseStyle,textDecoration:"none"}}>{label}</span>;
   };
   var k=0,T=[];
   T.push(sp("Przygotowanie",iCol(0),iUnd(0),k++,false));
   T.push(sp(" | ",pipeCol(1),false,k++,false));
   T.push(sp("FAZA I: INFORMACYJNA",phCol(1),phUnd(1),k++,true));
-  T.push(sp(" →",arrCol(1),false,k++,false));
+  T.push(sp(" \u2192",arrCol(1),false,k++,false));
   T.push(sp(" Tura 1",iCol(1),iUnd(1),k++,false));
-  T.push(sp(" →",arrCol(2),false,k++,false));
+  T.push(sp(" \u2192",arrCol(2),false,k++,false));
   T.push(sp(" Odprawa",iCol(2),iUnd(2),k++,false));
-  T.push(sp(" →",arrCol(3),false,k++,false));
+  T.push(sp(" \u2192",arrCol(3),false,k++,false));
   T.push(sp(" Tura 2",iCol(3),iUnd(3),k++,false));
-  T.push(sp(" →",arrCol(4),false,k++,false));
+  T.push(sp(" \u2192",arrCol(4),false,k++,false));
   T.push(sp(" Odprawa",iCol(4),iUnd(4),k++,false));
-  T.push(sp(" →",arrCol(5),false,k++,false));
+  T.push(sp(" \u2192",arrCol(5),false,k++,false));
   T.push(sp(" Tura 3",iCol(5),iUnd(5),k++,false));
   T.push(sp(" | ",pipeCol(1),false,k++,false));
   T.push(sp("Narada",iCol(6),iUnd(6),k++,false));
   T.push(sp(" | ",pipeCol(2),false,k++,false));
   T.push(sp("FAZA II: TRANSAKCYJNA",phCol(2),phUnd(2),k++,true));
-  T.push(sp(" →",arrCol(7),false,k++,false));
+  T.push(sp(" \u2192",arrCol(7),false,k++,false));
   T.push(sp(" Tura 1",iCol(7),iUnd(7),k++,false));
-  T.push(sp(" →",arrCol(8),false,k++,false));
+  T.push(sp(" \u2192",arrCol(8),false,k++,false));
   T.push(sp(" Odprawa",iCol(8),iUnd(8),k++,false));
-  T.push(sp(" →",arrCol(9),false,k++,false));
+  T.push(sp(" \u2192",arrCol(9),false,k++,false));
   T.push(sp(" Tura 2",iCol(9),iUnd(9),k++,false));
-  T.push(sp(" →",arrCol(10),false,k++,false));
+  T.push(sp(" \u2192",arrCol(10),false,k++,false));
   T.push(sp(" Odprawa",iCol(10),iUnd(10),k++,false));
-  T.push(sp(" →",arrCol(11),false,k++,false));
+  T.push(sp(" \u2192",arrCol(11),false,k++,false));
   T.push(sp(" Tura 3",iCol(11),iUnd(11),k++,false));
   T.push(sp(" | ",pipeCol(2),false,k++,false));
   T.push(sp("Narada",iCol(12),iUnd(12),k++,false));
   T.push(sp(" | ",pipeCol(3),false,k++,false));
-  T.push(sp("FAZA III: FINAŁOWA",phCol(3),phUnd(3),k++,true));
-  T.push(sp(" →",arrCol(13),false,k++,false));
+  T.push(sp("FAZA III: FINA\u0141OWA",phCol(3),phUnd(3),k++,true));
+  T.push(sp(" \u2192",arrCol(13),false,k++,false));
   T.push(sp(" Tura 1",iCol(13),iUnd(13),k++,false));
-  T.push(sp(" →",arrCol(14),false,k++,false));
+  T.push(sp(" \u2192",arrCol(14),false,k++,false));
   T.push(sp(" Odprawa",iCol(14),iUnd(14),k++,false));
-  T.push(sp(" →",arrCol(15),false,k++,false));
+  T.push(sp(" \u2192",arrCol(15),false,k++,false));
   T.push(sp(" Tura 2",iCol(15),iUnd(15),k++,false));
-  T.push(sp(" →",arrCol(16),false,k++,false));
+  T.push(sp(" \u2192",arrCol(16),false,k++,false));
   T.push(sp(" Odprawa",iCol(16),iUnd(16),k++,false));
-  T.push(sp(" →",arrCol(17),false,k++,false));
+  T.push(sp(" \u2192",arrCol(17),false,k++,false));
   T.push(sp(" Tura 3",iCol(17),iUnd(17),k++,false));
   T.push(sp(" | ",pipeCol(3),false,k++,false));
-  T.push(sp("Omówienie",iCol(18),iUnd(18),k++,false));
+  T.push(sp("Om\u00f3wienie",iCol(18),iUnd(18),k++,false));
   return(<div style={{background:f.col,padding:"2px 8px",overflow:"hidden"}}>
     <div style={{whiteSpace:"nowrap",overflow:"hidden",lineHeight:"22px",textAlign:"center"}}>{T}</div>
   </div>);
@@ -1761,7 +1773,7 @@ function SheriffPlanningTab({roomCode,lobbyPlayers,gameStarted,showMsg,db}){
   const [cpd,setCpd]=useState({});
   const [cpAll,setCpAll]=useState(false);
 
-  function getLobbyMembers(fId){var fd=lobbyPlayers[fId];if(!fd||!fd.members)return[];return Object.entries(fd.members).map(([id,m])=>({id,...m}));}
+  function getLobbyMembers(fId){var fd=lobbyPlayers[fId];if(!fd||!fd.members)return[];return Object.entries(fd.members).map(([id,m])=>({id,...m})).filter(m=>m.name);}
   function isOnlineMember(m){return m.lastSeen&&(Date.now()-m.lastSeen)<90000;}
   function copyLnk(fId){var lnk=buildFamilyLink(roomCode,fId);navigator.clipboard.writeText(lnk).then(()=>{setCpd(p=>({...p,[fId]:true}));setTimeout(()=>setCpd(p=>({...p,[fId]:false})),2500);});}
   function copyAll(){var txt=FO.map(fId=>FM[fId].nom+": "+buildFamilyLink(roomCode,fId)).join("\n");navigator.clipboard.writeText(txt).then(()=>{setCpAll(true);setTimeout(()=>setCpAll(false),2500);});}
@@ -1915,7 +1927,6 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
 
   return (<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-      <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",marginBottom:16}}><div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">{readOnly?"Rozgrywka — Szeryf 2":"Rozgrywka"}</div></div>
       <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
         {!readOnly&&allTx.length>0&&!undoConfirm&&<button style={btnS("danger")} onClick={()=>setUndoConfirm(true)}>Cofnij ostatnią transakcję</button>}
         {!readOnly&&undoConfirm&&<div style={{display:"flex",gap:4,alignItems:"center",background:"#FEE",padding:"4px 8px",borderRadius:4,border:"1px solid #C88"}}>
@@ -3082,7 +3093,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.5.1</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.5.2</div>
       </div>
     </div>
     {isSheriffAny?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto",background:"rgba(0,0,0,0.18)"}}>
@@ -3091,7 +3102,7 @@ function App({roomCode,role,playerId,playerName}) {
       </div>
       {FO.map(fId=>{var act=!viewSheriff&&cf===fId,col=FM[fId].col;
         var lbFd=lobbyPlayers[fId];
-        var lbMembers=lbFd&&lbFd.members?Object.entries(lbFd.members).map(([id,m])=>m.name||id):[];
+        var lbMembers=lbFd&&lbFd.members?Object.entries(lbFd.members).map(([id,m])=>m.name||null).filter(Boolean):[];
         var lbCount=lbMembers.length;
         return (<div key={fId} onClick={()=>{setCf(fId);setViewSheriff(false);setSheriffViewFamily(null);setActiveTab("inv");}}
           style={{padding:"6px 16px 5px",cursor:"pointer",fontWeight:act?700:400,fontSize:14,background:act?col:"transparent",color:act?"#fff":"#F5F0E8",borderBottom:act?"3px solid "+col:"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap"}} className="wt">
