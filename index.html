@@ -459,7 +459,7 @@ function Lobby({onJoin}){
           </div>
           <div style={{fontSize:12,color:"#C4B090",maxWidth:160,textAlign:"right"}}>Linki dla rodzin znajdziesz w panelu Szeryfa</div>
         </div>
-        <button onClick={startGame} style={{...btnS("sheriff"),width:"100%",padding:"14px 20px",fontSize:16,textAlign:"center",marginBottom:10}}>
+        <button onClick={()=>onJoin(roomCode,selectedRole,null,null)} style={{...btnS("sheriff"),width:"100%",padding:"14px 20px",fontSize:16,textAlign:"center",marginBottom:10}}>
           Wejdź do panelu Szeryfa →
         </button>
         {error&&<div style={errStyle}>{error}</div>}
