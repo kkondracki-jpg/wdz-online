@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.5.0</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.5.1</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -231,6 +231,7 @@ function Lobby({onJoin}){
   const [mode,setMode]=useState(initMode);
   const [roomCode,setRoomCode]=useState(initMode==="link_join"?urlParams.sessionCode:"");
   const [joinCode,setJoinCode]=useState("");
+  const [showCodeInput,setShowCodeInput]=useState(false);
   const [rejoinCode,setRejoinCode]=useState("");
   const [rejoinCode2,setRejoinCode2]=useState("");
   const [selectedRole,setSelectedRole]=useState(initMode==="link_join"?urlParams.familyId:null);
@@ -397,12 +398,12 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.5.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.5.1</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
       {!mode&&<div style={boxStyle}>
-        <div style={titleStyle}>Dołącz do gry</div>
+        <div style={titleStyle}>Utwórz rozgrywkę lub dołącz do gry</div>
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
           <button onClick={handleCreate} disabled={loading} style={{...btnS("sheriff"),padding:"14px 20px",fontSize:16,width:"100%",textAlign:"center"}}>
             Stwórz rozgrywkę (Szeryf)
@@ -413,11 +414,13 @@ function Lobby({onJoin}){
           <button onClick={()=>{setMode("rejoin_sheriff2");setError(null);}} style={{...btnS("default"),padding:"10px 20px",fontSize:14,width:"100%",textAlign:"center"}}>
             Dołącz jako Szeryf 2
           </button>
-          <div style={{textAlign:"center",fontSize:13,color:"#8B7355",margin:"4px 0"}}>— lub —</div>
-          <div style={{display:"flex",gap:8}}>
+          {!showCodeInput&&<div style={{textAlign:"center",marginTop:2}}>
+            <span onClick={()=>setShowCodeInput(true)} style={{fontSize:12,color:"#8B7355",cursor:"pointer",textDecoration:"underline"}}>Masz kod rozgrywki? Wpisz ręcznie</span>
+          </div>}
+          {showCodeInput&&<div style={{display:"flex",gap:8,marginTop:2}}>
             <input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} placeholder="Kod rozgrywki (np. WDZ-A3K7)" style={{flex:1,padding:"12px 14px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:15,fontFamily:"monospace",letterSpacing:2,textTransform:"uppercase",background:"#fff"}} onKeyDown={e=>{if(e.key==="Enter")handleJoin();}}/>
             <button onClick={handleJoin} disabled={loading} style={{...btnS("primary"),padding:"12px 18px",fontSize:14}}>Dołącz</button>
-          </div>
+          </div>}
         </div>
         {error&&<div style={errStyle}>{error}</div>}
       </div>}
@@ -449,61 +452,17 @@ function Lobby({onJoin}){
       {/* === SHERIFF: ROOM CREATED — LINKS + LOBBY === */}
       {mode==="created"&&<div style={boxStyle}>
         <div style={titleStyle}>Rozgrywka utworzona</div>
-        <div style={{background:"#4C130F",borderRadius:6,padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+        <div style={{background:"#4C130F",borderRadius:6,padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
           <div>
             <div style={{fontSize:11,color:"#D4A853",fontWeight:700,letterSpacing:2,marginBottom:2}}>KOD ROZGRYWKI</div>
             <div style={{fontSize:26,fontWeight:900,color:"#F5F0E8",letterSpacing:4,fontFamily:"monospace"}}>{roomCode}</div>
           </div>
-          <div style={{fontSize:12,color:"#C4B090",maxWidth:160,textAlign:"right"}}>Wyślij linki poniżej lub podaj kod rozgrywki uczestnikom</div>
+          <div style={{fontSize:12,color:"#C4B090",maxWidth:160,textAlign:"right"}}>Linki dla rodzin znajdziesz w panelu Szeryfa</div>
         </div>
-        <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:6}}>Linki dla rodzin:</div>
-        {FO.map(fId=>(
-          <div key={fId} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",background:"#F5F0E8",borderRadius:4,marginBottom:5}}>
-            <div style={{width:9,height:9,borderRadius:"50%",background:FM[fId].col,flexShrink:0}}/>
-            <span style={{fontSize:12,fontWeight:700,color:FM[fId].col,width:90,flexShrink:0}}>{FM[fId].nom}</span>
-            <span style={{fontSize:11,fontFamily:"monospace",color:"#5C4A3A",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{buildFamilyLink(roomCode,fId)}</span>
-            <button onClick={()=>copyLink(fId)} style={{fontSize:11,padding:"3px 10px",border:"1px solid #C4B090",borderRadius:3,background:copied[fId]?"#E8F5E9":"#fff",color:copied[fId]?"#2E5B3C":"#5C4A3A",cursor:"pointer",flexShrink:0,minWidth:82}}>
-              {copied[fId]?"✓ skopiowano":"Kopiuj"}
-            </button>
-          </div>
-        ))}
-        <button onClick={copyAllLinks} style={{...btnS(copiedAll?"success":"default"),width:"100%",padding:"8px",fontSize:13,marginTop:4,marginBottom:16}}>
-          {copiedAll?"✓ Skopiowano wszystkie linki":"Kopiuj wszystkie 4 linki naraz"}
+        <button onClick={startGame} style={{...btnS("sheriff"),width:"100%",padding:"14px 20px",fontSize:16,textAlign:"center",marginBottom:10}}>
+          Wejdź do panelu Szeryfa →
         </button>
-        <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:6}}>Kto dołączył:</div>
-        <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:14}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 10px",background:"#FFF8E7",borderRadius:4,border:"1px solid #D4A853"}}>
-            <div style={{width:8,height:8,borderRadius:"50%",background:sheriffConnected?"#2E5B3C":"#C00"}}/>
-            <span style={{fontSize:13,fontWeight:700,color:"#8B6914"}}>Szeryf (Ty)</span>
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 10px",background:sheriff2Connected?"#F0FAF0":"#F5F0E8",borderRadius:4,border:"1px solid "+(sheriff2Connected?"#90C090":"#D4C4A8")}}>
-            <div style={{width:8,height:8,borderRadius:"50%",background:sheriff2Connected?"#2E5B3C":"#C4B090"}}/>
-            <span style={{fontSize:13,color:sheriff2Connected?"#2E5B3C":"#C4B090"}}>Szeryf 2</span>
-            <span style={{fontSize:12,color:sheriff2Connected?"#2E5B3C":"#C4B090",marginLeft:"auto"}}>{sheriff2Connected?"✓ połączony":"opcjonalny"}</span>
-          </div>
-          {FO.map(fId=>{
-            var members=getFamilyMembers(fId);
-            var hasMembers=members.length>0;
-            var onlineCount=members.filter(m=>isOnline(m)).length;
-            return(<div key={fId} style={{padding:"6px 10px",background:hasMembers?"#F0FAF0":"#F5F0E8",borderRadius:4,border:"1px solid "+(hasMembers?"#90C090":"#D4C4A8")}}>
-              <div style={{display:"flex",alignItems:"center",gap:8}}>
-                <div style={{width:8,height:8,borderRadius:"50%",background:hasMembers?FM[fId].col:"#C4B090"}}/>
-                <span style={{fontSize:13,fontWeight:hasMembers?700:400,color:hasMembers?FM[fId].col:"#C4B090"}}>{FM[fId].nom}</span>
-                <span style={{fontSize:12,marginLeft:"auto",color:hasMembers?"#2E5B3C":"#C4B090"}}>{hasMembers?(onlineCount+" online"):"oczekiwanie..."}</span>
-              </div>
-              {hasMembers&&<div style={{marginTop:4,paddingLeft:16,display:"flex",flexWrap:"wrap",gap:"4px 10px"}}>
-                {members.map(m=>(<span key={m.id} style={{fontSize:12,display:"flex",alignItems:"center",gap:4}}>
-                  <span style={{width:6,height:6,borderRadius:"50%",background:isOnline(m)?"#2E5B3C":"#C4B090",display:"inline-block"}}/>
-                  {m.name}
-                </span>))}
-              </div>}
-            </div>);
-          })}
-        </div>
-        <button onClick={startGame} disabled={connectedFamilies.length===0} style={{...btnS(connectedFamilies.length===4?"success":"primary",connectedFamilies.length===0),width:"100%",padding:"12px 20px",fontSize:15,textAlign:"center"}}>
-          {connectedFamilies.length===4?"Rozpocznij grę (wszyscy gotowi)":"Rozpocznij grę ("+connectedFamilies.length+"/4 rodzin)"}
-        </button>
-        {connectedFamilies.length>0&&connectedFamilies.length<4&&<div style={{fontSize:13,color:"#A08050",textAlign:"center",marginTop:6}}>Możesz wystartować bez kompletu — brakujące rodziny będą sterowane z panelu Szeryfa</div>}
+        {error&&<div style={errStyle}>{error}</div>}
       </div>}
 
       {/* === PLAYER: SELECT FAMILY (manual code join) === */}
@@ -634,105 +593,71 @@ function agDiamondPts(cx,cy,hs){return cx+","+(cy-hs)+" "+(cx+hs)+","+cy+" "+cx+
 function lightShade(hex,amt){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);r=Math.round(r+(255-r)*amt);g=Math.round(g+(255-g)*amt);b=Math.round(b+(255-b)*amt);return"#"+r.toString(16).padStart(2,"0")+g.toString(16).padStart(2,"0")+b.toString(16).padStart(2,"0");}
 function AgendaBar({familyId,stageIdx}){
   var f=FM[familyId];
-  var W=1000,H=24,Y=14,LY=6,BY=22,PAD=8;
-  var usable=W-PAD*2,unit=usable/AGENDA_TOTAL;
-  var positions=[],cx=PAD;
-  AGENDA_ITEMS.forEach(function(it){var w=AGENDA_W[it.type]*unit;positions.push(cx+w/2);cx+=w;});
-
-  // Phase boundary ticks (6 total: before T1 and after T3 of each phase)
-  var phaseTicks=[];
-  AGENDA_ITEMS.forEach(function(it,i){var w=AGENDA_W[it.type]*unit;
-    if(it.idx===1||it.idx===7||it.idx===13) phaseTicks.push(positions[i]-w/2);
-    if(it.idx===5||it.idx===11||it.idx===17) phaseTicks.push(positions[i]+w/2);
-  });
-
-  var curIdx=stageIdx>=0&&stageIdx<AGENDA_ITEMS.length?stageIdx:-1;
-  function st(idx){if(curIdx<0)return"future";return idx<curIdx?"done":idx===curIdx?"current":"future";}
-
-  var DONE="#E9CDC2",WHITE="#FFFFFF";
+  var cur=stageIdx>=0&&stageIdx<AGENDA_ITEMS.length?stageIdx:-1;
+  var GREY="#E9CDC2",WHITE="#FFFFFF";
   var WT="'Aka Posse','Alegreya Sans',serif";
-  var elems=[],k=0;
-
-  // Line: two segments split at active symbol center
-  var splitX=curIdx>=0?positions[curIdx]:PAD;
-  if(curIdx>=0){
-    elems.push(<line key={k++} x1={PAD} y1={Y} x2={splitX} y2={Y} stroke={DONE} strokeWidth="1"/>);
-    elems.push(<line key={k++} x1={splitX} y1={Y} x2={W-PAD} y2={Y} stroke={WHITE} strokeWidth="1"/>);
-  } else {
-    elems.push(<line key={k++} x1={PAD} y1={Y} x2={W-PAD} y2={Y} stroke={WHITE} strokeWidth="1"/>);
+  function inPhase(ph){
+    if(ph===1) return cur>=1&&cur<=5;
+    if(ph===2) return cur>=7&&cur<=11;
+    if(ph===3) return cur>=13&&cur<=17;
+    return false;
   }
-
-  // Phase boundary ticks
-  phaseTicks.forEach(function(tx){
-    var isDone=curIdx>=0&&tx<=positions[curIdx];
-    elems.push(<line key={k++} x1={tx} y1={Y-6} x2={tx} y2={Y+6} stroke={isDone?DONE:WHITE} strokeWidth="1"/>);
-  });
-
-  // PREP label at Y=6
-  var prepS=st(0);
-  if(prepS==="current"){
-    var pl=AGENDA_ITEMS[0].label,pw=pl.length*3.8+6;
-    elems.push(<rect key={k++} x={positions[0]-pw/2} y={LY-4} width={pw} height={8} fill={WHITE}/>);
-    elems.push(<text key={k++} x={positions[0]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" letterSpacing="0.08em" fill={f.col} fontFamily={WT}>{pl}</text>);
-  } else {
-    elems.push(<text key={k++} x={positions[0]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" letterSpacing="0.08em" fill={prepS==="done"?DONE:WHITE} fontFamily={WT}>{AGENDA_ITEMS[0].label}</text>);
-  }
-
-  // Phase name labels at Y=6
-  [1,2,3].forEach(function(ph){
-    var turns=AGENDA_ITEMS.filter(function(it){return it.phase===ph&&it.type==="turn";});
-    var allIt=AGENDA_ITEMS.filter(function(it){return it.phase===ph;});
-    var fi=AGENDA_ITEMS.indexOf(turns[0]),li=AGENDA_ITEMS.indexOf(turns[turns.length-1]);
-    var wF=AGENDA_W[AGENDA_ITEMS[fi].type]*unit,wL=AGENDA_W[AGENDA_ITEMS[li].type]*unit;
-    var midX=(positions[fi]-wF/2+positions[li]+wL/2)/2;
-    var allDone=allIt.every(function(it){return it.idx<curIdx;}),hasCur=allIt.some(function(it){return it.idx===curIdx;});
-    var phSt=allDone?"done":hasCur?"current":"future";
-    var phColor=phSt==="done"?DONE:WHITE;
-    elems.push(<text key={k++} x={midX} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" letterSpacing="0.08em" fill={phColor} fontFamily={WT}>{"\u2190 "+turns[0].phaseLabel+" \u2192"}</text>);
-  });
-
-  // OMOW label at Y=6
-  var omowS=st(18);
-  if(omowS==="current"){
-    var ol=AGENDA_ITEMS[18].label,ow=ol.length*3.8+6;
-    elems.push(<rect key={k++} x={positions[18]-ow/2} y={LY-4} width={ow} height={8} fill={WHITE}/>);
-    elems.push(<text key={k++} x={positions[18]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" letterSpacing="0.08em" fill={f.col} fontFamily={WT}>{ol}</text>);
-  } else {
-    elems.push(<text key={k++} x={positions[18]} y={LY} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" letterSpacing="0.08em" fill={omowS==="done"?DONE:WHITE} fontFamily={WT}>{AGENDA_ITEMS[18].label}</text>);
-  }
-
-  // Symbols and labels (drawn after lines so they cover them)
-  AGENDA_ITEMS.forEach(function(it,i){
-    var s=st(it.idx),px=positions[i];
-    var symColor=s==="done"?DONE:WHITE;
-
-    // Symbol
-    if(it.type==="turn"||it.type==="prep"||it.type==="omow"){
-      var r=s==="current"?5:2.5;
-      elems.push(<circle key={k++} cx={px} cy={Y} r={r} fill={symColor}/>);
-    } else if(it.type==="kn"){
-      var hs=s==="current"?7:4;
-      elems.push(<polygon key={k++} points={px+","+(Y-hs)+" "+(px+hs)+","+Y+" "+px+","+(Y+hs)+" "+(px-hs)+","+Y} fill={symColor}/>);
-    } else if(it.type==="narada"){
-      var hn=s==="current"?9:6;
-      elems.push(<polygon key={k++} points={px+","+(Y-hn)+" "+(px+hn)+","+Y+" "+px+","+(Y+hn)+" "+(px-hn)+","+Y} fill={symColor}/>);
-    }
-
-    // Labels at Y=22 for turn, kn, narada
-    if(it.type==="turn"||it.type==="kn"||it.type==="narada"){
-      var lbl=it.label;
-      if(s==="current"){
-        var lw=lbl.length*4+6;
-        elems.push(<rect key={k++} x={px-lw/2} y={BY-4} width={lw} height={8} fill={WHITE} rx="0"/>);
-        elems.push(<text key={k++} x={px} y={BY} textAnchor="middle" dominantBaseline="middle" fontSize="6" fontFamily={WT} fill={f.col}>{lbl}</text>);
-      } else {
-        elems.push(<text key={k++} x={px} y={BY} textAnchor="middle" dominantBaseline="middle" fontSize="6" fontFamily={WT} fill={s==="done"?DONE:WHITE}>{lbl}</text>);
-      }
-    }
-  });
-
-  return (<div style={{background:f.col,padding:"3px 8px"}}>
-    <svg viewBox={"0 0 "+W+" "+H} width="100%" style={{display:"block",overflow:"visible"}} preserveAspectRatio="xMidYMid meet">{elems}</svg>
+  function iCol(idx){return cur===idx?WHITE:GREY;}
+  function iUnd(idx){return cur===idx;}
+  function phCol(ph){return inPhase(ph)?WHITE:GREY;}
+  function phUnd(ph){return inPhase(ph);}
+  function pipeCol(ph){return inPhase(ph)?WHITE:GREY;}
+  function arrCol(idx){return cur===idx?WHITE:GREY;}
+  var fs=10;
+  var sp=function(label,color,underline,key,bold){
+    return <span key={key} style={{color:color,textDecoration:underline?"underline":"none",fontFamily:WT,fontSize:fs,fontWeight:bold?700:400,whiteSpace:"nowrap"}}>{label}</span>;
+  };
+  var k=0,T=[];
+  T.push(sp("Przygotowanie",iCol(0),iUnd(0),k++,false));
+  T.push(sp(" | ",pipeCol(1),false,k++,false));
+  T.push(sp("FAZA I: INFORMACYJNA",phCol(1),phUnd(1),k++,true));
+  T.push(sp(" →",arrCol(1),false,k++,false));
+  T.push(sp(" Tura 1",iCol(1),iUnd(1),k++,false));
+  T.push(sp(" →",arrCol(2),false,k++,false));
+  T.push(sp(" Odprawa",iCol(2),iUnd(2),k++,false));
+  T.push(sp(" →",arrCol(3),false,k++,false));
+  T.push(sp(" Tura 2",iCol(3),iUnd(3),k++,false));
+  T.push(sp(" →",arrCol(4),false,k++,false));
+  T.push(sp(" Odprawa",iCol(4),iUnd(4),k++,false));
+  T.push(sp(" →",arrCol(5),false,k++,false));
+  T.push(sp(" Tura 3",iCol(5),iUnd(5),k++,false));
+  T.push(sp(" | ",pipeCol(1),false,k++,false));
+  T.push(sp("Narada",iCol(6),iUnd(6),k++,false));
+  T.push(sp(" | ",pipeCol(2),false,k++,false));
+  T.push(sp("FAZA II: TRANSAKCYJNA",phCol(2),phUnd(2),k++,true));
+  T.push(sp(" →",arrCol(7),false,k++,false));
+  T.push(sp(" Tura 1",iCol(7),iUnd(7),k++,false));
+  T.push(sp(" →",arrCol(8),false,k++,false));
+  T.push(sp(" Odprawa",iCol(8),iUnd(8),k++,false));
+  T.push(sp(" →",arrCol(9),false,k++,false));
+  T.push(sp(" Tura 2",iCol(9),iUnd(9),k++,false));
+  T.push(sp(" →",arrCol(10),false,k++,false));
+  T.push(sp(" Odprawa",iCol(10),iUnd(10),k++,false));
+  T.push(sp(" →",arrCol(11),false,k++,false));
+  T.push(sp(" Tura 3",iCol(11),iUnd(11),k++,false));
+  T.push(sp(" | ",pipeCol(2),false,k++,false));
+  T.push(sp("Narada",iCol(12),iUnd(12),k++,false));
+  T.push(sp(" | ",pipeCol(3),false,k++,false));
+  T.push(sp("FAZA III: FINAŁOWA",phCol(3),phUnd(3),k++,true));
+  T.push(sp(" →",arrCol(13),false,k++,false));
+  T.push(sp(" Tura 1",iCol(13),iUnd(13),k++,false));
+  T.push(sp(" →",arrCol(14),false,k++,false));
+  T.push(sp(" Odprawa",iCol(14),iUnd(14),k++,false));
+  T.push(sp(" →",arrCol(15),false,k++,false));
+  T.push(sp(" Tura 2",iCol(15),iUnd(15),k++,false));
+  T.push(sp(" →",arrCol(16),false,k++,false));
+  T.push(sp(" Odprawa",iCol(16),iUnd(16),k++,false));
+  T.push(sp(" →",arrCol(17),false,k++,false));
+  T.push(sp(" Tura 3",iCol(17),iUnd(17),k++,false));
+  T.push(sp(" | ",pipeCol(3),false,k++,false));
+  T.push(sp("Omówienie",iCol(18),iUnd(18),k++,false));
+  return(<div style={{background:f.col,padding:"2px 8px",overflow:"hidden"}}>
+    <div style={{whiteSpace:"nowrap",overflow:"hidden",lineHeight:"16px"}}>{T}</div>
   </div>);
 }
 
@@ -1842,8 +1767,7 @@ function SheriffPlanningTab({roomCode,lobbyPlayers,gameStarted,showMsg,db}){
   function copyAll(){var txt=FO.map(fId=>FM[fId].nom+": "+buildFamilyLink(roomCode,fId)).join("\n");navigator.clipboard.writeText(txt).then(()=>{setCpAll(true);setTimeout(()=>setCpAll(false),2500);});}
   var connFam=FO.filter(f=>{var fd=lobbyPlayers[f];if(!fd)return false;if(fd.members)return Object.keys(fd.members).length>0;return fd.connected;});
 
-  return(<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
-    <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,marginBottom:16}} className="wt">Planowanie</div>
+  return(<div style={{maxWidth:760,padding:"0 0 16px"}}>
     <div style={{display:"flex",gap:16,alignItems:"flex-start"}}>
       {/* LEFT: linki */}
       <div style={{flex:"0 0 auto",minWidth:0,width:"55%"}}>
@@ -1991,7 +1915,7 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
 
   return (<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-      <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">{readOnly?"Rozgrywka — Szeryf 2":"Rozgrywka"}</div>
+      <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",marginBottom:16}}><div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">{readOnly?"Rozgrywka — Szeryf 2":"Rozgrywka"}</div></div>
       <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
         {!readOnly&&allTx.length>0&&!undoConfirm&&<button style={btnS("danger")} onClick={()=>setUndoConfirm(true)}>Cofnij ostatnią transakcję</button>}
         {!readOnly&&undoConfirm&&<div style={{display:"flex",gap:4,alignItems:"center",background:"#FEE",padding:"4px 8px",borderRadius:4,border:"1px solid #C88"}}>
@@ -3158,12 +3082,12 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.5.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.5.1</div>
       </div>
     </div>
     {isSheriffAny?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto",background:"rgba(0,0,0,0.18)"}}>
-      <div onClick={()=>{setViewSheriff(true);setSheriffViewFamily(null);}} style={{padding:"8px 16px",cursor:"pointer",fontWeight:viewSheriff?700:400,fontSize:14,background:viewSheriff?"#8B6914":"transparent",color:viewSheriff?"#fff":"#F5F0E8",borderBottom:viewSheriff?"3px solid #D4A853":"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap"}} className="wt">
-        Szeryf
+      <div onClick={()=>{setViewSheriff(true);setSheriffViewFamily(null);}} style={{padding:"6px 16px",cursor:"pointer",fontWeight:viewSheriff?700:600,fontSize:14,background:viewSheriff?"rgba(139,105,20,0.85)":"rgba(255,255,255,0.12)",color:"#FFFFFF",borderBottom:viewSheriff?"3px solid #D4A853":"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap",letterSpacing:"0.05em",display:"flex",alignItems:"center"}} className="wt">
+        SZERYF
       </div>
       {FO.map(fId=>{var act=!viewSheriff&&cf===fId,col=FM[fId].col;
         var lbFd=lobbyPlayers[fId];
@@ -3184,8 +3108,8 @@ function App({roomCode,role,playerId,playerName}) {
     {viewSheriff&&sheriffViewFamily&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:13,color:"#664D03",textAlign:"center"}}>
       Podgląd panelu rodziny {FM[sheriffViewFamily].gen} <button style={{marginLeft:8,fontSize:13,padding:"2px 8px",cursor:"pointer",background:"#8B6914",color:"#fff",border:"none",borderRadius:3,fontFamily:"inherit"}} onClick={()=>setSheriffViewFamily(null)}>Wróć do panelu Szeryfa</button>
     </div>}
-    {viewSheriff&&!sheriffViewFamily&&<div>
-      <div style={{display:"flex",padding:"8px 16px 0",background:"#F5F0E8",borderBottom:"2px solid #4C130F",gap:4}}>
+    {viewSheriff&&!sheriffViewFamily&&<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
+      <div style={{display:"flex",gap:4,marginBottom:14}}>
         {[["planning","Planowanie"],["game","Rozgrywka"],["results","Wyniki"]].map(([id,label])=>{
           var act=sheriffTab===id;
           return <div key={id} onClick={()=>setSheriffTab(id)} style={{padding:"7px 16px",fontSize:13,fontWeight:act?700:400,background:act?"#fff":"#F3CA82",color:act?"#842504":"#4C130F",cursor:"pointer",borderBottom:act?"2px solid #842504":"2px solid transparent"}} className="wt">{label}</div>;
