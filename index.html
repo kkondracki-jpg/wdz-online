@@ -608,7 +608,7 @@ function AgendaBar({familyId,stageIdx}){
   function phUnd(ph){return inPhase(ph);}
   function pipeCol(ph){return inPhase(ph)?WHITE:GREY;}
   function arrCol(idx){return cur===idx?WHITE:GREY;}
-  var fs=12;
+  var fs=14;
   var sp=function(label,color,underline,key,bold){
     return <span key={key} style={{color:color,textDecoration:underline?"underline":"none",fontFamily:WT,fontSize:fs,fontWeight:bold?700:400,whiteSpace:"nowrap"}}>{label}</span>;
   };
@@ -657,7 +657,7 @@ function AgendaBar({familyId,stageIdx}){
   T.push(sp(" | ",pipeCol(3),false,k++,false));
   T.push(sp("Omówienie",iCol(18),iUnd(18),k++,false));
   return(<div style={{background:f.col,padding:"2px 8px",overflow:"hidden"}}>
-    <div style={{whiteSpace:"nowrap",overflow:"hidden",lineHeight:"19px",textAlign:"center"}}>{T}</div>
+    <div style={{whiteSpace:"nowrap",overflow:"hidden",lineHeight:"22px",textAlign:"center"}}>{T}</div>
   </div>);
 }
 
@@ -1767,7 +1767,7 @@ function SheriffPlanningTab({roomCode,lobbyPlayers,gameStarted,showMsg,db}){
   function copyAll(){var txt=FO.map(fId=>FM[fId].nom+": "+buildFamilyLink(roomCode,fId)).join("\n");navigator.clipboard.writeText(txt).then(()=>{setCpAll(true);setTimeout(()=>setCpAll(false),2500);});}
   var connFam=FO.filter(f=>{var fd=lobbyPlayers[f];if(!fd)return false;if(fd.members)return Object.keys(fd.members).length>0;return fd.connected;});
 
-  return(<div style={{maxWidth:760,padding:"0 0 16px"}}>
+  return(<div style={{padding:"0 0 16px"}}>
     <div style={{display:"flex",gap:16,alignItems:"flex-start"}}>
       {/* LEFT: linki */}
       <div style={{flex:"0 0 auto",minWidth:0,width:"55%"}}>
