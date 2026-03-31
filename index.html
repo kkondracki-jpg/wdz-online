@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.5.2</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.5.3</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -398,7 +398,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.5.2</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.5.3</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1992,6 +1992,27 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
             </div>);
           })}
         </div>
+        {(()=>{
+          var nextTurn=null;
+          for(var ni=stageIdx+1;ni<STAGES.length;ni++){if(STAGES[ni].type==="turn"){nextTurn=STAGES[ni];break;}}
+          if(!nextTurn||nextTurn.pairingIdx===null) return null;
+          var pairs=PAIRINGS[nextTurn.pairingIdx];
+          var tn=nextTurn.id.slice(-1);
+          var ph=nextTurn.phase;
+          var phName="Faza "+(ph===1?"I":ph===2?"II":"III")+", Tura "+tn;
+          return(<div style={{marginTop:12,background:"#4C130F",borderRadius:6,padding:"12px 16px"}}>
+            <div style={{fontSize:12,color:"#D4A853",fontWeight:700,letterSpacing:"0.08em",marginBottom:6,textTransform:"uppercase"}}>Następna tura — {phName}</div>
+            <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
+              {pairs.map((p,i)=>(
+                <div key={i} style={{fontSize:18,fontWeight:700,color:"#F5F0E8",fontFamily:"'Aka Posse','Alegreya Sans',serif"}}>
+                  <span style={{color:FM[p[0]].col!=="transparent"?FM[p[0]].col:"#D4A853"}}>{FM[p[0]].nom}</span>
+                  <span style={{color:"#D4A853",margin:"0 8px"}}>\u2194</span>
+                  <span style={{color:FM[p[1]].col!=="transparent"?FM[p[1]].col:"#D4A853"}}>{FM[p[1]].nom}</span>
+                </div>
+              ))}
+            </div>
+          </div>);
+        })()}
       </div>)}
     </div>
     {/* === 2. PODGLĄD I WYNIKI RODZIN === */}
@@ -3093,29 +3114,76 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.5.2</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.5.3</div>
       </div>
     </div>
-    {isSheriffAny?(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto",background:"rgba(0,0,0,0.18)"}}>
-      <div onClick={()=>{setViewSheriff(true);setSheriffViewFamily(null);}} style={{padding:"6px 16px",cursor:"pointer",fontWeight:viewSheriff?700:600,fontSize:14,background:viewSheriff?"rgba(139,105,20,0.85)":"rgba(255,255,255,0.12)",color:"#FFFFFF",borderBottom:viewSheriff?"3px solid #D4A853":"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap",letterSpacing:"0.05em",display:"flex",alignItems:"center"}} className="wt">
-        SZERYF
-      </div>
-      {FO.map(fId=>{var act=!viewSheriff&&cf===fId,col=FM[fId].col;
-        var lbFd=lobbyPlayers[fId];
-        var lbMembers=lbFd&&lbFd.members?Object.entries(lbFd.members).map(([id,m])=>m.name||null).filter(Boolean):[];
-        var lbCount=lbMembers.length;
-        return (<div key={fId} onClick={()=>{setCf(fId);setViewSheriff(false);setSheriffViewFamily(null);setActiveTab("inv");}}
-          style={{padding:"6px 16px 5px",cursor:"pointer",fontWeight:act?700:400,fontSize:14,background:act?col:"transparent",color:act?"#fff":"#F5F0E8",borderBottom:act?"3px solid "+col:"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap"}} className="wt">
-          <div style={{lineHeight:1.2}}>{FM[fId].nom}{lbCount>0&&<span style={{fontSize:12,fontWeight:400,opacity:0.85,marginLeft:4}}>({lbCount} {lbCount===1?"gracz":"graczy"})</span>}</div>
-          {lbCount>0&&<div style={{fontSize:11,fontWeight:400,opacity:0.8,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}}>{lbMembers.join(", ")}</div>}
-        </div>);
-      })}
-    </div>):(<AgendaBar familyId={myFamily} stageIdx={stageIdx}/>)}
+    {isSheriffAny?(()=>{
+      var curStage=stageIdx>=0&&stageIdx<STAGES.length?STAGES[stageIdx]:null;
+      var mm=Math.floor(secondsLeft/60),ss=secondsLeft%60;
+      var timeStr=(curStage&&curStage.type!=="end")?(timerPaused?"(P) ":"")+mm+":"+(ss<10?"0":"")+ss:"0:00";
+      var isLow=secondsLeft<=30&&!!curStage;var isCrit=secondsLeft<=10&&!!curStage;
+      // Phase label
+      var phaseLabel="";
+      if(curStage){
+        if(curStage.phase) phaseLabel="Faza "+(curStage.phase===1?"I":curStage.phase===2?"II":"III")+": "+PHASE_NAMES[curStage.phase];
+        else if(curStage.type==="prep") phaseLabel="Przygotowanie";
+        else if(curStage.type==="narada") phaseLabel="Narada rodzinna";
+        else if(curStage.type==="end") phaseLabel="Zakończenie";
+      }
+      // Stage detail label
+      var stageDetail="";
+      if(curStage){
+        if(curStage.type==="turn"){
+          var tn=curStage.id.slice(-1); // "1","2","3"
+          var pairs=curStage.pairingIdx!==null?PAIRINGS[curStage.pairingIdx]:null;
+          var meetStr=pairs?pairs.map(p=>FM[p[0]].nom+" \u2194 "+FM[p[1]].nom).join("   \u00b7   "):"";
+          stageDetail="Tura "+tn+(meetStr?"   \u2022   "+meetStr:"");
+        } else if(curStage.type==="kn"){
+          var knN=curStage.id.slice(-1)==="A"?"1":"2";
+          stageDetail="Odprawa "+knN;
+        }
+      }
+      // Next turn info
+      var nextTurnStage=null;
+      for(var ni=stageIdx+1;ni<STAGES.length;ni++){if(STAGES[ni].type==="turn"){nextTurnStage=STAGES[ni];break;}}
+      var nextStr="";
+      if(nextTurnStage&&nextTurnStage.pairingIdx!==null){
+        var np=PAIRINGS[nextTurnStage.pairingIdx];
+        nextStr=np.map(p=>FM[p[0]].nom+" \u2194 "+FM[p[1]].nom).join("   \u00b7   ");
+      }
+      return(<div style={{display:"flex",borderBottom:"2px solid #4C130F",overflowX:"auto",background:isCrit?"#8B2500":isLow?"#6B2010":"rgba(0,0,0,0.18)",transition:"background 0.5s"}}>
+        <div onClick={()=>{setViewSheriff(true);setSheriffViewFamily(null);}} style={{padding:"6px 16px",cursor:"pointer",fontWeight:viewSheriff?700:600,fontSize:14,background:viewSheriff?"rgba(139,105,20,0.85)":"rgba(255,255,255,0.12)",color:"#FFFFFF",borderBottom:viewSheriff?"3px solid #D4A853":"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap",letterSpacing:"0.05em",display:"flex",alignItems:"center",flexShrink:0}} className="wt">
+          SZERYF
+        </div>
+        {FO.map(fId=>{var act=!viewSheriff&&cf===fId,col=FM[fId].col;
+          var lbFd=lobbyPlayers[fId];
+          var lbMembers=lbFd&&lbFd.members?Object.entries(lbFd.members).map(([id,m])=>m.name||null).filter(Boolean):[];
+          var lbCount=lbMembers.length;
+          return (<div key={fId} onClick={()=>{setCf(fId);setViewSheriff(false);setSheriffViewFamily(null);setActiveTab("inv");}}
+            style={{padding:"6px 16px 5px",cursor:"pointer",fontWeight:act?700:400,fontSize:14,background:act?col:"transparent",color:act?"#fff":"#F5F0E8",borderBottom:act?"3px solid "+col:"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap",flexShrink:0}} className="wt">
+            <div style={{lineHeight:1.2}}>{FM[fId].nom}{lbCount>0&&<span style={{fontSize:12,fontWeight:400,opacity:0.85,marginLeft:4}}>({lbCount} {lbCount===1?"gracz":"graczy"})</span>}</div>
+            {lbCount>0&&<div style={{fontSize:11,fontWeight:400,opacity:0.8,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}}>{lbMembers.join(", ")}</div>}
+          </div>);
+        })}
+        {/* Timer info — starts right after Dexterowie */}
+        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 16px",minWidth:0,borderLeft:"1px solid rgba(255,255,255,0.15)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12,minWidth:0,overflow:"hidden"}}>
+            {phaseLabel&&<span style={{fontSize:13,color:"#D4A853",fontWeight:700,whiteSpace:"nowrap"}}>{phaseLabel}</span>}
+            {stageDetail&&<span style={{fontSize:13,color:"rgba(245,240,232,0.85)",whiteSpace:"nowrap"}}>{stageDetail}</span>}
+            {!curStage&&<span style={{fontSize:13,color:"rgba(245,240,232,0.4)"}}>Oczekiwanie na start</span>}
+          </div>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",flexShrink:0,marginLeft:12}}>
+            <div style={{fontSize:20,fontWeight:700,color:isCrit?"#FFD700":"#F5F0E8",fontFamily:"monospace",letterSpacing:2,lineHeight:1}}>{timeStr}</div>
+            {timerPaused&&curStage&&<div style={{fontSize:11,color:"#D4A853",fontWeight:700}}>PAUZA</div>}
+          </div>
+        </div>
+      </div>);
+    })():(<AgendaBar familyId={myFamily} stageIdx={stageIdx}/>)}
     {browserWarning&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:13,color:"#664D03",textAlign:"center",display:"flex",justifyContent:"center",alignItems:"center",gap:8}}>
       Dla najlepszej jakości gry użyj przeglądarki Google Chrome
       <button onClick={()=>setBrowserWarning(false)} style={{fontSize:13,padding:"2px 8px",background:"#D4A853",color:"#fff",border:"none",borderRadius:3,cursor:"pointer",fontFamily:"inherit"}}>OK</button>
     </div>}
-    {isSheriffAny&&gameStarted&&stageIdx>=0&&stageIdx<STAGES.length&&<TimerBar stage={STAGES[stageIdx]} secondsLeft={secondsLeft} totalSeconds={stageDurations[STAGES[stageIdx].id]*60} paused={timerPaused} familyId={viewSheriff&&sheriffViewFamily?sheriffViewFamily:cf}/>}
+    
     {viewSheriff&&sheriffViewFamily&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",padding:"6px 14px",fontSize:13,color:"#664D03",textAlign:"center"}}>
       Podgląd panelu rodziny {FM[sheriffViewFamily].gen} <button style={{marginLeft:8,fontSize:13,padding:"2px 8px",cursor:"pointer",background:"#8B6914",color:"#fff",border:"none",borderRadius:3,fontFamily:"inherit"}} onClick={()=>setSheriffViewFamily(null)}>Wróć do panelu Szeryfa</button>
     </div>}
