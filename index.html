@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.5.4</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.6.2</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -143,6 +143,18 @@ function useConnectionStatus(){
   return online;
 }
 
+/* ========== SERVER TIME OFFSET HOOK ========== */
+function useServerTimeOffset(){
+  const [offset,setOffset]=useState(0);
+  useEffect(()=>{
+    if(IS_LOCAL||!db) return;
+    var ref=db.ref(".info/serverTimeOffset");
+    var cb=ref.on("value",snap=>{setOffset(snap.val()||0);});
+    return()=>ref.off("value",cb);
+  },[]);
+  return offset;
+}
+
 /* ========== PLAYER HEARTBEAT HOOK ========== */
 function usePlayerHeartbeat(roomCode,familyId,playerId){
   useEffect(()=>{
@@ -264,7 +276,7 @@ function Lobby({onJoin}){
   useEffect(()=>{
     if(!roomCode||selectedRole!=="sheriff"||!db) return;
     var ref=db.ref("rooms/"+roomCode+"/players/sheriff");
-    ref.set({connected:true,joinedAt:firebase.database.ServerValue.TIMESTAMP});
+    ref.update({connected:true,joinedAt:firebase.database.ServerValue.TIMESTAMP});
     ref.onDisconnect().update({connected:false});
     return()=>{ref.onDisconnect().cancel();};
   },[roomCode,selectedRole]);
@@ -291,14 +303,22 @@ function Lobby({onJoin}){
   function handleCreate(){
     if(!db){setError("Brak połączenia z Firebase. Otwórz grę z GitHub Pages.");return;}
     setLoading(true);setError(null);
-    var code=generateRoomCode();
-    db.ref("rooms/"+code).set({
-      meta:{created:firebase.database.ServerValue.TIMESTAMP,status:"lobby"},
-      players:{sheriff:{connected:true,joinedAt:firebase.database.ServerValue.TIMESTAMP}}
-    }).then(()=>{
-      setRoomCode(code);setSelectedRole("sheriff");setMode("created");setLoading(false);
-      db.ref("rooms/"+code+"/players/sheriff").onDisconnect().update({connected:false});
-    }).catch(e=>{setError("Błąd tworzenia pokoju: "+e.message);setLoading(false);});
+    // S4: sprawdź kolizje kodu — max 5 prób
+    function tryCreate(attempt){
+      if(attempt>5){setError("Nie udało się wygenerować unikalnego kodu. Spróbuj ponownie.");setLoading(false);return;}
+      var code=generateRoomCode();
+      db.ref("rooms/"+code+"/meta").once("value").then(snap=>{
+        if(snap.exists()){tryCreate(attempt+1);return;} // kolizja — spróbuj ponownie
+        db.ref("rooms/"+code).set({
+          meta:{created:firebase.database.ServerValue.TIMESTAMP,status:"lobby"},
+          players:{sheriff:{connected:true,joinedAt:firebase.database.ServerValue.TIMESTAMP}}
+        }).then(()=>{
+          setRoomCode(code);setSelectedRole("sheriff");setMode("created");setLoading(false);
+          db.ref("rooms/"+code+"/players/sheriff").onDisconnect().update({connected:false});
+        }).catch(e=>{setError("Błąd tworzenia pokoju: "+e.message);setLoading(false);});
+      }).catch(e=>{setError("Błąd połączenia: "+e.message);setLoading(false);});
+    }
+    tryCreate(1);
   }
 
   function handleJoin(){
@@ -363,12 +383,12 @@ function Lobby({onJoin}){
     navigator.clipboard.writeText(link).then(()=>{
       setCopied(prev=>({...prev,[fId]:true}));
       setTimeout(()=>setCopied(prev=>({...prev,[fId]:false})),2500);
-    });
+    }).catch(()=>{/* clipboard failed — ignore silently */});
   }
 
   function copyAllLinks(){
     var text=FO.map(fId=>FM[fId].nom+": "+buildFamilyLink(roomCode,fId)).join("\n");
-    navigator.clipboard.writeText(text).then(()=>{setCopiedAll(true);setTimeout(()=>setCopiedAll(false),2500);});
+    navigator.clipboard.writeText(text).then(()=>{setCopiedAll(true);setTimeout(()=>setCopiedAll(false),2500);}).catch(()=>{});
   }
 
   function getFamilyMembers(fId){
@@ -398,7 +418,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.5.4</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.6.2</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1775,8 +1795,8 @@ function SheriffPlanningTab({roomCode,lobbyPlayers,gameStarted,showMsg,db}){
 
   function getLobbyMembers(fId){var fd=lobbyPlayers[fId];if(!fd||!fd.members)return[];return Object.entries(fd.members).map(([id,m])=>({id,...m})).filter(m=>m.name);}
   function isOnlineMember(m){return m.lastSeen&&(Date.now()-m.lastSeen)<90000;}
-  function copyLnk(fId){var lnk=buildFamilyLink(roomCode,fId);navigator.clipboard.writeText(lnk).then(()=>{setCpd(p=>({...p,[fId]:true}));setTimeout(()=>setCpd(p=>({...p,[fId]:false})),2500);});}
-  function copyAll(){var txt=FO.map(fId=>FM[fId].nom+": "+buildFamilyLink(roomCode,fId)).join("\n");navigator.clipboard.writeText(txt).then(()=>{setCpAll(true);setTimeout(()=>setCpAll(false),2500);});}
+  function copyLnk(fId){var lnk=buildFamilyLink(roomCode,fId);navigator.clipboard.writeText(lnk).then(()=>{setCpd(p=>({...p,[fId]:true}));setTimeout(()=>setCpd(p=>({...p,[fId]:false})),2500);}).catch(()=>{});}
+  function copyAll(){var txt=FO.map(fId=>FM[fId].nom+": "+buildFamilyLink(roomCode,fId)).join("\n");navigator.clipboard.writeText(txt).then(()=>{setCpAll(true);setTimeout(()=>setCpAll(false),2500);}).catch(()=>{});}
   var connFam=FO.filter(f=>{var fd=lobbyPlayers[f];if(!fd)return false;if(fd.members)return Object.keys(fd.members).length>0;return fd.connected;});
 
   return(<div style={{padding:"0 0 16px"}}>
@@ -1853,8 +1873,8 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
     if(fd[fId].cash<15){showMsg("Rodzina "+FM[fId].gen+" nie ma 15 $!");return;}
     setFd(prev=>{var n={...prev};n[fId]={...n[fId],cash:n[fId].cash-15};return n;});
     setConsultations(prev=>{var arr=(prev[fId]||[]).concat([{status:"active",questionsUsed:0,questionsTotal:3}]);return{...prev,[fId]:arr};});
-    // Mark the call as sold
-    setSheriffCalls(prev=>prev.map((c,i)=>{if(c.fId===fId&&c.status==="waiting")return{...c,status:"sold"};return c;}));
+    // Mark ONLY THE FIRST waiting call as sold (not all)
+    setSheriffCalls(prev=>{var found=false;return prev.map(c=>{if(!found&&c.fId===fId&&c.status==="waiting"){found=true;return{...c,status:"sold"};}return c;});});
     showMsg("Konsultacja sprzedana (pobrano 15 $, 3 pytania)");
   }
   function cancelConsultation(callIdx){
@@ -2406,6 +2426,7 @@ function App({roomCode,role,playerId,playerName}) {
   const isSheriffAny=isSheriff||isSheriff2;
   const myFamily=isSheriffAny?null:role;
   const online=useConnectionStatus();
+  const serverTimeOffset=useServerTimeOffset();
   // Heartbeat for family players
   usePlayerHeartbeat(roomCode,myFamily,playerId);
   // T5 — unikalny ID sesji (dla blokady formularza TX)
@@ -2768,19 +2789,20 @@ function App({roomCode,role,playerId,playerName}) {
     return !isChrome;
   });
 
-  // Prevent accidental tab close
+  // Prevent accidental tab close (only for Sheriff during active game)
   useEffect(()=>{
+    if(!isSheriffAny||!gameStarted) return;
     function h(e){e.preventDefault();e.returnValue="";}
     window.addEventListener("beforeunload",h);
     return()=>window.removeEventListener("beforeunload",h);
-  },[]);
+  },[isSheriffAny,gameStarted]);
 
   // Register presence in room
   useEffect(()=>{
     if(!db) return;
     var roleKey=isSheriff?"sheriff":isSheriff2?"sheriff2":myFamily;
     var ref=db.ref("rooms/"+roomCode+"/players/"+roleKey);
-    ref.set({connected:true,joinedAt:firebase.database.ServerValue.TIMESTAMP});
+    ref.update({connected:true,joinedAt:firebase.database.ServerValue.TIMESTAMP});
     ref.onDisconnect().update({connected:false});
     return()=>{ref.onDisconnect().cancel();};
   },[roomCode,role]);
@@ -2846,20 +2868,22 @@ function App({roomCode,role,playerId,playerName}) {
     showMsg(FM[fId].nom+" zdobyli kompletną mapę! Bonus 300 $!");
   }
 
-  // === TIMER EFFECT — S3: secondsLeft wyliczane lokalnie z timerStartedAt ===
+  // === TIMER EFFECT — S3: secondsLeft wyliczane z timerStartedAt + serverTimeOffset ===
   useEffect(()=>{
     if(timerRunning&&!timerPaused){
       // Natychmiast przelicz przy zmianie stanu (np. po reconnect)
       if(timerPausedSecondsLeft!==null){
         setSecondsLeft(timerPausedSecondsLeft);
       } else if(timerStartedAt>0){
-        var calc=Math.max(0,Math.round(timerDuration-(Date.now()-timerStartedAt)/1000));
+        var now=Date.now()+serverTimeOffset;
+        var calc=Math.max(0,Math.round(timerDuration-(now-timerStartedAt)/1000));
         setSecondsLeft(calc);
       }
       timerRef.current=setInterval(()=>{
         setSecondsLeft(prev=>{
-          // S3 — wylicz aktualną wartość z timerStartedAt
-          var sLeft=timerStartedAt>0?Math.max(0,Math.round(timerDuration-(Date.now()-timerStartedAt)/1000)):Math.max(0,prev-1);
+          // S3 — wylicz aktualną wartość z timerStartedAt + serverTimeOffset
+          var now=Date.now()+serverTimeOffset;
+          var sLeft=timerStartedAt>0?Math.max(0,Math.round(timerDuration-(now-timerStartedAt)/1000)):Math.max(0,prev-1);
           if(sLeft<=0){clearInterval(timerRef.current);setTimerRunning(false);
             playGunshots(5,200);showMsg("Czas min\u0105\u0142!");return 0;}
           if(sLeft===6&&!gunshotFired){playGunshots(5,200);setGunshotFired(true);}
@@ -2872,13 +2896,13 @@ function App({roomCode,role,playerId,playerName}) {
       setSecondsLeft(timerPausedSecondsLeft);
     }
     return()=>{if(timerRef.current)clearInterval(timerRef.current);};
-  },[timerRunning,timerPaused,timerStartedAt,timerDuration,timerPausedSecondsLeft,gunshotFired]);
+  },[timerRunning,timerPaused,timerStartedAt,timerDuration,timerPausedSecondsLeft,gunshotFired,serverTimeOffset]);
 
   function startStage(idx){
     if(idx<0||idx>=STAGES.length)return;
     setStageIdx(idx);setGameStarted(true);
     var dur=stageDurations[STAGES[idx].id]*60;
-    var now=Date.now();
+    var now=Date.now()+serverTimeOffset; // S3: czas serwerowy
     setTimerDuration(dur);
     setTimerStartedAt(now);
     setTimerPausedSecondsLeft(null);
@@ -2888,14 +2912,15 @@ function App({roomCode,role,playerId,playerName}) {
     showMsg("Start: "+STAGES[idx].label);
   }
   function pauseTimer(){
-    var sLeft=timerStartedAt>0?Math.max(0,Math.round(timerDuration-(Date.now()-timerStartedAt)/1000)):secondsLeft;
+    var now=Date.now()+serverTimeOffset; // S3: czas serwerowy
+    var sLeft=timerStartedAt>0?Math.max(0,Math.round(timerDuration-(now-timerStartedAt)/1000)):secondsLeft;
     setTimerPausedSecondsLeft(sLeft);
     setTimerPaused(true);
     if(timerRef.current)clearInterval(timerRef.current);
     showMsg("Pauza");
   }
   function resumeTimer(){
-    var now=Date.now();
+    var now=Date.now()+serverTimeOffset; // S3: czas serwerowy
     var sLeft=timerPausedSecondsLeft!==null?timerPausedSecondsLeft:secondsLeft;
     // Przesuń timerStartedAt tak żeby secondsLeft się zgadzało
     setTimerStartedAt(now-(timerDuration-sLeft)*1000);
@@ -2950,14 +2975,20 @@ function App({roomCode,role,playerId,playerName}) {
       var p=BNB_PRODUCTS[fId];
       var ownCards=fd[fId].items.filter(i=>i.cat===C_BNB&&i.bnbOrigin===fId);
       var soldAll=ownCards.length===0;
-      var cost=soldAll?200:300;
+      var cost=300; // ZAWSZE 300$ dla dostawcy
       var bonus=soldAll?100:0;
       setFd(prev=>{var n={...prev};
         // S4 — guard: nie zejdź poniżej 0
         var netCost=Math.min(cost-bonus,n[fId].cash);
         n[fId]={...n[fId],cash:n[fId].cash-netCost};return n;});
+      // Wpis 1: Opłata dla dostawcy (zawsze)
       newTxs.push({id:(ts+fi*2).toString(),type:"bnb_settle",from:fId,to:"dostawca",status:"accepted",offeredItems:[],
-        description:(soldAll?"Sprzedano cały towar — prowizja 200 $ + bonifikata 100 $":"Niesprzedany towar — prowizja 300 $ (brak bonifikaty)")});
+        description:"Opłata dla dostawcy — 300 $"});
+      // Wpis 2: Rabat od dostawcy (tylko gdy sprzedano wszystko)
+      if(soldAll){
+        newTxs.push({id:(ts+fi*2+1).toString(),type:"bnb_bonus",from:"dostawca",to:fId,status:"accepted",offeredItems:[],
+          description:"Rabat od dostawcy — 100 $"});
+      }
     });
     setTxs(prev=>[...newTxs,...prev]);
     setBnbSettled(true);showMsg("Biznes na boku — rozliczono!");
@@ -3007,6 +3038,12 @@ function App({roomCode,role,playerId,playerName}) {
       if(missingFrom.length||missingTo.length){showMsg("Błąd: jedna ze stron nie posiada już oferowanych kart!");return{...tx,status:"rejected"};}
       if(tx.offeredCash>0&&seller.cash<tx.offeredCash){showMsg("Błąd: brak gotówki na dopłatę!");return{...tx,status:"rejected"};}
       if(tx.responseCash>0&&buyer.cash<tx.responseCash){showMsg("Błąd: brak gotówki na dopłatę!");return{...tx,status:"rejected"};}
+    }
+    // MAP DUPLICATE CHECK — re-validate at accept time
+    if(tx.type==="sale"&&!validateMapDuplicate(tx.to,tx.offeredItems)){showMsg("Błąd: kupujący już posiada ten fragment mapy!");return{...tx,status:"rejected"};}
+    if(tx.type==="barter"){
+      if(!validateMapDuplicate(tx.to,tx.offeredItems)){showMsg("Błąd: jedna ze stron już posiada oferowany fragment mapy!");return{...tx,status:"rejected"};}
+      if(tx.responseItems&&!validateMapDuplicate(tx.from,tx.responseItems)){showMsg("Błąd: jedna ze stron już posiada oferowany fragment mapy!");return{...tx,status:"rejected"};}
     }
     setFd(fd2=>{var n={...fd2};var f={...n[tx.from],items:n[tx.from].items.slice(),cash:n[tx.from].cash};var t={...n[tx.to],items:n[tx.to].items.slice(),cash:n[tx.to].cash};if(tx.type==="sale"){f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);f.cash+=tx.price;t.cash-=tx.price;}else{f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);t.items=t.items.filter(i=>!tx.responseItems.find(r=>r.id===i.id));f.items=f.items.concat(tx.responseItems);if(tx.offeredCash>0){f.cash-=tx.offeredCash;t.cash+=tx.offeredCash;}if(tx.responseCash>0){t.cash-=tx.responseCash;f.cash+=tx.responseCash;}}n[tx.from]=f;n[tx.to]=t;return n;});return{...tx,status:"accepted"};}));showMsg("Operacja zrealizowana!");}
   function rejectTx(txId){setTxs(p=>p.map(t=>t.id===txId?{...t,status:"rejected"}:t));showMsg("Operacja odrzucona.");}
@@ -3114,7 +3151,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.5.4</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.6.2</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -3782,8 +3819,9 @@ function GameWrapper(){
 
   function handleJoin(roomCode,role,playerId,playerName){
     var url=new URL(window.location);
-    url.searchParams.set("room",roomCode);
-    url.searchParams.set("role",role);
+    url.searchParams.delete("room");url.searchParams.delete("role"); // cleanup old params
+    url.searchParams.set("s",roomCode);
+    url.searchParams.set("f",role);
     window.history.replaceState({},"",url);
     setGameInfo({roomCode,role,playerId:playerId||null,playerName:playerName||null});
   }
