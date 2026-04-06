@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.8.1</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.8.2</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -2282,10 +2282,10 @@ function SheriffPlanningTab({roomCode,lobbyPlayers,gameStarted,showMsg,db}){
       </div>
     </div>
     <div style={{marginTop:16}}>
-      {!gameStarted&&<button onClick={()=>{db.ref("rooms/"+roomCode+"/meta/status").set("playing");showMsg("Rozgrywka rozpoczęta!");}} disabled={connFam.length===0} style={{width:"100%",padding:"12px 20px",fontSize:15,fontFamily:"inherit",fontWeight:700,background:connFam.length>0?"#2E5B3C":"#C4B090",color:"#fff",border:"none",cursor:connFam.length>0?"pointer":"default"}}>
+      {!gameStarted&&<button onClick={()=>{db.ref("rooms/"+roomCode+"/meta/status").set("playing");showMsg("Rozgrywka rozpoczęta!");}} disabled={connFam.length===0} style={{width:"100%",padding:"12px 20px",fontSize:15,fontFamily:"inherit",fontWeight:700,background:connFam.length>0?"#2E5B3C":"#C4B090",color:"#fff",border:"none",cursor:connFam.length>0?"pointer":"not-allowed",opacity:connFam.length>0?1:0.6}}>
         {connFam.length===4?"Wpuść graczy (wszyscy gotowi)":"Wpuść graczy ("+connFam.length+"/4 rodzin)"}
       </button>}
-      {gameStarted&&<div style={{textAlign:"center",padding:"10px",background:"#E8F5E9",border:"1px solid #90C090",fontSize:13,color:"#2E5B3C",fontWeight:700}}>✓ Rozgrywka trwa</div>}
+      {gameStarted&&<div style={{textAlign:"center",padding:"12px 20px",background:"#2E5B3C",border:"none",fontSize:15,color:"#fff",fontWeight:700}}>✓ Gracze wpuszczeni — rozgrywka trwa</div>}
     </div>
   </div>);
 }
@@ -3688,29 +3688,33 @@ function App({roomCode,role,playerId,playerName}) {
     </div>}
 
     {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
-      {/* Belka rodziny z licznikiem gotówki */}
-      <div style={{position:"relative",width:"100%",marginBottom:12}}>
+      {/* Belka główna rodziny z licznikiem gotówki */}
+      <div style={{position:"relative",width:"100%"}}>
         <img src={IMG_BASE+"belka_"+familyId+".png"} style={{width:"100%",display:"block"}} alt=""/>
-        <div style={{position:"absolute",top:12,right:24,fontFamily:"'Aka Posse',Georgia,serif",fontSize:28,fontWeight:700,color:"#D4A853",background:"transparent"}}>{familyData.cash} $</div>
+        <div style={{position:"absolute",left:"83.67%",top:"50%",transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',Georgia,serif",fontSize:42,fontWeight:700,color:"#D4A853",background:"transparent"}}>{familyData.cash} $</div>
       </div>
-      <div style={{display:"flex",justifyContent:"flex-end",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
-        {!viewSheriff&&<div style={{display:"flex",gap:6}}>
-          <button style={btnS("primary")} onClick={()=>openTxForm("sale")}>Sprzedaż</button>
-          <button style={btnS("barter")} onClick={()=>openTxForm("barter")}>Barter</button>
-        </div>}
+      {/* Belka menu */}
+      <div style={{position:"relative",width:"100%",marginTop:8}}>
+        <img src={IMG_BASE+"belka_menu.png"} style={{width:"100%",display:"block"}} alt=""/>
+        {/* Menu wyśrodkowane: belka 1200x127.86, obramowanie 22px, więc środek w około 50% */}
+        <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",display:"flex",gap:4}}>
+          {[["tutorial","Witajcie w Kairoscity"],["inv","Majątek"],["map","Złotodajna Żyła"],["fate","Ślepy los"],["rev","Rewolwerowiec"],["rel","Budowanie relacji"],["results","Wyniki"]].map(t=>{
+            var act=activeTab===t[0];
+            var hidden=(t[0]==="rev"&&!revEnabled)||(t[0]==="fate"&&!fateEnabled)||(t[0]==="map"&&!mapEnabled);
+            if(hidden) return null;
+            var locked=(t[0]==="rel"&&!relationsUnlocked)||(t[0]==="results"&&!debriefUnlocked);
+            if(locked) return <div key={t[0]} style={{padding:"7px 16px",fontSize:13,fontWeight:400,background:"rgba(200,190,170,0.8)",color:"#8B7355",cursor:"not-allowed",opacity:0.6}}>{t[1]}</div>;
+            return <div key={t[0]} onClick={()=>setActiveTab(t[0])} style={{padding:"7px 16px",fontSize:13,fontWeight:act?700:400,background:act?"rgba(255,255,255,0.95)":"rgba(243,202,130,0.9)",color:act?"#842504":"#4C130F",cursor:"pointer",borderBottom:act?"2px solid #842504":"2px solid transparent"}}>{t[1]}</div>;
+          })}
+        </div>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:(activeTab==="inv"||activeTab==="tutorial")?"1fr 360px":"1fr",gap:20,alignItems:"start"}}>
+      {/* Przyciski transakcji */}
+      {!viewSheriff&&<div style={{display:"flex",justifyContent:"flex-end",alignItems:"center",marginTop:12,marginBottom:8,gap:6}}>
+        <button style={btnS("primary")} onClick={()=>openTxForm("sale")}>Sprzedaż</button>
+        <button style={btnS("barter")} onClick={()=>openTxForm("barter")}>Barter</button>
+      </div>}
+      <div style={{display:"grid",gridTemplateColumns:(activeTab==="inv"||activeTab==="tutorial")?"1fr 360px":"1fr",gap:20,alignItems:"start",marginTop:viewSheriff?12:0}}>
         <div>
-          <div style={{display:"flex",gap:4,marginBottom:14}}>
-            {[["tutorial","Witajcie w Kairoscity"],["inv","Majątek"],["map","Złotodajna Żyła"],["fate","Ślepy los"],["rev","Rewolwerowiec"],["rel","Budowanie relacji"],["results","Wyniki"]].map(t=>{
-              var act=activeTab===t[0];
-              var hidden=(t[0]==="rev"&&!revEnabled)||(t[0]==="fate"&&!fateEnabled)||(t[0]==="map"&&!mapEnabled);
-              if(hidden) return null;
-              var locked=(t[0]==="rel"&&!relationsUnlocked)||(t[0]==="results"&&resultsReveal===0);
-              if(locked) return <div key={t[0]} style={{padding:"7px 16px",borderRadius:"4px 4px 0 0",fontSize:13,fontWeight:400,background:"#E8E0D0",color:"#C4B090",cursor:"not-allowed",borderBottom:"2px solid transparent",opacity:0.5}}>{t[1]}</div>;
-              return <div key={t[0]} onClick={()=>setActiveTab(t[0])} style={{padding:"7px 16px",borderRadius:"4px 4px 0 0",fontSize:13,fontWeight:act?700:400,background:act?"#fff":"#F3CA82",color:act?"#842504":"#4C130F",cursor:"pointer",borderBottom:act?"2px solid #842504":"2px solid transparent"}}>{t[1]}</div>;
-            })}
-          </div>
           {activeTab==="tutorial"&&<InstructionSlides key={familyId} familyId={familyId} roomCode={roomCode} bnbEnabled={bnbEnabled}/>}
           {activeTab==="inv"&&(()=>{
             var f=FM[familyId];
@@ -3875,41 +3879,74 @@ function App({roomCode,role,playerId,playerName}) {
               </div>);})}
             </div>);
           })()}
-          {activeTab==="results"&&resultsReveal>=1&&(()=>{
-            var sc=calcScore(familyId,fd,plotPenalties,biznesNaBoku,bnbEnabled,blindFate);
-            var relS=calcRelationScore(familyId,relations);
-            var total=Math.round((sc.bizTotal+relS)*10)/10;
-            return (<div>
-              <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
-                <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Wyniki rozgrywki</div>
+          {activeTab==="results"&&debriefUnlocked&&(()=>{
+            // Oblicz wyniki dla wszystkich rodzin
+            var F=["adams","bennet","clinton","dexter"];
+            var FN={adams:"Adamsowie",bennet:"Bennetowie",clinton:"Clintonowie",dexter:"Dexterowie"};
+            var FC={adams:"#A75F4A",bennet:"#726072",clinton:"#5E5971",dexter:"#5B7674"};
+            var TASKS={
+              adams:{name:"Saloon",zasoby:[{id:"stara-destylarnia",pct:30},{id:"pianino",pct:20},{id:"kredens",pct:20},{id:"debowa-beczka",pct:10},{id:"talia-kart",pct:10},{id:"mosiezny-zyrandol",pct:5},{id:"zeliwny-kociolek",pct:5}],kompetencje:[{id:"turnieje-pokera",pct:43},{id:"pedzenie-whisky",pct:27},{id:"kuchnia-zbiorowa",pct:18},{id:"przechowywanie-piwa",pct:12}]},
+              bennet:{name:"Zakład Pogrzebowy",zasoby:[{id:"szpadel",pct:30},{id:"czarny-material",pct:20},{id:"dluto-do-kamienia",pct:20},{id:"zestaw-narzedzi",pct:10},{id:"drewniany-wozek",pct:10},{id:"zestaw-wizazysty",pct:5},{id:"podest-dla-mowcy",pct:5}],kompetencje:[{id:"balsamowanie",pct:43},{id:"mowy-pogrzebowe",pct:27},{id:"makijaz-posmiertny",pct:18},{id:"stolarstwo",pct:12}]},
+              clinton:{name:"Bank",zasoby:[{id:"sejf",pct:30},{id:"liczydlo",pct:20},{id:"karabin",pct:20},{id:"stalowe-drzwi",pct:10},{id:"kasetka",pct:10},{id:"lupa",pct:5},{id:"waga-jubilerska",pct:5}],kompetencje:[{id:"bezpieczenstwo",pct:43},{id:"zamek-szyfrowy",pct:27},{id:"liczydlo-obsluga",pct:18},{id:"ocena-samorodkow",pct:12}]},
+              dexter:{name:"Ranczo",zasoby:[{id:"lasso",pct:30},{id:"siodlo",pct:20},{id:"colt-navy",pct:20},{id:"wysokie-buty",pct:10},{id:"manierka",pct:10},{id:"kapelusz",pct:5},{id:"pas-z-kabura",pct:5}],kompetencje:[{id:"lasso-poslugiwanie",pct:43},{id:"leczenie-bydla",pct:27},{id:"szybkostrzelnosc",pct:18},{id:"zrodla-wody",pct:12}]}
+            };
+            var CATS=["zasoby","kompetencje","gotowka","dzialka","mapa","relacje"];
+            function calcFamScore(f){
+              var fam=fd[f]||{};var items=fam.items||[];var task=TASKS[f];
+              var resIds=items.filter(i=>i.cat==="res").map(r=>r.id);
+              var resPct=task.zasoby.reduce((s,z)=>s+(resIds.includes(z.id)?z.pct:0),0);
+              var resPts=Math.round((resPct/100)*30);
+              var compIds=items.filter(i=>i.cat==="comp").map(c=>c.id);
+              var compPct=task.kompetencje.reduce((s,k)=>s+(compIds.includes(k.id)?k.pct:0),0);
+              var compPts=Math.round((compPct/100)*25);
+              var cash=fam.cash||600;
+              var cashPts=Math.max(0,Math.min(25,Math.round(((cash-600)/600)*25)));
+              var plots=items.filter(i=>i.cat==="plot");
+              var plotOk=plots.some(p=>p.plotNr===FM[f].tPlot);
+              var plotPts=plotOk?10:0;
+              var mapFrags=items.filter(i=>i.cat==="map").length;
+              var mapPts=Math.min(10,mapFrags*2);
+              var relPts=0;
+              if(relations){var relSum=0,relCnt=0;F.filter(o=>o!==f).forEach(o=>{var key=o+"-"+f;if(relations[key]){relSum+=relations[key];relCnt++;}});if(relCnt>0)relPts=Math.round((relSum/relCnt)*4);}
+              return {zasoby:resPts,kompetencje:compPts,gotowka:cashPts,dzialka:plotPts,mapa:mapPts,relacje:relPts};
+            }
+            var scores={};F.forEach(f=>{scores[f]=calcFamScore(f);});
+            function tot(f){return CATS.reduce((s,c)=>s+(scores[f][c]||0),0);}
+            var ranked=[...F].sort((a,b)=>tot(b)-tot(a));
+            var myRank=ranked.indexOf(familyId)+1;
+            var myScore=tot(familyId);
+            return (<div style={{background:"#fff",padding:16,borderRadius:6}}>
+              <div style={{fontSize:20,fontWeight:700,color:"#842504",marginBottom:16,borderBottom:"2px solid #842504",paddingBottom:8}}>Wyniki rozgrywki</div>
+              {/* Ranking */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:20}}>
+                {ranked.map((f,i)=>{
+                  var pts=tot(f);
+                  var medal=i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
+                  var isMe=f===familyId;
+                  return <div key={f} style={{padding:10,borderRadius:6,background:FC[f],color:"#fff",textAlign:"center",border:isMe?"3px solid #D4A853":"3px solid transparent"}}>
+                    <div style={{fontSize:11,opacity:0.8}}>{i+1}. miejsce {medal}</div>
+                    <div style={{fontFamily:"'Aka Posse',Georgia,serif",fontSize:20,fontWeight:700,margin:"4px 0"}}>{pts} pkt</div>
+                    <div style={{fontSize:12,opacity:0.9}}>{FN[f]}</div>
+                  </div>;
+                })}
               </div>
-              <div style={{background:"#FFF8E7",border:"1px solid #D4C870",borderRadius:6,padding:16}}>
-              <div style={{background:"#fff",border:"1px solid #D4C4A8",borderRadius:6,padding:14,marginBottom:12}}>
-                <div style={{fontSize:14,fontWeight:700,color:"#8B7355",marginBottom:8}}>Biznes</div>
-                <div style={{fontSize:13,color:"#5C4A3A",lineHeight:2}}>
-                  <div>Zasoby: <b>{sc.resPct}%</b> \u2192 <b>{sc.resScore} pkt</b> <span style={{color:"#A89070"}}>(max 30)</span>{bnbEnabled&&sc.bnbKurier>0&&<span style={{fontSize:13,color:"#8B2500"}}> Kurier ×{sc.bnbKurier}: +{sc.bnbKurier*4}%</span>}</div>
-                  <div>Kompetencje: <b>{sc.compPct}%</b> \u2192 <b>{sc.compScore} pkt</b> <span style={{color:"#A89070"}}>(max 25)</span>{bnbEnabled&&sc.bnbMikstura>0&&<span style={{fontSize:13,color:"#8B4513"}}> Mikstura ×{sc.bnbMikstura}: +{sc.bnbMikstura*4}%</span>}</div>
-                  <div>Gotówka: <b>{sc.cash} $</b>{bnbEnabled&&sc.bnbObligacje>0?<span style={{fontSize:13,color:"#4A3B6B"}}> (Obligacje ×{sc.bnbObligacje}: +{sc.bnbObligacje*20}% → {sc.cashForScore} $)</span>:""} \u2192 <b>{sc.cashScore} pkt</b> <span style={{color:"#A89070"}}>(max 25)</span></div>
-                  <div>Działka: {sc.plotOk?"właściwa":"niewłaściwa"} \u2192 <b>{sc.plotScore} pkt</b> <span style={{color:"#A89070"}}>(max 10)</span></div>
-                  <div>Mapa: <b>{sc.mapScore} pkt</b> <span style={{color:"#A89070"}}>(max 10)</span></div>
-                  {sc.bnb>0&&<div>Biznes na boku: <b>{sc.bnb} pkt</b>{bnbEnabled&&sc.bnbKwatera>0&&<span style={{fontSize:13,color:"#2E5B3C"}}> (Kwatera ×{sc.bnbKwatera})</span>}</div>}
+              {/* Szczegóły mojej rodziny */}
+              <div style={{background:"#FFF8E7",border:"1px solid #D4C870",borderRadius:6,padding:14}}>
+                <div style={{fontSize:14,fontWeight:700,color:FC[familyId],marginBottom:10}}>Twoje wyniki — {FN[familyId]}</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,fontSize:13}}>
+                  <div>Zasoby: <b>{scores[familyId].zasoby}</b>/30 pkt</div>
+                  <div>Kompetencje: <b>{scores[familyId].kompetencje}</b>/25 pkt</div>
+                  <div>Gotówka: <b>{scores[familyId].gotowka}</b>/25 pkt</div>
+                  <div>Działka: <b>{scores[familyId].dzialka}</b>/10 pkt</div>
+                  <div>Mapa: <b>{scores[familyId].mapa}</b>/10 pkt</div>
+                  <div>Relacje: <b>{scores[familyId].relacje}</b>/20 pkt</div>
                 </div>
-                <div style={{marginTop:8,padding:8,background:"#F0EBE0",borderRadius:4,textAlign:"center"}}><div style={{fontSize:18,fontWeight:700,color:"#5C4A3A"}}>{sc.bizTotal} pkt</div></div>
+                <div style={{marginTop:12,padding:10,background:FC[familyId],borderRadius:6,textAlign:"center"}}>
+                  <div style={{fontSize:12,color:"rgba(255,255,255,0.8)"}}>SUMA</div>
+                  <div style={{fontSize:24,fontWeight:700,color:"#fff"}}>{myScore} pkt</div>
+                </div>
               </div>
-              {resultsReveal>=2&&<div style={{background:"#fff",border:"1px solid #D4C4A8",borderRadius:6,padding:14,marginBottom:12}}>
-                <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:8}}>Budowanie długoterminowych relacji</div>
-                <div style={{fontSize:13,color:"#5C4A3A",lineHeight:2}}>
-                  {FO.filter(r=>r!==familyId).map(rater=>{var r=relations[rater]&&relations[rater][familyId];var sum=r?((r.partnership||0)+(r.rules||0)+(r.communication||0)):0;
-                    return <div key={rater}>Od rodziny {FM[rater].gen}: <b>{sum} \u2605</b> \u2192 <b>{Math.round(sum*2/3*10)/10} pkt</b></div>;
-                  })}
-                </div>
-                <div style={{marginTop:8,padding:8,background:"#FFF8E7",borderRadius:4,textAlign:"center"}}><div style={{fontSize:18,fontWeight:700,color:"#842504"}}>{relS} pkt</div></div>
-              </div>}
-              {resultsReveal>=3&&<div style={{padding:12,background:FM[familyId].col,borderRadius:6,textAlign:"center"}}>
-                <div style={{fontSize:13,color:"rgba(255,255,255,0.85)",marginBottom:4}}>WYNIK KOŃCOWY</div>
-                <div style={{fontSize:28,fontWeight:700,color:"#fff"}}>{total} pkt</div>
-              </div>}
-            </div></div>);
+            </div>);
           })()}
           {activeTab==="rev"&&revEnabled&&(()=>{
             var rc=revActive.find(d=>d.familyA===familyId||d.familyB===familyId)||revCurrent;
