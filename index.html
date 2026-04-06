@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.8.2</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.8.4</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -2269,12 +2269,6 @@ function SheriffPlanningTab({roomCode,lobbyPlayers,gameStarted,showMsg,db}){
                   <span style={{fontSize:13,fontWeight:hasM?700:400,color:hasM?FM[fId].col:"#C4B090"}}>{FM[fId].nom}</span>
                   <span style={{fontSize:12,marginLeft:"auto",color:hasM?"#2E5B3C":"#C4B090"}}>{hasM?(onlCnt+" online"):"oczekiwanie..."}</span>
                 </div>
-                {hasM&&<div style={{marginTop:4,paddingLeft:16,display:"flex",flexWrap:"wrap",gap:"4px 10px"}}>
-                  {members.map(m=>(<span key={m.id} style={{fontSize:12,display:"flex",alignItems:"center",gap:4}}>
-                    <span style={{width:6,height:6,borderRadius:"50%",background:isOnlineMember(m)?"#2E5B3C":"#C4B090",display:"inline-block"}}/>
-                    {m.name}
-                  </span>))}
-                </div>}
               </div>);
             })}
           </div>
@@ -3697,23 +3691,20 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{position:"relative",width:"100%",marginTop:8}}>
         <img src={IMG_BASE+"belka_menu.png"} style={{width:"100%",display:"block"}} alt=""/>
         {/* Menu wyśrodkowane: belka 1200x127.86, obramowanie 22px, więc środek w około 50% */}
-        <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",display:"flex",gap:4}}>
-          {[["tutorial","Witajcie w Kairoscity"],["inv","Majątek"],["map","Złotodajna Żyła"],["fate","Ślepy los"],["rev","Rewolwerowiec"],["rel","Budowanie relacji"],["results","Wyniki"]].map(t=>{
+        <div style={{position:"absolute",top:"50%",left:24,transform:"translateY(-50%)",display:"flex",alignItems:"center"}}>
+          {[["tutorial","Witajcie w Kairoscity"],["inv","Majątek"],["map","Złotodajna Żyła"],["fate","Ślepy los"],["rev","Rewolwerowiec"],["rel","Budowanie relacji"],["results","Wyniki"]].map((t,idx,arr)=>{
             var act=activeTab===t[0];
             var hidden=(t[0]==="rev"&&!revEnabled)||(t[0]==="fate"&&!fateEnabled)||(t[0]==="map"&&!mapEnabled);
             if(hidden) return null;
             var locked=(t[0]==="rel"&&!relationsUnlocked)||(t[0]==="results"&&!debriefUnlocked);
-            if(locked) return <div key={t[0]} style={{padding:"7px 16px",fontSize:13,fontWeight:400,background:"rgba(200,190,170,0.8)",color:"#8B7355",cursor:"not-allowed",opacity:0.6}}>{t[1]}</div>;
-            return <div key={t[0]} onClick={()=>setActiveTab(t[0])} style={{padding:"7px 16px",fontSize:13,fontWeight:act?700:400,background:act?"rgba(255,255,255,0.95)":"rgba(243,202,130,0.9)",color:act?"#842504":"#4C130F",cursor:"pointer",borderBottom:act?"2px solid #842504":"2px solid transparent"}}>{t[1]}</div>;
+            if(locked) return null;
+            var visibleItems=arr.filter(x=>!((x[0]==="rev"&&!revEnabled)||(x[0]==="fate"&&!fateEnabled)||(x[0]==="map"&&!mapEnabled)||(x[0]==="rel"&&!relationsUnlocked)||(x[0]==="results"&&!debriefUnlocked)));
+            var isLast=visibleItems[visibleItems.length-1][0]===t[0];
+            return <div key={t[0]} onClick={()=>setActiveTab(t[0])} style={{padding:"7px 12px",fontFamily:"'Aka Posse',Georgia,serif",fontSize:15,fontWeight:act?700:400,background:act?"rgba(212,168,83,0.25)":"transparent",color:act?"#F5ECD0":"#D4A853",cursor:"pointer",borderRight:isLast?"none":"1px solid rgba(212,168,83,0.4)"}}>{t[1]}</div>;
           })}
         </div>
       </div>
-      {/* Przyciski transakcji */}
-      {!viewSheriff&&<div style={{display:"flex",justifyContent:"flex-end",alignItems:"center",marginTop:12,marginBottom:8,gap:6}}>
-        <button style={btnS("primary")} onClick={()=>openTxForm("sale")}>Sprzedaż</button>
-        <button style={btnS("barter")} onClick={()=>openTxForm("barter")}>Barter</button>
-      </div>}
-      <div style={{display:"grid",gridTemplateColumns:(activeTab==="inv"||activeTab==="tutorial")?"1fr 360px":"1fr",gap:20,alignItems:"start",marginTop:viewSheriff?12:0}}>
+      <div style={{display:"grid",gridTemplateColumns:(activeTab==="inv"||activeTab==="tutorial")?"1fr 360px":"1fr",gap:20,alignItems:"start",marginTop:12}}>
         <div>
           {activeTab==="tutorial"&&<InstructionSlides key={familyId} familyId={familyId} roomCode={roomCode} bnbEnabled={bnbEnabled}/>}
           {activeTab==="inv"&&(()=>{
@@ -3735,16 +3726,16 @@ function App({roomCode,role,playerId,playerName}) {
             // Cash
             var cashVal=familyData.cash;
             var cashPoints=Math.round(((cashVal-600)/600)*25);
-            var taskBg={background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10};
+            var taskBg={padding:"8px 14px",marginBottom:10};
             return (<div key={familyId}>
             {/* --- ZASOBY --- */}
             <div style={taskBg}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt"><span style={{flex:1}}>Pozyskanie zasobów do prowadzenia przedsiębiorstwa</span>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderLeft:"4px solid #842504",paddingLeft:12,paddingBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}} className="wt"><span style={{flex:1,textAlign:"center"}}>Pozyskanie zasobów do prowadzenia przedsiębiorstwa</span>
                 <InfoPopup title="ZASOBY — max 30 pkt" wide>
                   <img src={IMG_BASE+"instrukcja_zasoby-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — zasoby"/>
                 </InfoPopup>
               </div>
-              <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
+              <div style={{display:"flex",gap:16,marginTop:6,fontSize:14,justifyContent:"center"}}>
                 <span>Udokumentowany postęp: <b>{docResPct}%</b></span>
                 <span>Liczba punktów: <b>{resPoints}</b> <span style={{color:"#A89070"}}>(max 30)</span></span>
               </div>
@@ -3753,19 +3744,19 @@ function App({roomCode,role,playerId,playerName}) {
               {familyView.mergedRes.map(({item,note})=><ResourceCard key={item.id} item={item} note={note} isSheriff={viewSheriff}/>)}
             </div>
             {familyView.orphanNR.length>0&&<div>
-              <div style={{fontSize:22,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,marginTop:4}} className="wt">Notatki dziadka — informacje o zasobach</div>
+              <div style={{fontSize:22,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,marginTop:4,textAlign:"center"}} className="wt">Notatki dziadka — informacje o zasobach</div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,marginBottom:20}}>
                 {familyView.orphanNR.map(n=><NoteCard key={n.id} item={n} type="res"/>)}
               </div>
             </div>}
             {/* --- KOMPETENCJE --- */}
             <div style={taskBg}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt"><span style={{flex:1}}>Pozyskanie kompetencji do prowadzenia przedsiębiorstwa</span>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderLeft:"4px solid #842504",paddingLeft:12,paddingBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}} className="wt"><span style={{flex:1,textAlign:"center"}}>Pozyskanie kompetencji do prowadzenia przedsiębiorstwa</span>
                 <InfoPopup title="KOMPETENCJE — max 25 pkt" wide>
                   <img src={IMG_BASE+"instrukcja_kompetencje-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — kompetencje"/>
                 </InfoPopup>
               </div>
-              <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
+              <div style={{display:"flex",gap:16,marginTop:6,fontSize:14,justifyContent:"center"}}>
                 <span>Udokumentowany postęp: <b>{docCompPct}%</b></span>
                 <span>Liczba punktów: <b>{compPoints}</b> <span style={{color:"#A89070"}}>(max 25)</span></span>
               </div>
@@ -3774,7 +3765,7 @@ function App({roomCode,role,playerId,playerName}) {
               {familyView.mergedComp.map(({item,note})=><CompCard key={item.id} item={item} note={note} isSheriff={viewSheriff}/>)}
             </div>
             {familyView.orphanNK.length>0&&<div>
-              <div style={{fontSize:22,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,marginTop:4}} className="wt">Notatki dziadka — informacje o kompetencjach</div>
+              <div style={{fontSize:22,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,marginTop:4,textAlign:"center"}} className="wt">Notatki dziadka — informacje o kompetencjach</div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,marginBottom:20}}>
                 {familyView.orphanNK.map(n=><NoteCard key={n.id} item={n} type="comp"/>)}
               </div>
@@ -4097,6 +4088,11 @@ function App({roomCode,role,playerId,playerName}) {
           })()}
         </div>
         {(activeTab==="inv"||activeTab==="tutorial")&&<div>
+          {/* Przyciski transakcji */}
+          {!viewSheriff&&<div style={{display:"flex",gap:6,marginBottom:12}}>
+            <button style={{...btnS("primary"),flex:1}} onClick={()=>openTxForm("sale")}>Sprzedaż</button>
+            <button style={{...btnS("barter"),flex:1}} onClick={()=>openTxForm("barter")}>Barter</button>
+          </div>}
           {!viewSheriff&&<div style={{marginBottom:16}}>
             {(()=>{var myWaiting=sheriffCalls.filter(c=>c.fId===cf&&c.status==="waiting");var hasWaiting=myWaiting.length>0;
               return(<div>
