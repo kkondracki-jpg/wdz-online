@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.6.2</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.7.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -31,6 +31,12 @@
     .cw{border-radius:5px;overflow:hidden;cursor:default;transition:all 0.15s;position:relative}
     .cw.sel{box-shadow:0 0 0 3px #D4A853}
     .cw:hover{transform:translateY(-2px);box-shadow:0 2px 8px rgba(0,0,0,0.15)}
+    /* STICKY NOTE (przypinka na karcie) */
+    .sticky-note{position:absolute;bottom:-4px;left:6px;transform:rotate(-5deg);z-index:5;pointer-events:none}
+    .sticky-pin{position:absolute;top:-6px;left:50%;transform:translateX(-50%);z-index:6}
+    .sticky-body{background:linear-gradient(135deg,#F4E4C8 0%,#EED9B6 50%,#E8D4B0 100%);border-radius:2px;padding:6px 8px 4px;box-shadow:2px 3px 6px rgba(0,0,0,0.25);border:0.5px solid #C4A882;min-width:52px;text-align:center}
+    .sticky-biz{width:32px;height:32px;display:block;margin:0 auto 2px}
+    .sticky-pct{font-size:13px;font-weight:700;color:#5C3D2E;text-shadow:0 0.5px 0 rgba(255,255,255,0.4)}
     /* 3D DICE */
     .dice-scene{width:56px;height:56px;perspective:300px;display:inline-block}
     .dice-cube{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 0.1s}
@@ -418,7 +424,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.6.2</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.7.0</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -546,7 +552,7 @@ function Lobby({onJoin}){
 /* ========== CARD IMAGES (loaded from img/ folder) ========== */
 const IMG_BASE = "img/";
 function toSlug(s){return s.toLowerCase().replace(/ą/g,'a').replace(/ć/g,'c').replace(/ę/g,'e').replace(/ł/g,'l').replace(/ń/g,'n').replace(/ó/g,'o').replace(/ś/g,'s').replace(/ź/g,'z').replace(/ż/g,'z').replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');}
-function imgUrl(prefix,name){return IMG_BASE+prefix+'_'+toSlug(name)+'.jpg';}
+function imgUrl(prefix,name){var ext=(prefix==="res")?".png":".jpg";return IMG_BASE+prefix+'_'+toSlug(name)+ext;}
 function mapImgUrl(n){return IMG_BASE+'map_fragment-'+n+'.jpg';}
 
 /* ========== REVOLVER IMAGES ========== */
@@ -971,18 +977,18 @@ function buildView(items) {
   var nRes=items.filter(i=>i.cat===C_NRES), nComp=items.filter(i=>i.cat===C_NCOMP);
   var plots=items.filter(i=>i.cat===C_PLOT), maps=items.filter(i=>i.cat===C_MAP);
   var usedNR={};
-  // MERGED CARDS DISABLED — aby przywrócić, usuń "false&&" poniżej
+  // Scalanie: zasób + notatka dziadka (tylko jeśli ten sam forBiz = zasób docelowy)
   var mergedRes=resources.map(r=>{
-    var m=nRes.find(n=>n.name===r.name&&!usedNR[n.id]);
-    if(false&&m) usedNR[m.id]=true;
-    return {item:r, note:null/*m||null*/};
+    var m=nRes.find(n=>n.name===r.name&&n.forBiz===r.forBiz&&!usedNR[n.id]);
+    if(m) usedNR[m.id]=true;
+    return {item:r, note:m||null};
   });
   var orphanNR=nRes.filter(n=>!usedNR[n.id]);
   var usedNK={};
   var mergedComp=comps.map(k=>{
-    var m=nComp.find(n=>n.name===k.name&&!usedNK[n.id]);
-    if(false&&m) usedNK[m.id]=true;
-    return {item:k, note:null/*m||null*/};
+    var m=nComp.find(n=>n.name===k.name&&n.forBiz===k.forBiz&&!usedNK[n.id]);
+    if(m) usedNK[m.id]=true;
+    return {item:k, note:m||null};
   });
   var orphanNK=nComp.filter(n=>!usedNK[n.id]);
   return {mergedRes, orphanNR, mergedComp, orphanNK, plots, maps};
@@ -1299,22 +1305,35 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
 
 /* ========== RESOURCE CARD ========== */
 function ResourceCard({item, note, selected, onClick, compact, isSheriff, textOnly}) {
-  var merged=!!note, isBl=item.blind;
-  var mergedSrc=merged?imgUrl("merged-res",item.name):null;
+  var hasPin=!!note, isBl=item.blind;
   var resSrc=imgUrl("res",item.name);
-  var imgSrc=merged?mergedSrc:resSrc;
   const [imgOk,setImgOk]=useState(true);
+
+  // Przypinka — tylko gdy note istnieje (zasób docelowy + notatka dziadka)
+  var stickyNote=hasPin?(<div className="sticky-note">
+    <svg className="sticky-pin" viewBox="0 0 24 24" width="18" height="18">
+      <circle cx="12" cy="8" r="6" fill="#8B4513"/>
+      <circle cx="12" cy="8" r="4.5" fill="#CD853F"/>
+      <circle cx="12" cy="6.5" r="2" fill="#DEB887"/>
+      <ellipse cx="12" cy="10" rx="3" ry="1" fill="rgba(0,0,0,0.15)"/>
+    </svg>
+    <div className="sticky-body">
+      <img src={IMG_BASE+"biz_"+toSlug(note.forBiz)+".png"} className="sticky-biz" alt={note.forBiz}/>
+      <div className="sticky-pct wt">{note.weight}%</div>
+    </div>
+  </div>):null;
 
   if(imgOk && !compact && !textOnly) {
     return (<div onClick={onClick} className={"cw"+(selected?" sel":"")} style={{cursor:onClick?"pointer":"default"}}>
-      <img src={imgSrc} className="ci" alt={item.name} onError={()=>setImgOk(false)}/>
+      <img src={resSrc} className="ci" alt={item.name} onError={()=>setImgOk(false)}/>
       {selected&&<div style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700,textShadow:"0 0 3px #fff"}}>V</div>}
       {isBl&&isSheriff&&<div style={{position:"absolute",bottom:4,left:4,fontSize:13,color:"#fff",fontWeight:700,background:"#B44",padding:"1px 5px",borderRadius:3}}>ZMYŁKA</div>}
+      {stickyNote}
     </div>);
   }
 
-  var borderCol=merged?"#90A868":isBl&&isSheriff?"#C09090":"#C4B090";
-  var bgCol=selected?"#FFF8E7":merged?"#F8FAF4":isBl&&isSheriff?"#FFF5F5":"#FDFAF4";
+  var borderCol=hasPin?"#90A868":isBl&&isSheriff?"#C09090":"#C4B090";
+  var bgCol=selected?"#FFF8E7":hasPin?"#F8FAF4":isBl&&isSheriff?"#FFF5F5":"#FDFAF4";
   return (<div onClick={onClick} style={{borderRadius:"5px",position:"relative",border:selected?"2px solid #D4A853":"1px solid "+borderCol,background:bgCol,cursor:onClick?"pointer":"default",transition:"all 0.15s",overflow:"hidden"}}>
     <div style={{padding:compact?"8px 10px":"10px 12px"}}>
       {selected&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
@@ -1322,25 +1341,40 @@ function ResourceCard({item, note, selected, onClick, compact, isSheriff, textOn
       {isBl&&isSheriff&&<div style={{fontSize:14,color:"#B44",fontWeight:700,marginTop:2}}>ZMYŁKA</div>}
       <div style={{fontSize:14,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A08050",marginTop:3}}>ZASÓB</div>
     </div>
-    {merged&&<div style={{background:"#EEF2E6",borderTop:"1px dashed #B0C090",padding:compact?"4px 10px":"6px 12px",fontSize:14,color:"#5A6B40"}}><b>{note.forBiz}</b> — <b>{note.weight}%</b></div>}
+    {hasPin&&<div style={{background:"#EEF2E6",borderTop:"1px dashed #B0C090",padding:compact?"4px 10px":"6px 12px",fontSize:14,color:"#5A6B40"}}><b>{note.forBiz}</b> — <b>{note.weight}%</b></div>}
   </div>);
 }
 
 /* ========== COMPETENCY CARD ========== */
 function CompCard({item, note, selected, onClick, compact, isSheriff, textOnly}) {
-  var merged=!!note, isBl=item.blind;
-  var imgSrc=merged?imgUrl("merged-comp",item.name):imgUrl("comp",item.name);
+  var hasPin=!!note, isBl=item.blind;
+  var compSrc=imgUrl("comp",item.name);
   const [imgOk,setImgOk]=useState(!textOnly);
+
+  // Przypinka — tylko gdy note istnieje (kompetencja docelowa + notatka dziadka)
+  var stickyNote=hasPin?(<div className="sticky-note">
+    <svg className="sticky-pin" viewBox="0 0 24 24" width="18" height="18">
+      <circle cx="12" cy="8" r="6" fill="#8B4513"/>
+      <circle cx="12" cy="8" r="4.5" fill="#CD853F"/>
+      <circle cx="12" cy="6.5" r="2" fill="#DEB887"/>
+      <ellipse cx="12" cy="10" rx="3" ry="1" fill="rgba(0,0,0,0.15)"/>
+    </svg>
+    <div className="sticky-body">
+      <img src={IMG_BASE+"biz_"+toSlug(note.forBiz)+".png"} className="sticky-biz" alt={note.forBiz}/>
+      <div className="sticky-pct wt">{note.weight}%</div>
+    </div>
+  </div>):null;
 
   if(imgOk && !compact && !textOnly) {
     return (<div onClick={onClick} className={"cw"+(selected?" sel":"")} style={{cursor:onClick?"pointer":"default"}}>
-      <img src={imgSrc} className="ci" alt={item.name} onError={()=>setImgOk(false)}/>
+      <img src={compSrc} className="ci" alt={item.name} onError={()=>setImgOk(false)}/>
       {selected&&<div style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700,textShadow:"0 0 3px #fff"}}>V</div>}
       {isBl&&isSheriff&&<div style={{position:"absolute",bottom:4,left:4,fontSize:13,color:"#fff",fontWeight:700,background:"#B44",padding:"1px 5px",borderRadius:3}}>ZMYŁKA</div>}
+      {stickyNote}
     </div>);
   }
-  var borderCol=merged?"#7090B8":isBl&&isSheriff?"#C09090":"#A0B4C4";
-  var bgCol=selected?"#FFF8E7":merged?"#F4F6FA":isBl&&isSheriff?"#FFF5F5":"#F4F8FC";
+  var borderCol=hasPin?"#7090B8":isBl&&isSheriff?"#C09090":"#A0B4C4";
+  var bgCol=selected?"#FFF8E7":hasPin?"#F4F6FA":isBl&&isSheriff?"#FFF5F5":"#F4F8FC";
   return (<div onClick={onClick} style={{borderRadius:"5px",position:"relative",border:selected?"2px solid #D4A853":"1px solid "+borderCol,background:bgCol,cursor:onClick?"pointer":"default",transition:"all 0.15s",overflow:"hidden"}}>
     <div style={{padding:compact?"8px 10px":"10px 12px"}}>
       {selected&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
@@ -1351,7 +1385,7 @@ function CompCard({item, note, selected, onClick, compact, isSheriff, textOnly})
       </div>}
       <div style={{fontSize:14,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#6090B0",marginTop:3}}>KOMPETENCJA</div>
     </div>
-    {merged&&<div style={{background:"#E4EAF4",borderTop:"1px dashed #90A8C8",padding:compact?"4px 10px":"6px 12px",fontSize:14,color:"#40506B"}}><b>{note.forBiz}</b> — <b>{note.weight}%</b></div>}
+    {hasPin&&<div style={{background:"#E4EAF4",borderTop:"1px dashed #90A8C8",padding:compact?"4px 10px":"6px 12px",fontSize:14,color:"#40506B"}}><b>{note.forBiz}</b> — <b>{note.weight}%</b></div>}
   </div>);
 }
 
@@ -3151,7 +3185,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.6.2</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.7.0</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
