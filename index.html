@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.7.0</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.7.1</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -27,12 +27,12 @@
     @keyframes fadeIn{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
     @keyframes cardRevealFade{0%{opacity:0;transform:scale(0.95)}100%{opacity:1;transform:scale(1)}}
     .card-reveal{animation:cardRevealFade 0.6s ease-out}
-    .ci{width:100%;height:auto;display:block;border-radius:4px}
-    .cw{border-radius:5px;overflow:hidden;cursor:default;transition:all 0.15s;position:relative}
+    .ci{width:100%;height:auto;display:block}
+    .cw{overflow:hidden;cursor:default;transition:all 0.15s;position:relative}
     .cw.sel{box-shadow:0 0 0 3px #D4A853}
     .cw:hover{transform:translateY(-2px);box-shadow:0 2px 8px rgba(0,0,0,0.15)}
     /* STICKY NOTE (przypinka na karcie) */
-    .sticky-note{position:absolute;bottom:-4px;left:6px;transform:rotate(-5deg);z-index:5;pointer-events:none}
+    .sticky-note{position:absolute;bottom:6px;left:6px;transform:rotate(-5deg);z-index:5;pointer-events:none}
     .sticky-pin{position:absolute;top:-6px;left:50%;transform:translateX(-50%);z-index:6}
     .sticky-body{background:linear-gradient(135deg,#F4E4C8 0%,#EED9B6 50%,#E8D4B0 100%);border-radius:2px;padding:6px 8px 4px;box-shadow:2px 3px 6px rgba(0,0,0,0.25);border:0.5px solid #C4A882;min-width:52px;text-align:center}
     .sticky-biz{width:32px;height:32px;display:block;margin:0 auto 2px}
@@ -424,7 +424,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.7.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.7.1</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -972,25 +972,22 @@ const BLIND_FATE_EVENTS = {
 };
 
 /* ========== MERGE LOGIC ========== */
-function buildView(items) {
+function buildView(items, targetBiz) {
   var resources=items.filter(i=>i.cat===C_RES), comps=items.filter(i=>i.cat===C_COMP);
   var nRes=items.filter(i=>i.cat===C_NRES), nComp=items.filter(i=>i.cat===C_NCOMP);
   var plots=items.filter(i=>i.cat===C_PLOT), maps=items.filter(i=>i.cat===C_MAP);
-  var usedNR={};
-  // Scalanie: zasób + notatka dziadka (tylko jeśli ten sam forBiz = zasób docelowy)
+  // Scalanie: zasób + notatka dziadka (TYLKO jeśli zasób jest docelowy dla tej rodziny)
   var mergedRes=resources.map(r=>{
-    var m=nRes.find(n=>n.name===r.name&&n.forBiz===r.forBiz&&!usedNR[n.id]);
-    if(m) usedNR[m.id]=true;
+    var m=(r.forBiz===targetBiz)?nRes.find(n=>n.name===r.name&&n.forBiz===r.forBiz):null;
     return {item:r, note:m||null};
   });
-  var orphanNR=nRes.filter(n=>!usedNR[n.id]);
-  var usedNK={};
+  // Notatki dziadka — zawsze wyświetlaj wszystkie (nie usuwaj po scaleniu)
+  var orphanNR=nRes;
   var mergedComp=comps.map(k=>{
-    var m=nComp.find(n=>n.name===k.name&&n.forBiz===k.forBiz&&!usedNK[n.id]);
-    if(m) usedNK[m.id]=true;
+    var m=(k.forBiz===targetBiz)?nComp.find(n=>n.name===k.name&&n.forBiz===k.forBiz):null;
     return {item:k, note:m||null};
   });
-  var orphanNK=nComp.filter(n=>!usedNK[n.id]);
+  var orphanNK=nComp;
   return {mergedRes, orphanNR, mergedComp, orphanNK, plots, maps};
 }
 
@@ -1129,14 +1126,14 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
       }
     });
     db.ref("rooms/"+roomCode+"/instructionCompleted/"+familyId).once("value").then(snap=>{
-      if(snap.val()===true){setAllCompleted(true);setMaxVisited(7);}
+      if(snap.val()===true){setAllCompleted(true);setMaxVisited(8);}
     });
   },[familyId,roomCode]);
 
   // Track max visited page
   useEffect(()=>{
     if(page>maxVisited) setMaxVisited(page);
-    if(page===7&&!allCompleted&&db&&roomCode){
+    if(page===8&&!allCompleted&&db&&roomCode){
       setAllCompleted(true);
       db.ref("rooms/"+roomCode+"/instructionCompleted/"+familyId).set(true);
     }
@@ -1161,8 +1158,8 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
     }).catch(()=>setRoleSaving(false));
   }
 
-  const canNext = page !== 2 || rolesSubmitted;
-  const totalPages = 8;
+  const canNext = page !== 3 || rolesSubmitted;
+  const totalPages = 9;
   const hdr = (s,draft) => <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}><div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:0,lineHeight:1.3,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">{s}{draft&&<span style={{fontSize:13,fontWeight:400,fontStyle:"italic",color:"#A89070",marginLeft:8,letterSpacing:0}}>(wersja robocza)</span>}</div></div>;
   const para = s => <p style={{margin:"8px 0",lineHeight:1.7,fontSize:14}} dangerouslySetInnerHTML={{__html:s}}/>;
   const instrImg = name => {var src=IMG_BASE+name+".png"; return <img key={src} src={src} style={{width:"100%",height:"auto",display:"block",borderRadius:6}} alt=""/>;};
@@ -1172,9 +1169,12 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
       {instrImg("ekran_1_witamy1-"+familyId)}
     </div>);
     case 1: return (<div>
-      {instrImg("ekran_2_witamy2-"+familyId)}
+      <img src={IMG_BASE+"mapa_miasteczka.png"} style={{width:"100%",height:"auto",display:"block"}} alt="Mapa miasteczka"/>
     </div>);
     case 2: return (<div>
+      {instrImg("ekran_2_witamy2-"+familyId)}
+    </div>);
+    case 3: return (<div>
       {instrImg("ekran_3-role")}
       <div style={{margin:"14px 0"}}>
         {ROLE_DEFS.map(r=>(<div key={r.key} style={{marginBottom:12,display:"flex",gap:10,alignItems:"stretch",minHeight:120}}>
@@ -1194,7 +1194,7 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
       :<div style={{background:"#5B7674",color:"#fff",textAlign:"center",padding:"10px 0",borderRadius:4,fontWeight:700,fontSize:14}}>✓ Role zatwierdzone</div>}
       {!rolesSubmitted&&<div style={{fontSize:12,color:"#8B7355",marginTop:6,textAlign:"center"}}>* Pola wymagane: Głowa, Reprezentant, Księgowy</div>}
     </div>);
-    case 3: {
+    case 4: {
       const SLIDES_3=[
         {key:"ekran_3-cel",         label:"Cel"},
         {key:"ekran_3-zasoby",      label:"Zasoby"},
@@ -1223,11 +1223,11 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
         <img src={IMG_BASE+SLIDES_3[safeIdx].key+".png"} alt={SLIDES_3[safeIdx].label} style={{width:"100%",height:"auto",display:"block"}}/>
       </div>);
     }
-    case 4: return (<div>
+    case 5: return (<div>
       {hdr("Przebieg rozgrywki",false)}
       <img src="img/przebieg_rozgrywki.png" alt="Przebieg rozgrywki" style={{width:"100%",display:"block",borderRadius:4}}/>
     </div>);
-    case 5: return (<div>
+    case 6: return (<div>
       {hdr("Wasz panel \u2014 przegląd",true)}
       {para("Oto elementy, z których będziecie korzystać:")}
       <div style={{margin:"10px 0"}}>
@@ -1244,7 +1244,7 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
         </div>))}
       </div>
     </div>);
-    case 6: return (<div>
+    case 7: return (<div>
       {hdr("Jak handlować",false)}
       <div style={{display:"flex",gap:6,marginBottom:12}}>
         <div onClick={()=>setTradeTab("sale")}
@@ -1269,14 +1269,14 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
       {tradeTab==="sale"&&instrImg("instrukcja_sprzedaz")}
       {tradeTab==="barter"&&instrImg("instrukcja_barter")}
     </div>);
-    case 7: return (<div>
+    case 8: return (<div>
       {instrImg("ekran_8")}
     </div>);
     default: return null;
     }
   }
 
-  const PAGE_TITLES = ["Witamy","Historia","Role","Zadania","Przebieg","Panel","Handel","Start!"];
+  const PAGE_TITLES = ["Witamy","Mapa","Historia","Role","Zadania","Przebieg","Panel","Handel","Start!"];
 
   return (<div>
     <div style={{minHeight:300,marginBottom:16}}>{renderPage()}</div>
@@ -1882,7 +1882,7 @@ function SheriffPlanningTab({roomCode,lobbyPlayers,gameStarted,showMsg,db}){
     </div>
     <div style={{marginTop:16}}>
       {!gameStarted&&<button onClick={()=>{db.ref("rooms/"+roomCode+"/meta/status").set("playing");showMsg("Rozgrywka rozpoczęta!");}} disabled={connFam.length===0} style={{width:"100%",padding:"12px 20px",fontSize:15,fontFamily:"inherit",fontWeight:700,background:connFam.length>0?"#2E5B3C":"#C4B090",color:"#fff",border:"none",cursor:connFam.length>0?"pointer":"default"}}>
-        {connFam.length===4?"Rozpocznij rozgrywkę (wszyscy gotowi)":"Rozpocznij rozgrywkę ("+connFam.length+"/4 rodzin)"}
+        {connFam.length===4?"Wpuść graczy (wszyscy gotowi)":"Wpuść graczy ("+connFam.length+"/4 rodzin)"}
       </button>}
       {gameStarted&&<div style={{textAlign:"center",padding:"10px",background:"#E8F5E9",border:"1px solid #90C090",fontSize:13,color:"#2E5B3C",fontWeight:700}}>✓ Rozgrywka trwa</div>}
     </div>
@@ -2663,10 +2663,9 @@ function App({roomCode,role,playerId,playerName}) {
   const syncTimer=useRef(null);
   const stateRef=useRef({});
 
-  // Background per role
+  // Background — wspólne dla wszystkich paneli
   useEffect(()=>{
-    var bgFile=isSheriffAny?"background_szeryf":"background_"+myFamily;
-    document.body.style.backgroundImage="url('img/"+bgFile+".jpg'), url('img/background.jpg')";
+    document.body.style.backgroundImage="url('img/background_5.jpg')";
   },[]);
 
   // REL2 — gdy relacje zostaną zablokowane, przełącz aktywną zakładkę
@@ -2852,7 +2851,7 @@ function App({roomCode,role,playerId,playerName}) {
 
   var familyId=viewSheriff&&sheriffViewFamily?sheriffViewFamily:cf;
   var familyData=fd[familyId];
-  var familyView=useMemo(()=>buildView(familyData.items),[familyData.items]);
+  var familyView=useMemo(()=>buildView(familyData.items,FM[familyId].biz),[familyData.items,familyId]);
   var my=fd[cf];
   var familyTxs=txs.filter(t=>(t.from===familyId||t.to===familyId));
   var pendingCount=txs.filter(t=>(t.type==="sale"&&t.status==="pending"&&t.to===cf)||(t.type==="barter"&&t.status==="awaiting_response"&&t.to===cf)||(t.type==="barter"&&t.status==="pending"&&t.from===cf)).length;
@@ -3185,7 +3184,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.7.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.7.1</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
