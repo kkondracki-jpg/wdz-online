@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.8.0</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.8.1</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -1985,7 +1985,7 @@ function SheriffDebriefingPanel({fd,txs,blindFate,relations,revDuels,revEnabled,
   var txPerPhase=calcTxPerPhase();
   var tradeMatrix=calcTradeMatrix();
   
-  return(<div>
+  return(<div style={{background:"#fff",padding:16,borderRadius:6}}>
     {/* Pasek kontrolny */}
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
       <div style={{display:"flex",alignItems:"center",gap:12}}>
@@ -3688,8 +3688,12 @@ function App({roomCode,role,playerId,playerName}) {
     </div>}
 
     {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
-        <div style={{background:"#4C130F",color:"#D4A853",padding:"8px 16px",borderRadius:4,fontSize:28,fontWeight:700}}>{familyData.cash} $</div>
+      {/* Belka rodziny z licznikiem gotówki */}
+      <div style={{position:"relative",width:"100%",marginBottom:12}}>
+        <img src={IMG_BASE+"belka_"+familyId+".png"} style={{width:"100%",display:"block"}} alt=""/>
+        <div style={{position:"absolute",top:12,right:24,fontFamily:"'Aka Posse',Georgia,serif",fontSize:28,fontWeight:700,color:"#D4A853",background:"transparent"}}>{familyData.cash} $</div>
+      </div>
+      <div style={{display:"flex",justifyContent:"flex-end",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
         {!viewSheriff&&<div style={{display:"flex",gap:6}}>
           <button style={btnS("primary")} onClick={()=>openTxForm("sale")}>Sprzedaż</button>
           <button style={btnS("barter")} onClick={()=>openTxForm("barter")}>Barter</button>
