@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.9.0</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.9.2</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -426,7 +426,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.9.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.9.2</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -3583,7 +3583,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.9.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.9.2</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -3634,8 +3634,7 @@ function App({roomCode,role,playerId,playerName}) {
           var lbCount=lbMembers.length;
           return (<div key={fId} onClick={()=>{setCf(fId);setViewSheriff(false);setSheriffViewFamily(null);setActiveTab("inv");}}
             style={{padding:"6px 16px 5px",cursor:"pointer",fontWeight:act?700:600,fontSize:14,background:act?col:inactBg,color:act?"#fff":col,borderBottom:act?"3px solid "+col:"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap",flexShrink:0}} className="wt">
-            <div style={{lineHeight:1.2}}>{FM[fId].nom}{lbCount>0&&<span style={{fontSize:12,fontWeight:400,opacity:0.85,marginLeft:4}}>({lbCount} {lbCount===1?"gracz":"graczy"})</span>}</div>
-            {lbCount>0&&<div style={{fontSize:11,fontWeight:400,opacity:0.8,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}}>{lbMembers.join(", ")}</div>}
+            {FM[fId].nom}
           </div>);
         })}
         {/* Timer section — #842504 bg, progress bar, starts right after Dexterowie */}
@@ -3875,7 +3874,8 @@ function App({roomCode,role,playerId,playerName}) {
               clinton:{name:"Bank",zasoby:[{id:"sejf",pct:30},{id:"liczydlo",pct:20},{id:"karabin",pct:20},{id:"stalowe-drzwi",pct:10},{id:"kasetka",pct:10},{id:"lupa",pct:5},{id:"waga-jubilerska",pct:5}],kompetencje:[{id:"bezpieczenstwo",pct:43},{id:"zamek-szyfrowy",pct:27},{id:"liczydlo-obsluga",pct:18},{id:"ocena-samorodkow",pct:12}]},
               dexter:{name:"Ranczo",zasoby:[{id:"lasso",pct:30},{id:"siodlo",pct:20},{id:"colt-navy",pct:20},{id:"wysokie-buty",pct:10},{id:"manierka",pct:10},{id:"kapelusz",pct:5},{id:"pas-z-kabura",pct:5}],kompetencje:[{id:"lasso-poslugiwanie",pct:43},{id:"leczenie-bydla",pct:27},{id:"szybkostrzelnosc",pct:18},{id:"zrodla-wody",pct:12}]}
             };
-            var CATS=["zasoby","kompetencje","gotowka","dzialka","mapa","relacje"];
+            var CATS_BIZ=["zasoby","kompetencje","gotowka","dzialka","mapa"];
+            var CATS_ALL=["zasoby","kompetencje","gotowka","dzialka","mapa","relacje"];
             function calcFamScore(f){
               var fam=fd[f]||{};var items=fam.items||[];var task=TASKS[f];
               var resIds=items.filter(i=>i.cat==="res").map(r=>r.id);
@@ -3895,14 +3895,19 @@ function App({roomCode,role,playerId,playerName}) {
               return {zasoby:resPts,kompetencje:compPts,gotowka:cashPts,dzialka:plotPts,mapa:mapPts,relacje:relPts};
             }
             var scores={};F.forEach(f=>{scores[f]=calcFamScore(f);});
-            function tot(f){return CATS.reduce((s,c)=>s+(scores[f][c]||0),0);}
+            // Suma zależna od poziomu odsłonięcia
+            function totBiz(f){return CATS_BIZ.reduce((s,c)=>s+(scores[f][c]||0),0);}
+            function totAll(f){return CATS_ALL.reduce((s,c)=>s+(scores[f][c]||0),0);}
+            var showRel=resultsReveal>=2;
+            var showSum=resultsReveal>=3;
+            var tot=showRel?totAll:totBiz;
             var ranked=[...F].sort((a,b)=>tot(b)-tot(a));
             var myRank=ranked.indexOf(familyId)+1;
             var myScore=tot(familyId);
             return (<div style={{background:"#fff",padding:16,borderRadius:6}}>
               <div style={{fontSize:20,fontWeight:700,color:"#842504",marginBottom:16,borderBottom:"2px solid #842504",paddingBottom:8}}>Wyniki rozgrywki</div>
-              {/* Ranking */}
-              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:20}}>
+              {/* Ranking — widoczny tylko przy resultsReveal >= 3 */}
+              {showSum&&<div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:20}}>
                 {ranked.map((f,i)=>{
                   var pts=tot(f);
                   var medal=i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
@@ -3913,7 +3918,10 @@ function App({roomCode,role,playerId,playerName}) {
                     <div style={{fontSize:12,opacity:0.9}}>{FN[f]}</div>
                   </div>;
                 })}
-              </div>
+              </div>}
+              {!showSum&&<div style={{background:"#FFF3CD",border:"1px solid #D4A853",borderRadius:6,padding:12,marginBottom:16,textAlign:"center",fontSize:14,color:"#664D03"}}>
+                Ranking zostanie odsłonięty przez Szeryfa
+              </div>}
               {/* Szczegóły mojej rodziny */}
               <div style={{background:"#FFF8E7",border:"1px solid #D4C870",borderRadius:6,padding:14}}>
                 <div style={{fontSize:14,fontWeight:700,color:FC[familyId],marginBottom:10}}>Twoje wyniki — {FN[familyId]}</div>
@@ -3923,12 +3931,12 @@ function App({roomCode,role,playerId,playerName}) {
                   <div>Gotówka: <b>{scores[familyId].gotowka}</b>/25 pkt</div>
                   <div>Działka: <b>{scores[familyId].dzialka}</b>/10 pkt</div>
                   <div>Mapa: <b>{scores[familyId].mapa}</b>/10 pkt</div>
-                  <div>Relacje: <b>{scores[familyId].relacje}</b>/20 pkt</div>
+                  {showRel?<div>Relacje: <b>{scores[familyId].relacje}</b>/20 pkt</div>:<div style={{color:"#C4B090",fontStyle:"italic"}}>Relacje: oczekiwanie...</div>}
                 </div>
-                <div style={{marginTop:12,padding:10,background:FC[familyId],borderRadius:6,textAlign:"center"}}>
+                {showSum&&<div style={{marginTop:12,padding:10,background:FC[familyId],borderRadius:6,textAlign:"center"}}>
                   <div style={{fontSize:12,color:"rgba(255,255,255,0.8)"}}>SUMA</div>
                   <div style={{fontSize:24,fontWeight:700,color:"#fff"}}>{myScore} pkt</div>
-                </div>
+                </div>}
               </div>
             </div>);
           })()}
