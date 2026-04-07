@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.8.4</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.8.5</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -3730,12 +3730,12 @@ function App({roomCode,role,playerId,playerName}) {
             return (<div key={familyId}>
             {/* --- ZASOBY --- */}
             <div style={taskBg}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderLeft:"4px solid #842504",paddingLeft:12,paddingBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}} className="wt"><span style={{flex:1,textAlign:"center"}}>Pozyskanie zasobów do prowadzenia przedsiębiorstwa</span>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}} className="wt"><span style={{flex:1,textAlign:"center"}}>Pozyskanie zasobów do prowadzenia przedsiębiorstwa</span>
                 <InfoPopup title="ZASOBY — max 30 pkt" wide>
                   <img src={IMG_BASE+"instrukcja_zasoby-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — zasoby"/>
                 </InfoPopup>
               </div>
-              <div style={{display:"flex",gap:16,marginTop:6,fontSize:14,justifyContent:"center"}}>
+              <div style={{display:"flex",gap:16,marginTop:6,fontSize:15,justifyContent:"center",color:"#51211B"}}>
                 <span>Udokumentowany postęp: <b>{docResPct}%</b></span>
                 <span>Liczba punktów: <b>{resPoints}</b> <span style={{color:"#A89070"}}>(max 30)</span></span>
               </div>
@@ -3751,12 +3751,12 @@ function App({roomCode,role,playerId,playerName}) {
             </div>}
             {/* --- KOMPETENCJE --- */}
             <div style={taskBg}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderLeft:"4px solid #842504",paddingLeft:12,paddingBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}} className="wt"><span style={{flex:1,textAlign:"center"}}>Pozyskanie kompetencji do prowadzenia przedsiębiorstwa</span>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}} className="wt"><span style={{flex:1,textAlign:"center"}}>Pozyskanie kompetencji do prowadzenia przedsiębiorstwa</span>
                 <InfoPopup title="KOMPETENCJE — max 25 pkt" wide>
                   <img src={IMG_BASE+"instrukcja_kompetencje-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — kompetencje"/>
                 </InfoPopup>
               </div>
-              <div style={{display:"flex",gap:16,marginTop:6,fontSize:14,justifyContent:"center"}}>
+              <div style={{display:"flex",gap:16,marginTop:6,fontSize:15,justifyContent:"center",color:"#51211B"}}>
                 <span>Udokumentowany postęp: <b>{docCompPct}%</b></span>
                 <span>Liczba punktów: <b>{compPoints}</b> <span style={{color:"#A89070"}}>(max 25)</span></span>
               </div>
@@ -3772,7 +3772,7 @@ function App({roomCode,role,playerId,playerName}) {
             </div>}
             {/* --- DZIAŁKI --- */}
             <div style={taskBg}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt"><span style={{flex:1}}>Pozyskanie prawa własności do właściwej działki</span>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}} className="wt"><span style={{flex:1,textAlign:"center"}}>Pozyskanie prawa własności do właściwej działki</span>
                 <InfoPopup icon="ikona_mapa" wide>
                   <img src={IMG_BASE+"kairoscity_mapa.png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Mapa miasta"/>
                 </InfoPopup>
@@ -3780,20 +3780,20 @@ function App({roomCode,role,playerId,playerName}) {
                   <img src={IMG_BASE+"instrukcja_dzialka-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — działka"/>
                 </InfoPopup>
               </div>
-              <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
+              <div style={{display:"flex",gap:16,marginTop:6,fontSize:15,justifyContent:"center",color:"#51211B"}}>
                 <span>Punkty: <b>{plotOk?10:0}</b> <span style={{color:"#A89070"}}>(max 10)</span></span>
               </div>
-              {!plotOk&&<div style={{marginTop:6,padding:"6px 10px",background:"#FFF0F0",border:"1px solid #C09090",borderRadius:4,fontSize:13,color:"#8B2500",fontWeight:600}}>UWAGA! Pozostając na niewłaściwej działce ponosicie na koniec gry dodatkowy koszt w wysokości 50 $.</div>}
+              {!plotOk&&<div style={{marginTop:6,padding:"6px 10px",background:"#FFF0F0",border:"1px solid #C09090",borderRadius:4,fontSize:13,color:"#8B2500",fontWeight:600,textAlign:"center"}}>UWAGA! Pozostając na niewłaściwej działce ponosicie na koniec gry dodatkowy koszt w wysokości 50 $.</div>}
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:12}}>{familyView.plots.map(p=><GenericCard key={p.id} item={p}/>)}</div>
             {/* --- GOTÓWKA --- */}
             <div style={taskBg}>
-              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center"}} className="wt"><span style={{flex:1}}>Pomnożenie gotówki</span>
+              <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}} className="wt"><span style={{flex:1,textAlign:"center"}}>Pomnożenie gotówki</span>
                 <InfoPopup title="Zadanie 4: Gotówka" wide>
                   <img src={IMG_BASE+"instrukcja_gotowka.png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — gotówka"/>
                 </InfoPopup>
               </div>
-              <div style={{display:"flex",gap:16,marginTop:6,fontSize:14}}>
+              <div style={{display:"flex",gap:16,marginTop:6,fontSize:15,justifyContent:"center",color:"#51211B"}}>
                 <span>Posiadana gotówka: <b>{cashVal} $</b></span>
                 <span>Punkty: <b>{cashPoints}</b> <span style={{color:"#A89070"}}>(od −25 do 25)</span></span>
               </div>
