@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.9.5</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.9.6</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -332,6 +332,7 @@ function Lobby({onJoin}){
     if(!joinCode.trim()){setError("Wpisz kod pokoju");return;}
     var code=joinCode.trim().toUpperCase();
     if(!/^WDZ-[A-HJ-NP-Z2-9]{4}$/.test(code)){setError("Nieprawidłowy format kodu (WDZ-XXXX)");return;}
+    if(!db){setError("Brak połączenia z Firebase.");return;}
     setLoading(true);setError(null);
     db.ref("rooms/"+code+"/meta").once("value").then(snap=>{
       if(!snap.exists()){setError("Rozgrywka "+code+" nie istnieje");setLoading(false);return;}
@@ -425,7 +426,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.9.5</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.9.6</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -848,6 +849,7 @@ const INSTRUCTION_DATA = {
 function makeBnbCards(fId){var p=BNB_PRODUCTS[fId];var cards=[];for(var i=0;i<p.qty;i++){cards.push({id:ci(),name:p.name,cat:C_BNB,bnbOrigin:fId,effect:p.effect,effectDesc:p.effectDesc});}return cards;}
 
 let _i=0; const ci=()=>"c"+(++_i);
+const txId=()=>{var arr=new Uint8Array(8);crypto.getRandomValues(arr);return "tx_"+Array.from(arr,b=>b.toString(16).padStart(2,"0")).join("");};
 const R =(n,b,w,d)=>({id:ci(),name:n,cat:C_RES, forBiz:b,weight:w,desc:d||""});
 const RB=(n)=>      ({id:ci(),name:n,cat:C_RES, forBiz:null,weight:null,desc:"",blind:true});
 const K =(n,a,t,b,w)=>({id:ci(),name:n,cat:C_COMP,author:a,title:t,forBiz:b,weight:w});
@@ -1824,7 +1826,7 @@ function BlindFateFamily({fId, blindFate}) {
 }
 
 /* ========== SHERIFF DEBRIEFING PANEL (OMÓWIENIE) ========== */
-function SheriffDebriefingPanel({fd,txs,blindFate,relations,revDuels,revEnabled,biznesNaBoku,bnbEnabled,debriefUnlocked,setDebriefUnlocked,debriefNotes,setDebriefNotes,debriefCorrectMode,setDebriefCorrectMode,showMsg}){
+function SheriffDebriefingPanel({readOnly,fd,txs,blindFate,relations,revDuels,revEnabled,biznesNaBoku,bnbEnabled,debriefUnlocked,setDebriefUnlocked,debriefNotes,setDebriefNotes,debriefCorrectMode,setDebriefCorrectMode,showMsg}){
   const [debriefTab,setDebriefTab]=useState("zadania");
   const barChartRef=useRef(null);
   const radarChartRef=useRef(null);
@@ -1874,16 +1876,8 @@ function SheriffDebriefingPanel({fd,txs,blindFate,relations,revDuels,revEnabled,
       // Mapa (cat==="map")
       var mapFrags=items.filter(i=>i.cat==="map").length;
       var mapPts=Math.min(10,mapFrags*2);
-      // Relacje (średnia ocen od innych)
-      var relPts=0;
-      if(relations){
-        var relSum=0,relCnt=0;
-        F.filter(o=>o!==f).forEach(o=>{
-          var key=o+"-"+f;
-          if(relations[key]){relSum+=relations[key];relCnt++;}
-        });
-        if(relCnt>0)relPts=Math.round((relSum/relCnt)*4); // max 5*4=20
-      }
+      // Relacje (średnia ocen od innych) — używa calcRelationScore
+      var relPts=Math.round(calcRelationScore(f, relations));
       scores[f]={zasoby:resPts,kompetencje:compPts,gotowka:cashPts,dzialka:plotPts,mapa:mapPts,relacje:relPts};
     });
     return scores;
@@ -1990,12 +1984,12 @@ function SheriffDebriefingPanel({fd,txs,blindFate,relations,revDuels,revEnabled,
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
       <div style={{display:"flex",alignItems:"center",gap:12}}>
         <span style={{fontSize:13,color:"#5C4A3A"}}>Widoczność dla graczy:</span>
-        <button onClick={()=>setDebriefUnlocked(!debriefUnlocked)} style={{padding:"6px 14px",fontSize:13,fontWeight:700,background:debriefUnlocked?"#2E5B3C":"#C4B090",color:"#fff",border:"none",cursor:"pointer",fontFamily:"inherit"}}>
+        <button onClick={()=>!readOnly&&setDebriefUnlocked(!debriefUnlocked)} disabled={readOnly} style={{padding:"6px 14px",fontSize:13,fontWeight:700,background:debriefUnlocked?"#2E5B3C":"#C4B090",color:"#fff",border:"none",cursor:readOnly?"not-allowed":"pointer",fontFamily:"inherit",opacity:readOnly?0.5:1}}>
           {debriefUnlocked?"✓ Opublikowano":"Opublikuj wyniki"}
         </button>
       </div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
-        <button onClick={()=>setDebriefCorrectMode(!debriefCorrectMode)} style={{padding:"6px 14px",fontSize:13,fontWeight:debriefCorrectMode?700:400,background:debriefCorrectMode?"#842504":"#E8E0D0",color:debriefCorrectMode?"#fff":"#5C4A3A",border:"none",cursor:"pointer",fontFamily:"inherit"}}>
+        <button onClick={()=>!readOnly&&setDebriefCorrectMode(!debriefCorrectMode)} disabled={readOnly} style={{padding:"6px 14px",fontSize:13,fontWeight:debriefCorrectMode?700:400,background:debriefCorrectMode?"#842504":"#E8E0D0",color:debriefCorrectMode?"#fff":"#5C4A3A",border:"none",cursor:readOnly?"not-allowed":"pointer",fontFamily:"inherit",opacity:readOnly?0.5:1}}>
           {debriefCorrectMode?"Tryb korekty ON":"Koryguj wyniki"}
         </button>
       </div>
@@ -2066,7 +2060,7 @@ function SheriffDebriefingPanel({fd,txs,blindFate,relations,revDuels,revEnabled,
       {/* Notatki */}
       <div style={{marginTop:16,borderTop:"2px dashed #D4C4A8",paddingTop:12}}>
         <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"#842504",marginBottom:4}}>Notatki Szeryfa</div>
-        <textarea value={debriefNotes.zadania||""} onChange={e=>updateNote("zadania",e.target.value)} placeholder="Obserwacje dot. realizacji zadań..." style={{width:"100%",minHeight:70,padding:8,border:"1px solid #D4C4A8",borderRadius:4,fontFamily:"inherit",fontSize:13,resize:"vertical"}}/>
+        <textarea value={debriefNotes.zadania||""} onChange={e=>updateNote("zadania",e.target.value)} placeholder="Obserwacje dot. realizacji zadań..." disabled={readOnly} style={{width:"100%",minHeight:70,padding:8,border:"1px solid #D4C4A8",borderRadius:4,fontFamily:"inherit",fontSize:13,resize:"vertical",opacity:readOnly?0.6:1}}/>
       </div>
     </div>}
     
@@ -2080,7 +2074,7 @@ function SheriffDebriefingPanel({fd,txs,blindFate,relations,revDuels,revEnabled,
       </ul>
       <div style={{marginTop:20,borderTop:"2px dashed #D4C4A8",paddingTop:12}}>
         <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"#842504",marginBottom:4}}>Notatki Szeryfa</div>
-        <textarea value={debriefNotes.ewaluacja||""} onChange={e=>updateNote("ewaluacja",e.target.value)} placeholder="Obserwacje dot. ewaluacji..." style={{width:"100%",minHeight:70,padding:8,border:"1px solid #D4C4A8",borderRadius:4,fontFamily:"inherit",fontSize:13,resize:"vertical"}}/>
+        <textarea value={debriefNotes.ewaluacja||""} onChange={e=>updateNote("ewaluacja",e.target.value)} placeholder="Obserwacje dot. ewaluacji..." disabled={readOnly} style={{width:"100%",minHeight:70,padding:8,border:"1px solid #D4C4A8",borderRadius:4,fontFamily:"inherit",fontSize:13,resize:"vertical",opacity:readOnly?0.6:1}}/>
       </div>
     </div>}
     
@@ -2123,7 +2117,7 @@ function SheriffDebriefingPanel({fd,txs,blindFate,relations,revDuels,revEnabled,
       })}
       <div style={{marginTop:16,borderTop:"2px dashed #D4C4A8",paddingTop:12}}>
         <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"#842504",marginBottom:4}}>Notatki Szeryfa</div>
-        <textarea value={debriefNotes.magazyn||""} onChange={e=>updateNote("magazyn",e.target.value)} placeholder="Obserwacje dot. stanów magazynowych..." style={{width:"100%",minHeight:70,padding:8,border:"1px solid #D4C4A8",borderRadius:4,fontFamily:"inherit",fontSize:13,resize:"vertical"}}/>
+        <textarea value={debriefNotes.magazyn||""} onChange={e=>updateNote("magazyn",e.target.value)} placeholder="Obserwacje dot. stanów magazynowych..." disabled={readOnly} style={{width:"100%",minHeight:70,padding:8,border:"1px solid #D4C4A8",borderRadius:4,fontFamily:"inherit",fontSize:13,resize:"vertical",opacity:readOnly?0.6:1}}/>
       </div>
     </div>}
     
@@ -2133,7 +2127,7 @@ function SheriffDebriefingPanel({fd,txs,blindFate,relations,revDuels,revEnabled,
       <div style={{textAlign:"center",fontSize:11,color:"#8B7355",marginTop:6}}>Wartości jako % maksimum możliwego do zdobycia w każdej kategorii</div>
       <div style={{marginTop:16,borderTop:"2px dashed #D4C4A8",paddingTop:12}}>
         <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"#842504",marginBottom:4}}>Notatki Szeryfa</div>
-        <textarea value={debriefNotes.profil||""} onChange={e=>updateNote("profil",e.target.value)} placeholder="Obserwacje strategiczne..." style={{width:"100%",minHeight:70,padding:8,border:"1px solid #D4C4A8",borderRadius:4,fontFamily:"inherit",fontSize:13,resize:"vertical"}}/>
+        <textarea value={debriefNotes.profil||""} onChange={e=>updateNote("profil",e.target.value)} placeholder="Obserwacje strategiczne..." disabled={readOnly} style={{width:"100%",minHeight:70,padding:8,border:"1px solid #D4C4A8",borderRadius:4,fontFamily:"inherit",fontSize:13,resize:"vertical",opacity:readOnly?0.6:1}}/>
       </div>
     </div>}
     
@@ -2161,7 +2155,7 @@ function SheriffDebriefingPanel({fd,txs,blindFate,relations,revDuels,revEnabled,
       </div>
       <div style={{marginTop:16,borderTop:"2px dashed #D4C4A8",paddingTop:12}}>
         <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"#842504",marginBottom:4}}>Notatki Szeryfa</div>
-        <textarea value={debriefNotes.rytm||""} onChange={e=>updateNote("rytm",e.target.value)} placeholder="Obserwacje dot. rytmu rozgrywki..." style={{width:"100%",minHeight:70,padding:8,border:"1px solid #D4C4A8",borderRadius:4,fontFamily:"inherit",fontSize:13,resize:"vertical"}}/>
+        <textarea value={debriefNotes.rytm||""} onChange={e=>updateNote("rytm",e.target.value)} placeholder="Obserwacje dot. rytmu rozgrywki..." disabled={readOnly} style={{width:"100%",minHeight:70,padding:8,border:"1px solid #D4C4A8",borderRadius:4,fontFamily:"inherit",fontSize:13,resize:"vertical",opacity:readOnly?0.6:1}}/>
       </div>
     </div>}
     
@@ -2188,7 +2182,7 @@ function SheriffDebriefingPanel({fd,txs,blindFate,relations,revDuels,revEnabled,
       </table>
       <div style={{marginTop:16,borderTop:"2px dashed #D4C4A8",paddingTop:12}}>
         <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"#842504",marginBottom:4}}>Notatki Szeryfa</div>
-        <textarea value={debriefNotes.handel||""} onChange={e=>updateNote("handel",e.target.value)} placeholder="Obserwacje dot. macierzy handlu..." style={{width:"100%",minHeight:70,padding:8,border:"1px solid #D4C4A8",borderRadius:4,fontFamily:"inherit",fontSize:13,resize:"vertical"}}/>
+        <textarea value={debriefNotes.handel||""} onChange={e=>updateNote("handel",e.target.value)} placeholder="Obserwacje dot. macierzy handlu..." disabled={readOnly} style={{width:"100%",minHeight:70,padding:8,border:"1px solid #D4C4A8",borderRadius:4,fontFamily:"inherit",fontSize:13,resize:"vertical",opacity:readOnly?0.6:1}}/>
       </div>
     </div>}
     
@@ -2206,8 +2200,8 @@ function SheriffDebriefingPanel({fd,txs,blindFate,relations,revDuels,revEnabled,
             <td style={{padding:"5px 10px",border:"0.5px solid #D4C4A8",background:"#F0E8D4",color:FC[from],fontWeight:700,fontSize:11}}>{FN[from]}</td>
             {F.map(to=>{
               if(from===to)return <td key={to} style={{padding:"5px 7px",border:"0.5px solid #D4C4A8",background:"#E8E0D0",textAlign:"center"}}>—</td>;
-              var key=from+"-"+to;
-              var val=relations&&relations[key]?relations[key]:0;
+              var r=relations&&relations[from]&&relations[from][to];
+              var val=r?Math.round(((r.partnership||0)+(r.rules||0)+(r.communication||0))/3):0;
               var stars="★".repeat(val)+"☆".repeat(5-val);
               return <td key={to} style={{padding:"5px 7px",border:"0.5px solid #D4C4A8",textAlign:"center",color:"#D4A853",fontSize:14}}>{stars}</td>;
             })}
@@ -2217,14 +2211,14 @@ function SheriffDebriefingPanel({fd,txs,blindFate,relations,revDuels,revEnabled,
       <div style={{fontSize:11,color:"#8B7355",marginTop:8}}>Wiersze: oceniający → Kolumny: oceniany</div>
       <div style={{marginTop:16,borderTop:"2px dashed #D4C4A8",paddingTop:12}}>
         <div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"#842504",marginBottom:4}}>Notatki Szeryfa</div>
-        <textarea value={debriefNotes.relacje||""} onChange={e=>updateNote("relacje",e.target.value)} placeholder="Obserwacje dot. relacji..." style={{width:"100%",minHeight:70,padding:8,border:"1px solid #D4C4A8",borderRadius:4,fontFamily:"inherit",fontSize:13,resize:"vertical"}}/>
+        <textarea value={debriefNotes.relacje||""} onChange={e=>updateNote("relacje",e.target.value)} placeholder="Obserwacje dot. relacji..." disabled={readOnly} style={{width:"100%",minHeight:70,padding:8,border:"1px solid #D4C4A8",borderRadius:4,fontFamily:"inherit",fontSize:13,resize:"vertical",opacity:readOnly?0.6:1}}/>
       </div>
     </div>}
   </div>);
 }
 
 /* ========== SHERIFF PLANNING TAB ========== */
-function SheriffPlanningTab({roomCode,lobbyPlayers,gameStarted,setGameStarted,showMsg,db}){
+function SheriffPlanningTab({readOnly,roomCode,lobbyPlayers,gameStarted,setGameStarted,showMsg,db}){
   const [cpd,setCpd]=useState({});
   const [cpAll,setCpAll]=useState(false);
 
@@ -2233,6 +2227,7 @@ function SheriffPlanningTab({roomCode,lobbyPlayers,gameStarted,setGameStarted,sh
   function copyLnk(fId){var lnk=buildFamilyLink(roomCode,fId);navigator.clipboard.writeText(lnk).then(()=>{setCpd(p=>({...p,[fId]:true}));setTimeout(()=>setCpd(p=>({...p,[fId]:false})),2500);}).catch(()=>{});}
   function copyAll(){var txt=FO.map(fId=>FM[fId].nom+": "+buildFamilyLink(roomCode,fId)).join("\n");navigator.clipboard.writeText(txt).then(()=>{setCpAll(true);setTimeout(()=>setCpAll(false),2500);}).catch(()=>{});}
   var connFam=FO.filter(f=>{var fd=lobbyPlayers[f];if(!fd)return false;if(fd.members)return Object.keys(fd.members).length>0;return fd.connected;});
+  var canStart=!readOnly&&connFam.length>0;
 
   return(<div style={{padding:"0 0 16px"}}>
     <div style={{display:"flex",gap:16,alignItems:"flex-start"}}>
@@ -2276,8 +2271,8 @@ function SheriffPlanningTab({roomCode,lobbyPlayers,gameStarted,setGameStarted,sh
       </div>
     </div>
     <div style={{marginTop:16}}>
-      {!gameStarted&&<button onClick={()=>{db.ref("rooms/"+roomCode+"/meta/status").set("playing");setGameStarted(true);showMsg("Rozgrywka rozpoczęta!");}} disabled={connFam.length===0} style={{width:"100%",padding:"12px 20px",fontSize:15,fontFamily:"inherit",fontWeight:700,background:connFam.length>0?"#2E5B3C":"#C4B090",color:"#fff",border:"none",cursor:connFam.length>0?"pointer":"not-allowed",opacity:connFam.length>0?1:0.6}}>
-        {connFam.length===4?"Wpuść graczy (wszyscy gotowi)":"Wpuść graczy ("+connFam.length+"/4 rodzin)"}
+      {!gameStarted&&<button onClick={()=>{if(!readOnly){db.ref("rooms/"+roomCode+"/meta/status").set("playing");setGameStarted(true);showMsg("Rozgrywka rozpoczęta!");}}} disabled={!canStart} style={{width:"100%",padding:"12px 20px",fontSize:15,fontFamily:"inherit",fontWeight:700,background:canStart?"#2E5B3C":"#C4B090",color:"#fff",border:"none",cursor:canStart?"pointer":"not-allowed",opacity:canStart?1:0.6}}>
+        {readOnly?"Tryb tylko do podglądu":connFam.length===4?"Wpuść graczy (wszyscy gotowi)":"Wpuść graczy ("+connFam.length+"/4 rodzin)"}
       </button>}
       {gameStarted&&<div style={{textAlign:"center",padding:"12px 20px",background:"#2E5B3C",border:"none",fontSize:15,color:"#fff",fontWeight:700}}>✓ Gracze wpuszczeni — rozgrywka trwa</div>}
     </div>
@@ -2292,7 +2287,7 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
       var f=FM[fId],d=fd[fId],plotI=d.items.find(i=>i.cat===C_PLOT),plotOk=plotI&&plotI.plotNr===f.tPlot;
       if(!plotOk){
         setFd(prev=>{var n={...prev};n[fId]={...n[fId],cash:n[fId].cash-50};return n;});
-        setTxs(prev=>[{id:Date.now().toString()+fId,type:"penalty",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:"Dodatkowy koszt 50 $ wynikający z posiadania niewłaściwej działki (nr "+(plotI?plotI.plotNr:"?")+", docelowa: "+f.tPlot+")"},...prev]);
+        setTxs(prev=>[{id:txId(),type:"penalty",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:"Dodatkowy koszt 50 $ wynikający z posiadania niewłaściwej działki (nr "+(plotI?plotI.plotNr:"?")+", docelowa: "+f.tPlot+")"},...prev]);
         setPlotPenalties(prev=>({...prev,[fId]:true}));
       }
     });
@@ -3272,8 +3267,7 @@ function App({roomCode,role,playerId,playerName}) {
       });
       return n;
     });
-    var ts=Date.now();
-    setTxs(prev=>[{id:ts.toString(),type:"map_bonus",from:fId,to:"all",status:"accepted",offeredItems:[]},...prev]);
+    setTxs(prev=>[{id:txId(),type:"map_bonus",from:fId,to:"all",status:"accepted",offeredItems:[]},...prev]);
     showMsg(FM[fId].nom+" zdobyli kompletną mapę! Bonus 300 $!");
   }
 
@@ -3379,7 +3373,7 @@ function App({roomCode,role,playerId,playerName}) {
   }
   function settleBnb(){
     if(bnbSettled)return;
-    var ts=Date.now();var newTxs=[];
+    var newTxs=[];
     FO.forEach((fId,fi)=>{
       var p=BNB_PRODUCTS[fId];
       var ownCards=fd[fId].items.filter(i=>i.cat===C_BNB&&i.bnbOrigin===fId);
@@ -3391,11 +3385,11 @@ function App({roomCode,role,playerId,playerName}) {
         var netCost=Math.min(cost-bonus,n[fId].cash);
         n[fId]={...n[fId],cash:n[fId].cash-netCost};return n;});
       // Wpis 1: Opłata dla dostawcy (zawsze)
-      newTxs.push({id:(ts+fi*2).toString(),type:"bnb_settle",from:fId,to:"dostawca",status:"accepted",offeredItems:[],
+      newTxs.push({id:txId(),type:"bnb_settle",from:fId,to:"dostawca",status:"accepted",offeredItems:[],
         description:"Opłata dla dostawcy — 300 $"});
       // Wpis 2: Rabat od dostawcy (tylko gdy sprzedano wszystko)
       if(soldAll){
-        newTxs.push({id:(ts+fi*2+1).toString(),type:"bnb_bonus",from:"dostawca",to:fId,status:"accepted",offeredItems:[],
+        newTxs.push({id:txId(),type:"bnb_bonus",from:"dostawca",to:fId,status:"accepted",offeredItems:[],
           description:"Rabat od dostawcy — 100 $"});
       }
     });
@@ -3420,7 +3414,7 @@ function App({roomCode,role,playerId,playerName}) {
     var itemIds=selItems.map(i=>i.id).sort().join(",");
     var dup=txs.find(t=>t.type==="sale"&&t.from===cf&&t.to===tFam&&(t.status==="pending"||t.status==="awaiting_response")&&t.offeredItems.map(i=>i.id).sort().join(",")===itemIds);
     if(dup){showMsg("Taka oferta sprzedaży już oczekuje na odpowiedź!");return;}
-    setTxs(p=>[{id:Date.now().toString(),type:"sale",from:cf,to:tFam,offeredItems:selItems.slice(),price:Number(price),status:"pending"},...p]);setSending(true);resetP();showMsg("Oferta sprzedaży wysłana");}
+    setTxs(p=>[{id:txId(),type:"sale",from:cf,to:tFam,offeredItems:selItems.slice(),price:Number(price),status:"pending"},...p]);setSending(true);resetP();showMsg("Oferta sprzedaży wysłana");}
   function submitBarter(){if(!tFam||!selItems.length)return;
     if(!validateMapDuplicate(tFam,selItems)){showMsg("Ta rodzina już posiada ten fragment mapy!");return;}
     var locked=selItems.filter(i=>isCardLocked(i.id));
@@ -3429,7 +3423,7 @@ function App({roomCode,role,playerId,playerName}) {
     var itemIds2=selItems.map(i=>i.id).sort().join(",");
     var dup2=txs.find(t=>t.type==="barter"&&t.from===cf&&t.to===tFam&&(t.status==="pending"||t.status==="awaiting_response")&&t.offeredItems.map(i=>i.id).sort().join(",")===itemIds2);
     if(dup2){showMsg("Taka propozycja barteru już oczekuje na odpowiedź!");return;}
-    setTxs(p=>[{id:Date.now().toString(),type:"barter",from:cf,to:tFam,offeredItems:selItems.slice(),offeredCash:Number(eCash)||0,responseItems:null,responseCash:0,status:"awaiting_response"},...p]);setSending(true);resetP();showMsg("Propozycja barteru wysłana");}
+    setTxs(p=>[{id:txId(),type:"barter",from:cf,to:tFam,offeredItems:selItems.slice(),offeredCash:Number(eCash)||0,responseItems:null,responseCash:0,status:"awaiting_response"},...p]);setSending(true);resetP();showMsg("Propozycja barteru wysłana");}
   function submitResponse(){if(!rTx||!selItems.length)return;setSending(true);setTxs(p=>p.map(t=>t.id!==rTx?t:{...t,responseItems:selItems.slice(),responseCash:Number(eCash)||0,status:"pending"}));resetP();showMsg("Kontr-oferta wysłana!");}
   function acceptTx(txId){setTxs(p=>p.map(tx=>{if(tx.id!==txId)return tx;
     // S2 — guard: nie akceptuj już zaakceptowanej TX
@@ -3497,7 +3491,7 @@ function App({roomCode,role,playerId,playerName}) {
     diceTimeouts.current.push(setTimeout(()=>{
       var d1=Math.floor(Math.random()*6)+1,d2=Math.floor(Math.random()*6)+1,sum=d1+d2;
       var ev=BLIND_FATE_EVENTS[sum];
-      if(!ev){console.error("Brak zdarzenia dla sumy: "+sum);diceRolling.current=false;delete rollingInProgress.current[lockKey];return;}
+      if(!ev){console.error("Brak zdarzenia dla sumy: "+sum);diceRolling.current=false;delete rollingInProgress.current[lockKey];if(lockRef)lockRef.remove();return;}
       setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var rolls=(bf.rolls||[]).slice();
         var roll={...rolls[rollIdx]};
         roll.rolling=false;roll.dice1=d1;roll.dice2=d2;roll.sum=sum;roll.event=ev;roll.resolved=true;roll.showDice=true;roll.showCard=false;
@@ -3535,7 +3529,7 @@ function App({roomCode,role,playerId,playerName}) {
         var desc="Rzut ["+d1+"+"+d2+"="+sum+"] — "+(ev2?ev2.text:"")+" → "+net;
         if(policyUsed) desc+=" (polisa "+policyUsed+"%)";
         if(ev2&&ev2.type==="loss_resources") desc="Rzut ["+d1+"+"+d2+"="+sum+"] — utrata 10% zasobów na koniec rozgrywki"+(policyUsed?" (polisa "+policyUsed+"%)":"");
-        setTxs(prev2=>[{id:Date.now().toString(),type:"fate",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:desc},...prev2]);
+        setTxs(prev2=>[{id:txId(),type:"fate",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:desc},...prev2]);
         showMsg(FM[fId].nom+": "+ev2.text);
 
         // Auto-hide after 30s + P1/P2 cleanup
@@ -3560,7 +3554,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.9.5</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.9.6</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -3611,8 +3605,7 @@ function App({roomCode,role,playerId,playerName}) {
           var lbCount=lbMembers.length;
           return (<div key={fId} onClick={()=>{setCf(fId);setViewSheriff(false);setSheriffViewFamily(null);setActiveTab("inv");}}
             style={{padding:"6px 16px 5px",cursor:"pointer",fontWeight:act?700:600,fontSize:14,background:act?col:inactBg,color:act?"#fff":col,borderBottom:act?"3px solid "+col:"3px solid transparent",transition:"all 0.15s",whiteSpace:"nowrap",flexShrink:0}} className="wt">
-            <div style={{lineHeight:1.2}}>{FM[fId].nom}{lbCount>0&&<span style={{fontSize:12,fontWeight:400,opacity:0.85,marginLeft:4}}>({lbCount} {lbCount===1?"gracz":"graczy"})</span>}</div>
-            {lbCount>0&&<div style={{fontSize:11,fontWeight:400,opacity:0.8,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}}>{lbMembers.join(", ")}</div>}
+            {FM[fId].nom}
           </div>);
         })}
         {/* Timer section — #842504 bg, progress bar, starts right after Dexterowie */}
@@ -3647,9 +3640,9 @@ function App({roomCode,role,playerId,playerName}) {
           return <div key={id} onClick={()=>setSheriffTab(id)} style={{padding:"7px 16px",fontSize:13,fontWeight:act?700:400,background:act?"#fff":"#F3CA82",color:act?"#842504":"#4C130F",cursor:"pointer",borderBottom:act?"2px solid #842504":"2px solid transparent"}} className="wt">{label}</div>;
         })}
       </div>
-      {sheriffTab==="planning"&&<SheriffPlanningTab roomCode={roomCode} lobbyPlayers={lobbyPlayers} gameStarted={gameStarted} setGameStarted={setGameStarted} showMsg={showMsg} db={db}/>}
+      {sheriffTab==="planning"&&<SheriffPlanningTab readOnly={isSheriff2} roomCode={roomCode} lobbyPlayers={lobbyPlayers} gameStarted={gameStarted} setGameStarted={setGameStarted} showMsg={showMsg} db={db}/>}
       {sheriffTab==="game"&&<SheriffPanel readOnly={isSheriff2} fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} consultNotes={consultNotes} setConsultNotes={setConsultNotes} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} manualMode={manualMode} setManualMode={setManualMode} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle} revMode={revMode} setRevMode={setRevMode} revActive={revActive} setRevActive={setRevActive} revStartTournament={revStartTournament} getRevTimer={getRevTimer} revRevealDuel={revRevealDuel} revSettleDuel={revSettleDuel}/>}
-      {sheriffTab==="results"&&<SheriffDebriefingPanel fd={fd} txs={txs} blindFate={blindFate} relations={relations} revDuels={revDuels} revEnabled={revEnabled} biznesNaBoku={biznesNaBoku} bnbEnabled={bnbEnabled} debriefUnlocked={debriefUnlocked} setDebriefUnlocked={setDebriefUnlocked} debriefNotes={debriefNotes} setDebriefNotes={setDebriefNotes} debriefCorrectMode={debriefCorrectMode} setDebriefCorrectMode={setDebriefCorrectMode} showMsg={showMsg}/>}
+      {sheriffTab==="results"&&<SheriffDebriefingPanel readOnly={isSheriff2} fd={fd} txs={txs} blindFate={blindFate} relations={relations} revDuels={revDuels} revEnabled={revEnabled} biznesNaBoku={biznesNaBoku} bnbEnabled={bnbEnabled} debriefUnlocked={debriefUnlocked} setDebriefUnlocked={setDebriefUnlocked} debriefNotes={debriefNotes} setDebriefNotes={setDebriefNotes} debriefCorrectMode={debriefCorrectMode} setDebriefCorrectMode={setDebriefCorrectMode} showMsg={showMsg}/>}
     </div>}
 
     {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
@@ -3868,8 +3861,7 @@ function App({roomCode,role,playerId,playerName}) {
               var plotPts=plotOk?10:0;
               var mapFrags=items.filter(i=>i.cat==="map").length;
               var mapPts=Math.min(10,mapFrags*2);
-              var relPts=0;
-              if(relations){var relSum=0,relCnt=0;F.filter(o=>o!==f).forEach(o=>{var key=o+"-"+f;if(relations[key]){relSum+=relations[key];relCnt++;}});if(relCnt>0)relPts=Math.round((relSum/relCnt)*4);}
+              var relPts=Math.round(calcRelationScore(f, relations));
               return {zasoby:resPts,kompetencje:compPts,gotowka:cashPts,dzialka:plotPts,mapa:mapPts,relacje:relPts};
             }
             var scores={};F.forEach(f=>{scores[f]=calcFamScore(f);});
