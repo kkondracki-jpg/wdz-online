@@ -3068,6 +3068,11 @@ function App({roomCode,role,playerId,playerName}) {
     if(!relationsUnlocked && activeTab==="rel") setActiveTab("inv");
   },[relationsUnlocked]);
 
+  // RES — gdy wyniki zostaną ukryte, przełącz aktywną zakładkę
+  useEffect(()=>{
+    if(resultsReveal<1 && activeTab==="results") setActiveTab("inv");
+  },[resultsReveal]);
+
   // T1 — synchronizuj formOpen z showP (formularz transakcji otwarty)
   useEffect(()=>{
     formOpen.current=showP;
@@ -3689,9 +3694,9 @@ function App({roomCode,role,playerId,playerName}) {
             var act=activeTab===t[0];
             var hidden=(t[0]==="rev"&&!revEnabled)||(t[0]==="fate"&&!fateEnabled)||(t[0]==="map"&&!mapEnabled);
             if(hidden) return null;
-            var locked=(t[0]==="rel"&&!relationsUnlocked)||(t[0]==="results"&&!debriefUnlocked);
+            var locked=(t[0]==="rel"&&!relationsUnlocked)||(t[0]==="results"&&resultsReveal<1);
             if(locked) return null;
-            var visibleItems=arr.filter(x=>!((x[0]==="rev"&&!revEnabled)||(x[0]==="fate"&&!fateEnabled)||(x[0]==="map"&&!mapEnabled)||(x[0]==="rel"&&!relationsUnlocked)||(x[0]==="results"&&!debriefUnlocked)));
+            var visibleItems=arr.filter(x=>!((x[0]==="rev"&&!revEnabled)||(x[0]==="fate"&&!fateEnabled)||(x[0]==="map"&&!mapEnabled)||(x[0]==="rel"&&!relationsUnlocked)||(x[0]==="results"&&resultsReveal<1)));
             var isLast=visibleItems[visibleItems.length-1][0]===t[0];
             return <div key={t[0]} onClick={()=>setActiveTab(t[0])} style={{padding:"7px 12px",fontFamily:"'Aka Posse',Georgia,serif",fontSize:15,fontWeight:act?700:400,background:act?"rgba(212,168,83,0.25)":"transparent",color:act?"#F5ECD0":"#D4A853",cursor:"pointer",borderRight:isLast?"none":"1px solid rgba(212,168,83,0.4)"}}>{t[1]}</div>;
           })}
@@ -3863,17 +3868,36 @@ function App({roomCode,role,playerId,playerName}) {
               </div>);})}
             </div>);
           })()}
-          {activeTab==="results"&&debriefUnlocked&&(()=>{
+          {activeTab==="results"&&resultsReveal>=1&&(()=>{
             // Oblicz wyniki dla wszystkich rodzin
             var F=["adams","bennet","clinton","dexter"];
             var FN={adams:"Adamsowie",bennet:"Bennetowie",clinton:"Clintonowie",dexter:"Dexterowie"};
             var FC={adams:"#A75F4A",bennet:"#726072",clinton:"#5E5971",dexter:"#5B7674"};
+            var TASKS={
+              adams:{name:"Saloon",zasoby:[{id:"stara-destylarnia",pct:30},{id:"pianino",pct:20},{id:"kredens",pct:20},{id:"debowa-beczka",pct:10},{id:"talia-kart",pct:10},{id:"mosiezny-zyrandol",pct:5},{id:"zeliwny-kociolek",pct:5}],kompetencje:[{id:"turnieje-pokera",pct:43},{id:"pedzenie-whisky",pct:27},{id:"kuchnia-zbiorowa",pct:18},{id:"przechowywanie-piwa",pct:12}]},
+              bennet:{name:"Zakład Pogrzebowy",zasoby:[{id:"szpadel",pct:30},{id:"czarny-material",pct:20},{id:"dluto-do-kamienia",pct:20},{id:"zestaw-narzedzi",pct:10},{id:"drewniany-wozek",pct:10},{id:"zestaw-wizazysty",pct:5},{id:"podest-dla-mowcy",pct:5}],kompetencje:[{id:"balsamowanie",pct:43},{id:"mowy-pogrzebowe",pct:27},{id:"makijaz-posmiertny",pct:18},{id:"stolarstwo",pct:12}]},
+              clinton:{name:"Bank",zasoby:[{id:"sejf",pct:30},{id:"liczydlo",pct:20},{id:"karabin",pct:20},{id:"stalowe-drzwi",pct:10},{id:"kasetka",pct:10},{id:"lupa",pct:5},{id:"waga-jubilerska",pct:5}],kompetencje:[{id:"bezpieczenstwo",pct:43},{id:"zamek-szyfrowy",pct:27},{id:"liczydlo-obsluga",pct:18},{id:"ocena-samorodkow",pct:12}]},
+              dexter:{name:"Ranczo",zasoby:[{id:"lasso",pct:30},{id:"siodlo",pct:20},{id:"colt-navy",pct:20},{id:"wysokie-buty",pct:10},{id:"manierka",pct:10},{id:"kapelusz",pct:5},{id:"pas-z-kabura",pct:5}],kompetencje:[{id:"lasso-poslugiwanie",pct:43},{id:"leczenie-bydla",pct:27},{id:"szybkostrzelnosc",pct:18},{id:"zrodla-wody",pct:12}]}
+            };
             var CATS_BIZ=["zasoby","kompetencje","gotowka","dzialka","mapa"];
             var CATS_ALL=["zasoby","kompetencje","gotowka","dzialka","mapa","relacje"];
             function calcFamScore(f){
-              var sc=calcScore(f, fd, plotPenalties, biznesNaBoku, bnbEnabled, blindFate);
+              var fam=fd[f]||{};var items=fam.items||[];var task=TASKS[f];
+              var resIds=items.filter(i=>i.cat==="res").map(r=>r.id);
+              var resPct=task.zasoby.reduce((s,z)=>s+(resIds.includes(z.id)?z.pct:0),0);
+              var resPts=Math.round((resPct/100)*30);
+              var compIds=items.filter(i=>i.cat==="comp").map(c=>c.id);
+              var compPct=task.kompetencje.reduce((s,k)=>s+(compIds.includes(k.id)?k.pct:0),0);
+              var compPts=Math.round((compPct/100)*25);
+              var cash=fam.cash||600;
+              var cashPts=Math.max(0,Math.min(25,Math.round(((cash-600)/600)*25)));
+              var plots=items.filter(i=>i.cat==="plot");
+              var plotOk=plots.some(p=>p.plotNr===FM[f].tPlot);
+              var plotPts=plotOk?10:0;
+              var mapFrags=items.filter(i=>i.cat==="map").length;
+              var mapPts=Math.min(10,mapFrags*2);
               var relPts=Math.round(calcRelationScore(f, relations));
-              return {zasoby:sc.resScore,kompetencje:sc.compScore,gotowka:sc.cashScore,dzialka:sc.plotScore,mapa:sc.mapScore,relacje:relPts};
+              return {zasoby:resPts,kompetencje:compPts,gotowka:cashPts,dzialka:plotPts,mapa:mapPts,relacje:relPts};
             }
             var scores={};F.forEach(f=>{scores[f]=calcFamScore(f);});
             // Suma zależna od poziomu odsłonięcia
