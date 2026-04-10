@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.9.9</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.10.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -426,7 +426,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.9.9</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.10.0</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1822,6 +1822,466 @@ function BlindFateFamily({fId, blindFate}) {
       <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:8}}>Historia losowań</div>
       {rolls.map((r,i)=>{var h=fmtHistory(r,i);return h?<div key={i} style={{fontSize:13,color:"#5C4A3A",padding:"4px 0",borderBottom:"1px solid #E0D8D0",lineHeight:1.5}}>{h}</div>:null;})}
     </div>}
+  </div>);
+}
+
+/* ========== PLAYER DEBRIEFING PANEL (WYNIKI DLA GRACZA) ========== */
+function PlayerDebriefingPanel({familyId,fd,txs,blindFate,relations,revDuels,debriefFullAccess,playerDebriefTab,setPlayerDebriefTab}){
+  const barChartRef=useRef(null);
+  const radarChartRef=useRef(null);
+  const barChartInst=useRef(null);
+  const radarChartInst=useRef(null);
+  
+  // Stałe
+  const F=["adams","bennet","clinton","dexter"];
+  const FN={adams:"Adamsowie",bennet:"Bennetowie",clinton:"Clintonowie",dexter:"Dexterowie"};
+  const FC={adams:"#A75F4A",bennet:"#726072",clinton:"#5E5971",dexter:"#5B7674"};
+  const CATS=["zasoby","kompetencje","gotowka","dzialka","mapa","relacje"];
+  const CATS_LABEL={zasoby:"Zasoby",kompetencje:"Kompetencje",gotowka:"Gotówka",dzialka:"Działka",mapa:"Mapa",relacje:"Relacje"};
+  const CATS_MAX={zasoby:30,kompetencje:25,gotowka:25,dzialka:10,mapa:10,relacje:20};
+  const PHASES=["F1·T1","F1·T2","F1·T3","F2·T1","F2·T2","F2·T3","F3·T1","F3·T2","F3·T3"];
+  const PAIRS=["adams-bennet","adams-clinton","adams-dexter","bennet-clinton","bennet-dexter","clinton-dexter"];
+  
+  const TASKS={
+    adams:{name:"Saloon",zasoby:[{id:"stara-destylarnia",name:"Stara Destylarnia",pct:30},{id:"pianino",name:"Pianino",pct:20},{id:"kredens",name:"Kredens",pct:20},{id:"debowa-beczka",name:"Dębowa Beczka",pct:10},{id:"talia-kart",name:"Talia Kart",pct:10},{id:"mosiezny-zyrandol",name:"Mosiężny Żyrandol",pct:5},{id:"zeliwny-kociolek",name:"Żeliwny Kociołek",pct:5}],kompetencje:[{id:"organizowanie-turniejow-pokera",name:"Organizowanie Turniejów Pokera",pct:43},{id:"pedzenie-szkockiej-whisky",name:"Pędzenie Szkockiej Whisky",pct:27},{id:"prowadzenie-kuchni-zbiorowej",name:"Prowadzenie Kuchni Zbiorowej",pct:18},{id:"przechowywanie-piwa",name:"Przechowywanie Piwa",pct:12}]},
+    bennet:{name:"Zakład Pogrzebowy",zasoby:[{id:"szpadel",name:"Szpadel",pct:30},{id:"czarny-material",name:"Czarny Materiał",pct:20},{id:"dluto-do-kamienia",name:"Dłuto do Kamienia",pct:20},{id:"zestaw-narzedzi",name:"Zestaw Narzędzi",pct:10},{id:"drewniany-wozek",name:"Drewniany Wózek",pct:10},{id:"zestaw-wizazysty",name:"Zestaw Wizażysty",pct:5},{id:"podest-dla-mowcy",name:"Podest dla Mówcy",pct:5}],kompetencje:[{id:"sztuka-balsamowania",name:"Sztuka Balsamowania",pct:43},{id:"wyglaszanie-mow-pogrzebowych",name:"Wygłaszanie Mów Pogrzebowych",pct:27},{id:"podstawy-makijazu-posmiertnego",name:"Podstawy Makijażu Pośmiertnego",pct:18},{id:"podstawy-stolarstwa",name:"Podstawy Stolarstwa",pct:12}]},
+    clinton:{name:"Bank",zasoby:[{id:"sejf",name:"Sejf",pct:30},{id:"liczydlo",name:"Liczydło",pct:20},{id:"karabin",name:"Karabin",pct:20},{id:"stalowe-drzwi",name:"Stalowe Drzwi",pct:10},{id:"kasetka",name:"Kasetka",pct:10},{id:"lupa",name:"Lupa",pct:5},{id:"waga-jubilerska",name:"Waga Jubilerska",pct:5}],kompetencje:[{id:"zapewnienie-bezpieczenstwa",name:"Zapewnienie Bezpieczeństwa",pct:43},{id:"obsluga-zamka-szyfrowego",name:"Obsługa Zamka Szyfrowego",pct:27},{id:"biegla-obsluga-liczydla",name:"Biegła Obsługa Liczydła",pct:18},{id:"ocena-wartosci-samorodkow",name:"Ocena Wartości Samorodków",pct:12}]},
+    dexter:{name:"Ranczo",zasoby:[{id:"lasso",name:"Lasso",pct:30},{id:"siodlo",name:"Siodło",pct:20},{id:"colt-navy-1857",name:"Colt Navy 1857",pct:20},{id:"wysokie-buty",name:"Wysokie Buty",pct:10},{id:"manierka",name:"Manierka",pct:10},{id:"kapelusz",name:"Kapelusz",pct:5},{id:"pas-z-kabura",name:"Pas z Kaburą",pct:5}],kompetencje:[{id:"poslugiwanie-sie-lassem",name:"Posługiwanie się Lassem",pct:43},{id:"leczenie-chorob-bydla",name:"Leczenie Chorób Bydła",pct:27},{id:"szybkostrzelnosc-i-celnosc-oka",name:"Szybkostrzelność i Celność Oka",pct:18},{id:"odnajdywanie-zrodel-wody",name:"Odnajdywanie Źródeł Wody",pct:12}]}
+  };
+  const STARTING_RES={
+    adams:["debowa-beczka","mosiezny-zyrandol","zeliwny-kociolek","zestaw-narzedzi","karabin","siodlo","lupa","waga-jubilerska","zestaw-skalpeli","zakraplacz"],
+    bennet:["lasso","czarny-material","pianino","colt-navy-1857","wysokie-buty","telegraf","zestaw-stempli","tygiel"],
+    clinton:["stara-destylarnia","kredens","drewniany-wozek","stalowe-drzwi","kasetka","szpadel","stojacy-zegar","wigwam"],
+    dexter:["sejf","liczydlo","talia-kart","manierka","dluto-do-kamienia","kapelusz","pas-z-kabura","zestaw-wizazysty","podest-dla-mowcy","30-letnia-whisky"]
+  };
+  const STARTING_COMP={
+    adams:["podstawy-stolarstwa","obsluga-zamka-szyfrowego","odnajdywanie-zrodel-wody","szybkostrzelnosc-i-celnosc-oka","pisanie-kaligraficzne"],
+    bennet:["zapewnienie-bezpieczenstwa","leczenie-chorob-bydla","przechowywanie-piwa","biegla-obsluga-liczydla","zabawianie-gosci-na-imprezach"],
+    clinton:["pedzenie-szkockiej-whisky","prowadzenie-kuchni-zbiorowej","podstawy-makijazu-posmiertnego","poslugiwanie-sie-lassem","leczenie-ran-postrzalowych"],
+    dexter:["organizowanie-turniejow-pokera","sztuka-balsamowania","ocena-wartosci-samorodkow","wyglaszanie-mow-pogrzebowych","cechowanie-metali-szlachetnych"]
+  };
+  const ZMYLKI_RES=["zestaw-skalpeli","zakraplacz","telegraf","zestaw-stempli","tygiel","stojacy-zegar","wigwam","30-letnia-whisky"];
+  const ZMYLKI_COMP=["pisanie-kaligraficzne","zabawianie-gosci-na-imprezach","leczenie-ran-postrzalowych","cechowanie-metali-szlachetnych"];
+  
+  // Obliczanie wyników dla wszystkich rodzin
+  function calcScores(){
+    var scores={};
+    F.forEach(f=>{
+      var fam=fd[f]||{};var items=fam.items||[];var task=TASKS[f];
+      var resIds=items.filter(i=>i.cat==="res").map(r=>toSlug(r.name));
+      var resPct=task.zasoby.reduce((s,z)=>s+(resIds.includes(z.id)?z.pct:0),0);
+      var resPts=Math.round((resPct/100)*30);
+      var compIds=items.filter(i=>i.cat==="comp").map(c=>toSlug(c.name));
+      var compPct=task.kompetencje.reduce((s,k)=>s+(compIds.includes(k.id)?k.pct:0),0);
+      var compPts=Math.round((compPct/100)*25);
+      var cash=fam.cash||600;
+      var cashPts=Math.max(0,Math.min(25,Math.round(((cash-600)/600)*25)));
+      var plots=items.filter(i=>i.cat==="plot");
+      var plotOk=plots.some(p=>p.plotNr===FM[f].tPlot);
+      var plotPts=plotOk?10:0;
+      var mapFrags=items.filter(i=>i.cat==="map").length;
+      var mapPts=Math.min(10,mapFrags*2);
+      var relPts=Math.round(calcRelationScore(f, relations));
+      scores[f]={zasoby:resPts,kompetencje:compPts,gotowka:cashPts,dzialka:plotPts,mapa:mapPts,relacje:relPts};
+    });
+    return scores;
+  }
+  var scores=calcScores();
+  function tot(f){return CATS.reduce((s,c)=>s+(scores[f][c]||0),0);}
+  
+  // Obliczanie transakcji per faza
+  function calcTxPerPhase(){
+    var result={adams:[0,0,0,0,0,0,0,0,0],bennet:[0,0,0,0,0,0,0,0,0],clinton:[0,0,0,0,0,0,0,0,0],dexter:[0,0,0,0,0,0,0,0,0]};
+    txs.forEach((tx,i)=>{
+      var phase=Math.min(8,Math.floor(i/(txs.length/9)));
+      if(tx.from&&result[tx.from])result[tx.from][phase]++;
+      if(tx.to&&result[tx.to])result[tx.to][phase]++;
+    });
+    return result;
+  }
+  
+  // Obliczanie macierzy handlu (identycznie jak szeryf)
+  function calcTradeMatrix(){
+    var result={};
+    PAIRS.forEach(p=>{result[p]={c:0,v:0};});
+    txs.forEach(tx=>{
+      if(tx.status!=="accepted")return;
+      var pair=[tx.from,tx.to].sort().join("-");
+      if(result[pair]){result[pair].c++;result[pair].v+=(tx.amount||0);}
+    });
+    return result;
+  }
+  
+  function hmColor(n){
+    if(n===0)return"#F0EBE0";if(n===1)return"#F5E0A0";if(n<=3)return"#E8C060";if(n===4)return"#D4A853";return"#8B5E20";
+  }
+  
+  var ranked=[...F].sort((a,b)=>tot(b)-tot(a));
+  var txPerPhase=calcTxPerPhase();
+  var tradeMatrix=calcTradeMatrix();
+  
+  // Wykres słupkowy
+  useEffect(()=>{
+    if(playerDebriefTab!=="wyniki"||!barChartRef.current||!debriefFullAccess)return;
+    if(barChartInst.current)barChartInst.current.destroy();
+    var ctx=barChartRef.current.getContext("2d");
+    barChartInst.current=new Chart(ctx,{
+      type:"bar",
+      data:{
+        labels:F.map(f=>FN[f]),
+        datasets:CATS.map((cat,i)=>({
+          label:CATS_LABEL[cat],
+          data:F.map(f=>scores[f][cat]||0),
+          backgroundColor:["#A75F4A","#726072","#5E5971","#5B7674"][i%4],
+          borderWidth:0
+        }))
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}},scales:{x:{stacked:true},y:{stacked:true,max:120}}}
+    });
+    return ()=>{if(barChartInst.current)barChartInst.current.destroy();};
+  },[playerDebriefTab,debriefFullAccess,JSON.stringify(scores)]);
+  
+  // Wykres radarowy
+  useEffect(()=>{
+    if(playerDebriefTab!=="profil"||!radarChartRef.current||!debriefFullAccess)return;
+    if(radarChartInst.current)radarChartInst.current.destroy();
+    var ctx=radarChartRef.current.getContext("2d");
+    radarChartInst.current=new Chart(ctx,{
+      type:"radar",
+      data:{
+        labels:CATS.map(c=>CATS_LABEL[c]),
+        datasets:F.map(f=>({
+          label:FN[f],
+          data:CATS.map(c=>Math.round(((scores[f][c]||0)/CATS_MAX[c])*100)),
+          borderColor:FC[f],
+          backgroundColor:FC[f]+"40",
+          borderWidth:2
+        }))
+      },
+      options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:100,ticks:{stepSize:20}}},plugins:{legend:{position:"bottom"}}}
+    });
+    return ()=>{if(radarChartInst.current)radarChartInst.current.destroy();};
+  },[playerDebriefTab,debriefFullAccess,JSON.stringify(scores)]);
+  
+  // Dane mojej rodziny
+  var fam=fd[familyId]||{};var items=fam.items||[];var task=TASKS[familyId];var cash=fam.cash||600;
+  var myResIds=items.filter(i=>i.cat==="res").map(r=>toSlug(r.name));
+  var myCompIds=items.filter(i=>i.cat==="comp").map(c=>toSlug(c.name));
+  var myPlots=items.filter(i=>i.cat==="plot");
+  var myMaps=items.filter(i=>i.cat==="map");
+  var hasCorrectPlot=myPlots.some(p=>p.plotNr===FM[familyId].tPlot);
+  
+  var resPct=task.zasoby.reduce((s,z)=>s+(myResIds.includes(z.id)?z.pct:0),0);
+  var resPts=Math.round((resPct/100)*30);
+  var compPct=task.kompetencje.reduce((s,k)=>s+(myCompIds.includes(k.id)?k.pct:0),0);
+  var compPts=Math.round((compPct/100)*25);
+  var cashPts=Math.max(0,Math.min(25,Math.round(((cash-600)/600)*25)));
+  var plotPts=hasCorrectPlot?10:0;
+  var mapPts=Math.min(10,myMaps.length*2);
+  var relPts=Math.round(calcRelationScore(familyId, relations));
+  
+  // Złotodajna Żyła
+  var mapWinner=null;var maxFrags=0;
+  F.forEach(f=>{var frags=(fd[f]&&fd[f].items||[]).filter(i=>i.cat==="map").length;if(frags>maxFrags){maxFrags=frags;mapWinner=f;}else if(frags===maxFrags&&maxFrags>0){mapWinner=null;}});
+  var gotMapBonus=mapWinner===familyId;
+  var lostToWinner=mapWinner&&mapWinner!==familyId?mapWinner:null;
+  
+  // Rewolwerowiec
+  var revWon=0,revLost=0;
+  (revDuels||[]).forEach(d=>{
+    if(d.status==="settled"){
+      var isA=d.familyA===familyId;var isB=d.familyB===familyId;
+      if(isA||isB){var diff=d.result;if(isA&&diff>0)revWon+=Math.abs(diff);if(isA&&diff<0)revLost+=Math.abs(diff);if(isB&&diff<0)revWon+=Math.abs(diff);if(isB&&diff>0)revLost+=Math.abs(diff);}
+    }
+  });
+  
+  // Ślepy Los
+  var myFate=blindFate[familyId]||{};
+  var fateResults=[];
+  [1,2].forEach(round=>{
+    var roll=myFate["roll"+round];var policies=myFate["policies"+round]||[];
+    if(roll!==undefined){fateResults.push({round,roll,policies,effect:myFate["effect"+round]||"",desc:myFate["desc"+round]||""});}
+  });
+  
+  // Render karty
+  function renderCard(id,cat,has,pct){
+    var ext=cat==="res"?".png":".jpg";
+    return(<div key={id} style={{width:80,opacity:has?1:0.4,filter:has?"none":"grayscale(100%)"}}>
+      <img src={IMG_BASE+cat+"_"+id+ext} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:"2px solid #D4C4A8"}} alt={id}/>
+      <div style={{fontSize:10,textAlign:"center",marginTop:2}}>{pct}%</div>
+    </div>);
+  }
+  
+  var PLAYER_TABS=debriefFullAccess?
+    [["zadania","Realizacja zadań"],["ewaluacja","Ewaluacja"],["wyniki","Wyniki końcowe"],["magazyn","Stany magazynowe"],["profil","Profil rodzin"],["rytm","Rytm rozgrywki"],["handel","Macierz handlu"],["relacje","Relacje"]]:
+    [["zadania","Realizacja zadań"],["ewaluacja","Ewaluacja"]];
+  
+  return(<div style={{background:"#fff",backgroundImage:"url("+IMG_BASE+"tlo_wyniki.png)",backgroundSize:"cover",backgroundPosition:"center",padding:16,borderRadius:6}}>
+    <div style={{fontSize:20,fontWeight:700,color:"#842504",marginBottom:12,borderBottom:"2px solid #842504",paddingBottom:8}}>Wyniki rozgrywki</div>
+    
+    {/* Zakładki */}
+    <div style={{display:"flex",gap:3,marginBottom:14,flexWrap:"wrap"}}>
+      {PLAYER_TABS.map(([id,label])=>{
+        var act=playerDebriefTab===id;
+        return <div key={id} onClick={()=>setPlayerDebriefTab(id)} style={{padding:"6px 12px",fontSize:12,fontWeight:act?700:400,background:act?"#fff":"#F3CA82",color:act?"#842504":"#4C130F",cursor:"pointer",borderBottom:act?"2px solid #842504":"2px solid transparent"}}>{label}</div>;
+      })}
+    </div>
+    
+    {/* === REALIZACJA ZADAŃ === */}
+    {playerDebriefTab==="zadania"&&<div>
+      <div style={{marginBottom:20,padding:16,background:"#4C130F",borderRadius:6,textAlign:"center"}}>
+        <div style={{fontSize:24,fontWeight:700,color:"#D4A853"}}>Uzyskany wynik: {resPts+compPts+cashPts+plotPts+mapPts+relPts} pkt</div>
+      </div>
+      
+      {/* 1. Zasoby */}
+      <div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
+        <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>1. Pozyskanie zasobów do prowadzenia przedsiębiorstwa</div>
+        <div style={{display:"flex",gap:20,marginBottom:10,fontSize:14}}>
+          <span>Poziom realizacji: <b>{resPct}%</b></span>
+          <span>Liczba punktów: <b>{resPts} pkt</b></span>
+        </div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+          {task.zasoby.map(z=>renderCard(z.id,"res",myResIds.includes(z.id),z.pct))}
+        </div>
+      </div>
+      
+      {/* 2. Kompetencje */}
+      <div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
+        <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>2. Pozyskanie kompetencji do prowadzenia przedsiębiorstwa</div>
+        <div style={{display:"flex",gap:20,marginBottom:10,fontSize:14}}>
+          <span>Poziom realizacji: <b>{compPct}%</b></span>
+          <span>Liczba punktów: <b>{compPts} pkt</b></span>
+        </div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+          {task.kompetencje.map(k=>renderCard(k.id,"comp",myCompIds.includes(k.id),k.pct))}
+        </div>
+      </div>
+      
+      {/* 3. Działka */}
+      <div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
+        <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>3. Pozyskanie działki pod przedsiębiorstwo</div>
+        <div style={{display:"flex",alignItems:"flex-start",gap:16}}>
+          <div style={{width:120,opacity:hasCorrectPlot?1:0.4,filter:hasCorrectPlot?"none":"grayscale(100%)"}}>
+            <img src={IMG_BASE+"dzialka_"+FM[familyId].tPlot+".jpg"} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:"2px solid #D4C4A8"}} alt={"Działka "+FM[familyId].tPlot}/>
+          </div>
+          <div style={{fontSize:14}}>
+            <div style={{marginBottom:6}}>Wymagana działka: <b>nr {FM[familyId].tPlot}</b></div>
+            <div style={{marginBottom:6}}>Status: <b style={{color:hasCorrectPlot?"#2E5B3C":"#C00"}}>{hasCorrectPlot?"Pozyskana":"Brak"}</b></div>
+            <div>Liczba punktów: <b>{plotPts} pkt</b></div>
+          </div>
+        </div>
+      </div>
+      
+      {/* 4. Kapitał */}
+      <div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
+        <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>4. Zgromadzenie kapitału obrotowego</div>
+        <div style={{fontSize:14}}>
+          <div style={{marginBottom:6}}>Posiadana gotówka: <b>{cash} $</b></div>
+          <div style={{marginBottom:6}}>Kapitał ponad startowy: <b>{Math.max(0,cash-600)} $</b></div>
+          <div>Liczba punktów: <b>{cashPts} pkt</b></div>
+        </div>
+      </div>
+      
+      {/* 5. Złotodajna Żyła */}
+      <div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
+        <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>5. Złotodajna Żyła</div>
+        <div style={{display:"flex",gap:20,marginBottom:10,fontSize:14,flexWrap:"wrap"}}>
+          <span>Zebrane fragmenty: <b>{myMaps.length}/5</b></span>
+          <span>Liczba punktów: <b>{mapPts} pkt</b></span>
+          {gotMapBonus&&<span style={{color:"#2E5B3C",fontWeight:700}}>Bonus: 300 $</span>}
+          {lostToWinner&&<span style={{color:"#C00"}}>Strata: - 100 $ na rzecz {FN[lostToWinner]}</span>}
+        </div>
+        <div style={{display:"flex",gap:0}}>
+          {[5,4,3,2,1].map(fragNr=>{
+            var hasIt=myMaps.some(m=>m.fragNr===fragNr);
+            return(<div key={fragNr} style={{flex:"1 1 0",opacity:hasIt?1:0.4,filter:hasIt?"none":"grayscale(100%)"}}>
+              <img src={IMG_BASE+"map_fragment-"+fragNr+".jpg"} style={{width:"100%",height:"auto",display:"block"}} alt={"Fragment "+fragNr}/>
+            </div>);
+          })}
+        </div>
+      </div>
+      
+      {/* 6. Ślepy Los */}
+      <div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
+        <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>6. Efekty Ślepego Losu</div>
+        {fateResults.length===0&&<div style={{fontSize:14,color:"#888",fontStyle:"italic"}}>Brak wyników losowania</div>}
+        {fateResults.map((fr,idx)=>(<div key={idx} style={{marginBottom:idx<fateResults.length-1?12:0,padding:10,background:"#F5F0E8",borderRadius:4}}>
+          <div style={{fontWeight:700,marginBottom:6}}>Losowanie {fr.round}</div>
+          <div style={{fontSize:13,marginBottom:4}}>Wykupione polisy: <b>{fr.policies.length>0?fr.policies.join(", "):"brak"}</b></div>
+          <div style={{fontSize:13,marginBottom:4}}>Wyrzucona liczba: <b>{fr.roll}</b></div>
+          <div style={{fontSize:13,marginBottom:4}}>Zdarzenie: {fr.desc||"—"}</div>
+          <div style={{fontSize:13}}>Konsekwencje: {fr.effect||"—"}</div>
+        </div>))}
+      </div>
+      
+      {/* 7. Relacje */}
+      <div style={{padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
+        <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>7. Ocena relacji z innymi rodzinami</div>
+        <div style={{fontSize:14}}>
+          <div style={{marginBottom:6}}>Średnia ocena relacji: <b>{(relPts/20*5).toFixed(1)}/5</b></div>
+          <div>Liczba punktów: <b>{relPts} pkt</b></div>
+        </div>
+      </div>
+    </div>}
+    
+    {/* === EWALUACJA === */}
+    {playerDebriefTab==="ewaluacja"&&<div>
+      <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:16}}>Pytania pomocnicze do ewaluacji</div>
+      <div style={{fontSize:15,color:"#5C4A3A",marginBottom:20}}>Skorzystajcie z nich omawiając przebieg gry:</div>
+      <ul style={{fontSize:16,lineHeight:2,color:"#4C130F",paddingLeft:24,margin:0}}>
+        <li style={{marginBottom:8}}>Jak układała się współpraca wewnątrz zespołu?</li>
+        <li style={{marginBottom:8}}>Co osiągnęliśmy? Co jest dla nas największym sukcesem?</li>
+        <li style={{marginBottom:8}}>Co nam się nie udało? Gdzie ponieśliśmy porażki?</li>
+        <li style={{marginBottom:8}}>Która runda negocjacji była dla nas najkorzystniejsza? Co miało na to wpływ?</li>
+        <li style={{marginBottom:8}}>Która runda negocjacji była dla nas najtrudniejsza? Co miało na to wpływ?</li>
+        <li style={{marginBottom:8}}>Jak wyglądała współpraca z każdą z pozostałych rodzin?</li>
+        <li style={{marginBottom:8}}>Czego się nauczyliśmy? Co było dla nas najbardziej uczące?</li>
+      </ul>
+    </div>}
+    
+    {/* === WYNIKI KOŃCOWE === */}
+    {playerDebriefTab==="wyniki"&&debriefFullAccess&&<div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:14}}>
+        {ranked.map((f,i)=>{
+          var pts=tot(f);var isMe=f===familyId;
+          return <div key={f} style={{borderRadius:6,padding:"10px 12px",background:FC[f],border:isMe?"3px solid #D4A853":"3px solid transparent"}}>
+            <div style={{fontSize:10,color:"rgba(255,255,255,0.7)"}}>{i+1}. miejsce</div>
+            <div style={{fontSize:21,fontWeight:900,color:"#fff"}}>{pts} pkt</div>
+            <div style={{fontFamily:"'Aka Posse',Georgia,serif",fontSize:15,color:"rgba(255,255,255,0.95)",marginTop:2}}>{FN[f]}</div>
+          </div>;
+        })}
+      </div>
+      <div style={{position:"relative",height:200}}><canvas ref={barChartRef}></canvas></div>
+    </div>}
+    
+    {/* === STANY MAGAZYNOWE === */}
+    {playerDebriefTab==="magazyn"&&debriefFullAccess&&<div>
+      <div style={{marginBottom:20}}>
+        <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:12}}>Niesprzedane karty startowe</div>
+        <div style={{marginBottom:12}}>
+          <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:8}}>Zasoby:</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+            {STARTING_RES[familyId].filter(sid=>myResIds.includes(sid)&&!task.zasoby.some(z=>z.id===sid)).map(sid=>{
+              var isZmylka=ZMYLKI_RES.includes(sid);
+              return(<div key={sid} style={{width:100}}>
+                <img src={IMG_BASE+"res_"+sid+".png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:isZmylka?"3px solid #C00":"2px solid #D4C4A8"}} alt={sid}/>
+              </div>);
+            })}
+            {STARTING_RES[familyId].filter(sid=>myResIds.includes(sid)&&!task.zasoby.some(z=>z.id===sid)).length===0&&<span style={{fontSize:13,color:"#888",fontStyle:"italic"}}>Brak</span>}
+          </div>
+        </div>
+        <div>
+          <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:8}}>Kompetencje:</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+            {STARTING_COMP[familyId].filter(cid=>myCompIds.includes(cid)&&!task.kompetencje.some(k=>k.id===cid)).map(cid=>{
+              var isZmylka=ZMYLKI_COMP.includes(cid);
+              return(<div key={cid} style={{width:100}}>
+                <img src={IMG_BASE+"comp_"+cid+".jpg"} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:isZmylka?"3px solid #C00":"2px solid #D4C4A8"}} alt={cid}/>
+              </div>);
+            })}
+            {STARTING_COMP[familyId].filter(cid=>myCompIds.includes(cid)&&!task.kompetencje.some(k=>k.id===cid)).length===0&&<span style={{fontSize:13,color:"#888",fontStyle:"italic"}}>Brak</span>}
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:12}}>Zakupione karty bez wartości dla biznesu</div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+          {items.filter(i=>(i.cat==="res"||i.cat==="comp")&&!STARTING_RES[familyId].includes(toSlug(i.name))&&!STARTING_COMP[familyId].includes(toSlug(i.name))).filter(i=>{
+            var slug=toSlug(i.name);
+            var isNeeded=i.cat==="res"?task.zasoby.some(z=>z.id===slug):task.kompetencje.some(k=>k.id===slug);
+            return !isNeeded;
+          }).map((i,idx)=>{
+            var slug=toSlug(i.name);
+            var isZmylka=(i.cat==="res"&&ZMYLKI_RES.includes(slug))||(i.cat==="comp"&&ZMYLKI_COMP.includes(slug));
+            var ext=i.cat==="res"?".png":".jpg";
+            return(<div key={idx} style={{width:100}}>
+              <img src={IMG_BASE+i.cat+"_"+slug+ext} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:isZmylka?"3px solid #C00":"2px solid #D4C4A8"}} alt={i.name}/>
+            </div>);
+          })}
+          {items.filter(i=>(i.cat==="res"||i.cat==="comp")&&!STARTING_RES[familyId].includes(toSlug(i.name))&&!STARTING_COMP[familyId].includes(toSlug(i.name))).filter(i=>{
+            var slug=toSlug(i.name);var isNeeded=i.cat==="res"?task.zasoby.some(z=>z.id===slug):task.kompetencje.some(k=>k.id===slug);return !isNeeded;
+          }).length===0&&<span style={{fontSize:13,color:"#888",fontStyle:"italic"}}>Brak</span>}
+        </div>
+      </div>
+    </div>}
+    
+    {/* === PROFIL RODZIN === */}
+    {playerDebriefTab==="profil"&&debriefFullAccess&&<div>
+      <div style={{position:"relative",height:300,maxWidth:450,margin:"0 auto"}}><canvas ref={radarChartRef}></canvas></div>
+      <div style={{textAlign:"center",fontSize:11,color:"#8B7355",marginTop:6}}>Wartości jako % maksimum możliwego do zdobycia w każdej kategorii</div>
+    </div>}
+    
+    {/* === RYTM ROZGRYWKI === */}
+    {playerDebriefTab==="rytm"&&debriefFullAccess&&<div>
+      <div style={{overflowX:"auto"}}>
+        <table style={{borderCollapse:"collapse",width:"100%",fontSize:12}}>
+          <thead>
+            <tr style={{background:"#F0E8D4"}}>
+              <th style={{padding:"5px 7px",textAlign:"left",border:"0.5px solid #D4C4A8",fontSize:10,fontWeight:700,color:"#5C4A3A"}}>Rodzina</th>
+              {PHASES.map(p=><th key={p} style={{padding:"5px 7px",textAlign:"center",border:"0.5px solid #D4C4A8",fontSize:10,fontWeight:700,color:"#5C4A3A"}}>{p}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {F.map(f=><tr key={f} style={{background:f===familyId?"#FFF8E7":"#fff"}}>
+              <td style={{padding:"5px 10px",textAlign:"left",fontWeight:700,border:"0.5px solid #D4C4A8",color:FC[f]}}>{FN[f]}</td>
+              {txPerPhase[f].map((n,i)=><td key={i} style={{padding:"5px 7px",textAlign:"center",border:"0.5px solid #D4C4A8",background:hmColor(n),fontWeight:n>0?700:400}}>{n}</td>)}
+            </tr>)}
+          </tbody>
+        </table>
+      </div>
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:8,alignItems:"center",fontSize:11,color:"#8B7355"}}>
+        <span>Liczba transakcji:</span>
+        {[[0,"#F0EBE0"],[1,"#F5E0A0"],["2–3","#E8C060"],[4,"#D4A853"],["5+","#8B5E20"]].map(([l,c])=><span key={l} style={{display:"flex",alignItems:"center",gap:3}}><span style={{width:14,height:10,borderRadius:2,background:c,border:"0.5px solid #ccc"}}></span>{l}</span>)}
+      </div>
+    </div>}
+    
+    {/* === MACIERZ HANDLU === */}
+    {playerDebriefTab==="handel"&&debriefFullAccess&&<div>
+      <table style={{borderCollapse:"collapse",width:"100%",fontSize:12}}>
+        <thead>
+          <tr style={{background:"#F0E8D4"}}>
+            <th style={{padding:"5px 7px",textAlign:"left",border:"0.5px solid #D4C4A8",fontSize:10,fontWeight:700,color:"#5C4A3A"}}>Para</th>
+            <th style={{padding:"5px 7px",textAlign:"center",border:"0.5px solid #D4C4A8",fontSize:10,fontWeight:700,color:"#5C4A3A"}}>Transakcje</th>
+            <th style={{padding:"5px 7px",textAlign:"center",border:"0.5px solid #D4C4A8",fontSize:10,fontWeight:700,color:"#5C4A3A"}}>Wartość $</th>
+          </tr>
+        </thead>
+        <tbody>
+          {PAIRS.map(p=>{
+            var parts=p.split("-");var isMe=parts.includes(familyId);
+            return <tr key={p} style={{background:isMe?"#FFF8E7":"#fff"}}>
+              <td style={{padding:"5px 10px",textAlign:"left",fontWeight:700,border:"0.5px solid #D4C4A8"}}><span style={{color:FC[parts[0]]}}>{FN[parts[0]]}</span> ↔ <span style={{color:FC[parts[1]]}}>{FN[parts[1]]}</span></td>
+              <td style={{padding:"5px 7px",textAlign:"center",border:"0.5px solid #D4C4A8",fontWeight:700}}>{tradeMatrix[p].c}</td>
+              <td style={{padding:"5px 7px",textAlign:"center",border:"0.5px solid #D4C4A8"}}>{tradeMatrix[p].v}$</td>
+            </tr>;
+          })}
+        </tbody>
+      </table>
+    </div>}
+    
+    {/* === RELACJE === */}
+    {playerDebriefTab==="relacje"&&debriefFullAccess&&<div>
+      <table style={{borderCollapse:"collapse",fontSize:12}}>
+        <thead>
+          <tr>
+            <th style={{padding:"5px 7px",border:"0.5px solid #D4C4A8",background:"#F0E8D4"}}></th>
+            {F.map(f=><th key={f} style={{padding:"5px 10px",border:"0.5px solid #D4C4A8",background:"#F0E8D4",color:FC[f],fontWeight:700,fontSize:11}}>{FN[f]}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {F.map(from=><tr key={from} style={{background:from===familyId?"#FFF8E7":"#fff"}}>
+            <td style={{padding:"5px 10px",border:"0.5px solid #D4C4A8",background:"#F0E8D4",color:FC[from],fontWeight:700,fontSize:11}}>{FN[from]}</td>
+            {F.map(to=>{
+              if(from===to)return <td key={to} style={{padding:"5px 7px",border:"0.5px solid #D4C4A8",background:"#E8E0D0",textAlign:"center"}}>—</td>;
+              var r=relations&&relations[from]&&relations[from][to];
+              var val=r?Math.round(((r.partnership||0)+(r.rules||0)+(r.communication||0))/3):0;
+              var stars="★".repeat(val)+"☆".repeat(5-val);
+              return <td key={to} style={{padding:"5px 7px",border:"0.5px solid #D4C4A8",textAlign:"center",color:"#D4A853",fontSize:14}}>{stars}</td>;
+            })}
+          </tr>)}
+        </tbody>
+      </table>
+    </div>}
+    
   </div>);
 }
 
@@ -3560,7 +4020,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.9.9</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.10.0</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -3840,464 +4300,7 @@ function App({roomCode,role,playerId,playerName}) {
               </div>);})}
             </div>);
           })()}
-          {activeTab==="results"&&debriefUnlocked&&(()=>{
-            // === DEFINICJE ===
-            var F=["adams","bennet","clinton","dexter"];
-            var FN={adams:"Adamsowie",bennet:"Bennetowie",clinton:"Clintonowie",dexter:"Dexterowie"};
-            var FC={adams:"#A75F4A",bennet:"#726072",clinton:"#5E5971",dexter:"#5B7674"};
-            var TASKS={
-              adams:{name:"Saloon",zasoby:[{id:"stara-destylarnia",name:"Stara Destylarnia",pct:30},{id:"pianino",name:"Pianino",pct:20},{id:"kredens",name:"Kredens",pct:20},{id:"debowa-beczka",name:"Dębowa Beczka",pct:10},{id:"talia-kart",name:"Talia Kart",pct:10},{id:"mosiezny-zyrandol",name:"Mosiężny Żyrandol",pct:5},{id:"zeliwny-kociolek",name:"Żeliwny Kociołek",pct:5}],kompetencje:[{id:"organizowanie-turniejow-pokera",name:"Organizowanie Turniejów Pokera",pct:43},{id:"pedzenie-szkockiej-whisky",name:"Pędzenie Szkockiej Whisky",pct:27},{id:"prowadzenie-kuchni-zbiorowej",name:"Prowadzenie Kuchni Zbiorowej",pct:18},{id:"przechowywanie-piwa",name:"Przechowywanie Piwa",pct:12}]},
-              bennet:{name:"Zakład Pogrzebowy",zasoby:[{id:"szpadel",name:"Szpadel",pct:30},{id:"czarny-material",name:"Czarny Materiał",pct:20},{id:"dluto-do-kamienia",name:"Dłuto do Kamienia",pct:20},{id:"zestaw-narzedzi",name:"Zestaw Narzędzi",pct:10},{id:"drewniany-wozek",name:"Drewniany Wózek",pct:10},{id:"zestaw-wizazysty",name:"Zestaw Wizażysty",pct:5},{id:"podest-dla-mowcy",name:"Podest dla Mówcy",pct:5}],kompetencje:[{id:"sztuka-balsamowania",name:"Sztuka Balsamowania",pct:43},{id:"wyglaszanie-mow-pogrzebowych",name:"Wygłaszanie Mów Pogrzebowych",pct:27},{id:"podstawy-makijazu-posmiertnego",name:"Podstawy Makijażu Pośmiertnego",pct:18},{id:"podstawy-stolarstwa",name:"Podstawy Stolarstwa",pct:12}]},
-              clinton:{name:"Bank",zasoby:[{id:"sejf",name:"Sejf",pct:30},{id:"liczydlo",name:"Liczydło",pct:20},{id:"karabin",name:"Karabin",pct:20},{id:"stalowe-drzwi",name:"Stalowe Drzwi",pct:10},{id:"kasetka",name:"Kasetka",pct:10},{id:"lupa",name:"Lupa",pct:5},{id:"waga-jubilerska",name:"Waga Jubilerska",pct:5}],kompetencje:[{id:"zapewnienie-bezpieczenstwa",name:"Zapewnienie Bezpieczeństwa",pct:43},{id:"obsluga-zamka-szyfrowego",name:"Obsługa Zamka Szyfrowego",pct:27},{id:"biegla-obsluga-liczydla",name:"Biegła Obsługa Liczydła",pct:18},{id:"ocena-wartosci-samorodkow",name:"Ocena Wartości Samorodków",pct:12}]},
-              dexter:{name:"Ranczo",zasoby:[{id:"lasso",name:"Lasso",pct:30},{id:"siodlo",name:"Siodło",pct:20},{id:"colt-navy-1857",name:"Colt Navy 1857",pct:20},{id:"wysokie-buty",name:"Wysokie Buty",pct:10},{id:"manierka",name:"Manierka",pct:10},{id:"kapelusz",name:"Kapelusz",pct:5},{id:"pas-z-kabura",name:"Pas z Kaburą",pct:5}],kompetencje:[{id:"poslugiwanie-sie-lassem",name:"Posługiwanie się Lassem",pct:43},{id:"leczenie-chorob-bydla",name:"Leczenie Chorób Bydła",pct:27},{id:"szybkostrzelnosc-i-celnosc-oka",name:"Szybkostrzelność i Celność Oka",pct:18},{id:"odnajdywanie-zrodel-wody",name:"Odnajdywanie Źródeł Wody",pct:12}]}
-            };
-            // Karty startowe dla każdej rodziny (id zasobów i kompetencji)
-            var STARTING_RES={
-              adams:["debowa-beczka","mosiezny-zyrandol","zeliwny-kociolek","zestaw-narzedzi","karabin","siodlo","lupa","waga-jubilerska","zestaw-skalpeli","zakraplacz"],
-              bennet:["lasso","czarny-material","pianino","colt-navy-1857","wysokie-buty","telegraf","zestaw-stempli","tygiel"],
-              clinton:["stara-destylarnia","kredens","drewniany-wozek","stalowe-drzwi","kasetka","szpadel","stojacy-zegar","wigwam"],
-              dexter:["sejf","liczydlo","talia-kart","manierka","dluto-do-kamienia","kapelusz","pas-z-kabura","zestaw-wizazysty","podest-dla-mowcy","30-letnia-whisky"]
-            };
-            var STARTING_COMP={
-              adams:["podstawy-stolarstwa","obsluga-zamka-szyfrowego","odnajdywanie-zrodel-wody","szybkostrzelnosc-i-celnosc-oka","pisanie-kaligraficzne"],
-              bennet:["zapewnienie-bezpieczenstwa","leczenie-chorob-bydla","przechowywanie-piwa","biegla-obsluga-liczydla","zabawianie-gosci-na-imprezach"],
-              clinton:["pedzenie-szkockiej-whisky","prowadzenie-kuchni-zbiorowej","podstawy-makijazu-posmiertnego","poslugiwanie-sie-lassem","leczenie-ran-postrzalowych"],
-              dexter:["organizowanie-turniejow-pokera","sztuka-balsamowania","ocena-wartosci-samorodkow","wyglaszanie-mow-pogrzebowych","cechowanie-metali-szlachetnych"]
-            };
-            // Zmyłki (blind cards)
-            var ZMYLKI_RES=["zestaw-skalpeli","zakraplacz","telegraf","zestaw-stempli","tygiel","stojacy-zegar","wigwam","30-letnia-whisky"];
-            var ZMYLKI_COMP=["pisanie-kaligraficzne","zabawianie-gosci-na-imprezach","leczenie-ran-postrzalowych","cechowanie-metali-szlachetnych"];
-            // Wszystkie potrzebne zasoby/kompetencje (dla wszystkich rodzin)
-            var ALL_NEEDED_RES=[];var ALL_NEEDED_COMP=[];
-            F.forEach(f=>{TASKS[f].zasoby.forEach(z=>ALL_NEEDED_RES.push(z.id));TASKS[f].kompetencje.forEach(k=>ALL_NEEDED_COMP.push(k.id));});
-            
-            // === FUNKCJE POMOCNICZE ===
-            var fam=fd[familyId]||{};var items=fam.items||[];var task=TASKS[familyId];var cash=fam.cash||600;
-            var myResIds=items.filter(i=>i.cat==="res").map(r=>toSlug(r.name));
-            var myCompIds=items.filter(i=>i.cat==="comp").map(c=>toSlug(c.name));
-            var myPlots=items.filter(i=>i.cat==="plot");
-            var myMaps=items.filter(i=>i.cat==="map");
-            var hasCorrectPlot=myPlots.some(p=>p.plotNr===FM[familyId].tPlot);
-            
-            // Oblicz punkty
-            var resPct=task.zasoby.reduce((s,z)=>s+(myResIds.includes(z.id)?z.pct:0),0);
-            var resPts=Math.round((resPct/100)*30);
-            var compPct=task.kompetencje.reduce((s,k)=>s+(myCompIds.includes(k.id)?k.pct:0),0);
-            var compPts=Math.round((compPct/100)*25);
-            var cashPts=Math.max(0,Math.min(25,Math.round(((cash-600)/600)*25)));
-            var plotPts=hasCorrectPlot?10:0;
-            var mapPts=Math.min(10,myMaps.length*2);
-            var relPts=Math.round(calcRelationScore(familyId, relations));
-            
-            // Złotodajna Żyła - bonus
-            var mapWinner=null;var maxFrags=0;
-            F.forEach(f=>{var frags=(fd[f]&&fd[f].items||[]).filter(i=>i.cat==="map").length;if(frags>maxFrags){maxFrags=frags;mapWinner=f;}else if(frags===maxFrags&&maxFrags>0){mapWinner=null;}});
-            var gotMapBonus=mapWinner===familyId;
-            var lostToWinner=mapWinner&&mapWinner!==familyId?mapWinner:null;
-            
-            // Rewolwerowiec - wygrane/przegrane
-            var revWon=0,revLost=0;
-            (revDuels||[]).forEach(d=>{
-              if(d.status==="settled"){
-                var isA=d.familyA===familyId;var isB=d.familyB===familyId;
-                if(isA||isB){
-                  var diff=d.result;// >0 means A won
-                  if(isA&&diff>0)revWon+=Math.abs(diff);
-                  if(isA&&diff<0)revLost+=Math.abs(diff);
-                  if(isB&&diff<0)revWon+=Math.abs(diff);
-                  if(isB&&diff>0)revLost+=Math.abs(diff);
-                }
-              }
-            });
-            
-            // Ślepy Los
-            var myFate=blindFate[familyId]||{};
-            var fateResults=[];
-            [1,2].forEach(round=>{
-              var roll=myFate["roll"+round];
-              var policies=myFate["policies"+round]||[];
-              if(roll!==undefined){
-                fateResults.push({round,roll,policies,effect:myFate["effect"+round]||"",desc:myFate["desc"+round]||""});
-              }
-            });
-            
-            // Oblicz wyniki wszystkich rodzin (dla rankingu)
-            function calcFamScore(f){
-              var famD=fd[f]||{};var itms=famD.items||[];var tsk=TASKS[f];
-              var rIds=itms.filter(i=>i.cat==="res").map(r=>toSlug(r.name));
-              var rPct=tsk.zasoby.reduce((s,z)=>s+(rIds.includes(z.id)?z.pct:0),0);
-              var rPts=Math.round((rPct/100)*30);
-              var cIds=itms.filter(i=>i.cat==="comp").map(c=>toSlug(c.name));
-              var cPct=tsk.kompetencje.reduce((s,k)=>s+(cIds.includes(k.id)?k.pct:0),0);
-              var cPts=Math.round((cPct/100)*25);
-              var csh=famD.cash||600;
-              var cshPts=Math.max(0,Math.min(25,Math.round(((csh-600)/600)*25)));
-              var plts=itms.filter(i=>i.cat==="plot");
-              var pltOk=plts.some(p=>p.plotNr===FM[f].tPlot);
-              var pltPts=pltOk?10:0;
-              var mps=itms.filter(i=>i.cat==="map").length;
-              var mpPts=Math.min(10,mps*2);
-              var rlPts=Math.round(calcRelationScore(f, relations));
-              return {zasoby:rPts,kompetencje:cPts,gotowka:cshPts,dzialka:pltPts,mapa:mpPts,relacje:rlPts};
-            }
-            var scores={};F.forEach(f=>{scores[f]=calcFamScore(f);});
-            function tot(f){return ["zasoby","kompetencje","gotowka","dzialka","mapa","relacje"].reduce((s,c)=>s+(scores[f][c]||0),0);}
-            var ranked=[...F].sort((a,b)=>tot(b)-tot(a));
-            var myScore=tot(familyId);
-            
-            // Renderowanie karty
-            function renderCard(cardId,cat,hasIt,pct){
-              var slug=cardId;
-              var ext=cat==="res"?".png":".jpg";
-              var imgSrc=IMG_BASE+cat+"_"+slug+ext;
-              var isZmylka=(cat==="res"&&ZMYLKI_RES.includes(slug))||(cat==="comp"&&ZMYLKI_COMP.includes(slug));
-              return(<div key={slug} style={{width:120,position:"relative",opacity:hasIt?1:0.4,filter:hasIt?"none":"grayscale(100%)"}}>
-                <img src={imgSrc} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:isZmylka?"3px solid #C00":"2px solid #D4C4A8"}} alt={slug} onError={(e)=>{e.target.style.display="none";}}/>
-                {hasIt&&pct!==undefined&&<div style={{position:"absolute",top:4,right:4,background:"#842504",color:"#fff",fontSize:10,fontWeight:700,padding:"2px 6px",borderRadius:10}}>{pct}%</div>}
-              </div>);
-            }
-            
-            // === ZAKŁADKI ===
-            var PLAYER_TABS=debriefFullAccess?
-              [["zadania","Realizacja zadań"],["ewaluacja","Ewaluacja"],["wyniki","Wyniki końcowe"],["magazyn","Stany magazynowe"],["profil","Profil rodzin"],["rytm","Rytm rozgrywki"],["handel","Macierz handlu"],["relacje","Relacje"]]:
-              [["zadania","Realizacja zadań"],["ewaluacja","Ewaluacja"]];
-            
-            return (<div style={{background:"#fff",backgroundImage:"url("+IMG_BASE+"tlo_wyniki.png)",backgroundSize:"cover",backgroundPosition:"center",padding:16,borderRadius:6}}>
-              <div style={{fontSize:20,fontWeight:700,color:"#842504",marginBottom:12,borderBottom:"2px solid #842504",paddingBottom:8}}>Wyniki rozgrywki</div>
-              
-              {/* Zakładki */}
-              <div style={{display:"flex",gap:3,marginBottom:14,flexWrap:"wrap"}}>
-                {PLAYER_TABS.map(([id,label])=>{
-                  var act=playerDebriefTab===id;
-                  return <div key={id} onClick={()=>setPlayerDebriefTab(id)} style={{padding:"6px 12px",fontSize:12,fontWeight:act?700:400,background:act?"#fff":"#F3CA82",color:act?"#842504":"#4C130F",cursor:"pointer",borderBottom:act?"2px solid #842504":"2px solid transparent"}}>{label}</div>;
-                })}
-              </div>
-              
-              {/* === REALIZACJA ZADAŃ === */}
-              {playerDebriefTab==="zadania"&&<div>
-                {/* Nagłówek z wynikiem */}
-                <div style={{marginBottom:20,padding:16,background:"#4C130F",borderRadius:6,textAlign:"center"}}>
-                  <div style={{fontSize:24,fontWeight:700,color:"#D4A853"}}>Uzyskany wynik: {resPts+compPts+cashPts+plotPts+mapPts+relPts} pkt</div>
-                </div>
-                
-                {/* 1. Zasoby */}
-                <div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
-                  <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>1. Pozyskanie zasobów do prowadzenia przedsiębiorstwa</div>
-                  <div style={{display:"flex",gap:20,marginBottom:10,fontSize:14}}>
-                    <span>Poziom realizacji: <b>{resPct}%</b></span>
-                    <span>Liczba punktów: <b>{resPts} pkt</b></span>
-                  </div>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-                    {task.zasoby.map(z=>renderCard(z.id,"res",myResIds.includes(z.id),z.pct))}
-                  </div>
-                </div>
-                
-                {/* 2. Kompetencje */}
-                <div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
-                  <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>2. Pozyskanie kompetencji do prowadzenia przedsiębiorstwa</div>
-                  <div style={{display:"flex",gap:20,marginBottom:10,fontSize:14}}>
-                    <span>Poziom realizacji: <b>{compPct}%</b></span>
-                    <span>Liczba punktów: <b>{compPts} pkt</b></span>
-                  </div>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-                    {task.kompetencje.map(k=>renderCard(k.id,"comp",myCompIds.includes(k.id),k.pct))}
-                  </div>
-                </div>
-                
-                {/* 3. Działka */}
-                <div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
-                  <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>3. Pozyskanie działki pod przedsiębiorstwo</div>
-                  <div style={{display:"flex",alignItems:"flex-start",gap:16}}>
-                    <div style={{width:120,opacity:hasCorrectPlot?1:0.4,filter:hasCorrectPlot?"none":"grayscale(100%)"}}>
-                      <img src={IMG_BASE+"dzialka_"+FM[familyId].tPlot+".jpg"} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:"2px solid #D4C4A8"}} alt={"Działka "+FM[familyId].tPlot}/>
-                    </div>
-                    <div style={{fontSize:14}}>
-                      <div style={{marginBottom:6}}>Wymagana działka: <b>nr {FM[familyId].tPlot}</b></div>
-                      <div style={{marginBottom:6}}>Liczba punktów: <b>{plotPts} pkt</b></div>
-                      {!hasCorrectPlot&&<div style={{color:"#C00",fontWeight:700}}>Dodatkowy koszt: - 50 $</div>}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* 4. Gotówka */}
-                <div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
-                  <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>4. Pomnożenie gotówki</div>
-                  <div style={{fontSize:14}}>
-                    <div style={{marginBottom:6}}>Posiadana gotówka: <b>{cash} $</b></div>
-                    <div>Liczba punktów: <b>{cashPts} pkt</b></div>
-                  </div>
-                </div>
-                
-                {/* 5. Złotodajna Żyła */}
-                <div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
-                  <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>5. Złotodajna Żyła</div>
-                  <div style={{display:"flex",gap:20,marginBottom:10,fontSize:14,flexWrap:"wrap"}}>
-                    <span>Zebrane fragmenty: <b>{myMaps.length}/5</b></span>
-                    <span>Liczba punktów: <b>{mapPts} pkt</b></span>
-                    {gotMapBonus&&<span style={{color:"#2E5B3C",fontWeight:700}}>Bonus: 300 $</span>}
-                    {lostToWinner&&<span style={{color:"#C00"}}>Strata: - 100 $ na rzecz {FN[lostToWinner]}</span>}
-                  </div>
-                  <div style={{display:"flex",gap:0}}>
-                    {[5,4,3,2,1].map(fragNr=>{
-                      var hasIt=myMaps.some(m=>m.fragNr===fragNr);
-                      return(<div key={fragNr} style={{flex:"1 1 0",opacity:hasIt?1:0.4,filter:hasIt?"none":"grayscale(100%)"}}>
-                        <img src={IMG_BASE+"map_fragment-"+fragNr+".jpg"} style={{width:"100%",height:"auto",display:"block"}} alt={"Fragment "+fragNr}/>
-                      </div>);
-                    })}
-                  </div>
-                </div>
-                
-                {/* 6. Ślepy Los */}
-                <div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
-                  <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>6. Efekty Ślepego Losu</div>
-                  {fateResults.length===0&&<div style={{fontSize:14,color:"#888",fontStyle:"italic"}}>Brak wyników losowania</div>}
-                  {fateResults.map((fr,idx)=>(<div key={idx} style={{marginBottom:idx<fateResults.length-1?12:0,padding:10,background:"#F5F0E8",borderRadius:4}}>
-                    <div style={{fontWeight:700,marginBottom:6}}>Losowanie {fr.round}</div>
-                    <div style={{fontSize:13,marginBottom:4}}>Wykupione polisy: <b>{fr.policies.length>0?fr.policies.join(", "):"brak"}</b></div>
-                    <div style={{fontSize:13,marginBottom:4}}>Wyrzucona liczba: <b>{fr.roll}</b></div>
-                    <div style={{fontSize:13,marginBottom:4}}>Zdarzenie: {fr.desc||"—"}</div>
-                    <div style={{fontSize:13}}>Konsekwencje: {fr.effect||"—"}</div>
-                  </div>))}
-                </div>
-                
-                {/* 7. Rewolwerowiec */}
-                <div style={{padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
-                  <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>7. Efekty Rewolwerowca</div>
-                  <div style={{fontSize:14}}>
-                    <div style={{marginBottom:6,color:"#2E5B3C"}}>Wygrana: <b>{revWon} $</b></div>
-                    <div style={{color:"#C00"}}>Przegrana: <b>{revLost} $</b></div>
-                  </div>
-                </div>
-              </div>}
-              
-              {/* === EWALUACJA === */}
-              {playerDebriefTab==="ewaluacja"&&<div>
-                <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:16}}>Pytania pomocnicze do ewaluacji</div>
-                <div style={{fontSize:15,color:"#5C4A3A",marginBottom:20}}>Skorzystajcie z nich omawiając przebieg gry:</div>
-                <ul style={{fontSize:16,lineHeight:2,color:"#4C130F",paddingLeft:24,margin:0}}>
-                  <li style={{marginBottom:8}}>Jak układała się współpraca wewnątrz zespołu?</li>
-                  <li style={{marginBottom:8}}>Co osiągnęliśmy? Co jest dla nas największym sukcesem?</li>
-                  <li style={{marginBottom:8}}>Co nam się nie udało? Gdzie ponieśliśmy porażki?</li>
-                  <li style={{marginBottom:8}}>Która runda negocjacji była dla nas najkorzystniejsza? Co miało na to wpływ?</li>
-                  <li style={{marginBottom:8}}>Która runda negocjacji była dla nas najtrudniejsza? Co miało na to wpływ?</li>
-                  <li style={{marginBottom:8}}>Jak wyglądała współpraca z każdą z pozostałych rodzin?</li>
-                  <li style={{marginBottom:8}}>Czego się nauczyliśmy? Co było dla nas najbardziej uczące?</li>
-                </ul>
-              </div>}
-              
-              {/* === WYNIKI KOŃCOWE (tylko przy pełnym dostępie) === */}
-              {playerDebriefTab==="wyniki"&&debriefFullAccess&&<div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:14}}>
-                  {ranked.map((f,i)=>{
-                    var pts=tot(f);
-                    var isMe=f===familyId;
-                    return <div key={f} style={{borderRadius:6,padding:"10px 12px",background:FC[f],border:isMe?"3px solid #D4A853":"3px solid transparent"}}>
-                      <div style={{fontSize:10,color:"rgba(255,255,255,0.7)"}}>{i+1}. miejsce</div>
-                      <div style={{fontSize:21,fontWeight:900,color:"#fff"}}>{pts} pkt</div>
-                      <div style={{fontFamily:"'Aka Posse',Georgia,serif",fontSize:15,color:"rgba(255,255,255,0.95)",marginTop:2}}>{FN[f]}</div>
-                    </div>;
-                  })}
-                </div>
-                {/* Szczegółowa tabela punktacji */}
-                <div style={{marginTop:16}}>
-                  <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-                    <thead><tr style={{background:"#F5F0E8"}}>
-                      <th style={{padding:8,textAlign:"left",borderBottom:"2px solid #D4C4A8"}}>Rodzina</th>
-                      <th style={{padding:8,textAlign:"center",borderBottom:"2px solid #D4C4A8"}}>Zasoby</th>
-                      <th style={{padding:8,textAlign:"center",borderBottom:"2px solid #D4C4A8"}}>Kompetencje</th>
-                      <th style={{padding:8,textAlign:"center",borderBottom:"2px solid #D4C4A8"}}>Gotówka</th>
-                      <th style={{padding:8,textAlign:"center",borderBottom:"2px solid #D4C4A8"}}>Działka</th>
-                      <th style={{padding:8,textAlign:"center",borderBottom:"2px solid #D4C4A8"}}>Mapa</th>
-                      <th style={{padding:8,textAlign:"center",borderBottom:"2px solid #D4C4A8"}}>Relacje</th>
-                      <th style={{padding:8,textAlign:"center",borderBottom:"2px solid #D4C4A8",fontWeight:700}}>SUMA</th>
-                    </tr></thead>
-                    <tbody>{ranked.map(f=>(<tr key={f} style={{background:f===familyId?"#FFF8E7":"#fff"}}>
-                      <td style={{padding:8,fontWeight:700,color:FC[f],borderBottom:"1px solid #E8E0D0"}}>{FN[f]}</td>
-                      <td style={{padding:8,textAlign:"center",borderBottom:"1px solid #E8E0D0"}}>{scores[f].zasoby}</td>
-                      <td style={{padding:8,textAlign:"center",borderBottom:"1px solid #E8E0D0"}}>{scores[f].kompetencje}</td>
-                      <td style={{padding:8,textAlign:"center",borderBottom:"1px solid #E8E0D0"}}>{scores[f].gotowka}</td>
-                      <td style={{padding:8,textAlign:"center",borderBottom:"1px solid #E8E0D0"}}>{scores[f].dzialka}</td>
-                      <td style={{padding:8,textAlign:"center",borderBottom:"1px solid #E8E0D0"}}>{scores[f].mapa}</td>
-                      <td style={{padding:8,textAlign:"center",borderBottom:"1px solid #E8E0D0"}}>{scores[f].relacje}</td>
-                      <td style={{padding:8,textAlign:"center",borderBottom:"1px solid #E8E0D0",fontWeight:700,color:"#842504"}}>{tot(f)}</td>
-                    </tr>))}</tbody>
-                  </table>
-                </div>
-              </div>}
-              
-              {/* === STANY MAGAZYNOWE (tylko przy pełnym dostępie) === */}
-              {playerDebriefTab==="magazyn"&&debriefFullAccess&&<div>
-                {/* Niesprzedane karty startowe */}
-                <div style={{marginBottom:20}}>
-                  <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:12}}>Niesprzedane karty startowe</div>
-                  <div style={{marginBottom:12}}>
-                    <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:8}}>Zasoby:</div>
-                    <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-                      {STARTING_RES[familyId].filter(sid=>myResIds.includes(sid)&&!task.zasoby.some(z=>z.id===sid)).map(sid=>{
-                        var isZmylka=ZMYLKI_RES.includes(sid);
-                        return(<div key={sid} style={{width:100}}>
-                          <img src={IMG_BASE+"res_"+sid+".png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:isZmylka?"3px solid #C00":"2px solid #D4C4A8"}} alt={sid}/>
-                        </div>);
-                      })}
-                      {STARTING_RES[familyId].filter(sid=>myResIds.includes(sid)&&!task.zasoby.some(z=>z.id===sid)).length===0&&<span style={{fontSize:13,color:"#888",fontStyle:"italic"}}>Brak</span>}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:8}}>Kompetencje:</div>
-                    <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-                      {STARTING_COMP[familyId].filter(cid=>myCompIds.includes(cid)&&!task.kompetencje.some(k=>k.id===cid)).map(cid=>{
-                        var isZmylka=ZMYLKI_COMP.includes(cid);
-                        return(<div key={cid} style={{width:100}}>
-                          <img src={IMG_BASE+"comp_"+cid+".jpg"} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:isZmylka?"3px solid #C00":"2px solid #D4C4A8"}} alt={cid}/>
-                        </div>);
-                      })}
-                      {STARTING_COMP[familyId].filter(cid=>myCompIds.includes(cid)&&!task.kompetencje.some(k=>k.id===cid)).length===0&&<span style={{fontSize:13,color:"#888",fontStyle:"italic"}}>Brak</span>}
-                    </div>
-                  </div>
-                </div>
-                {/* Zakupione karty bez wartości */}
-                <div>
-                  <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:12}}>Zakupione karty bez wartości dla biznesu</div>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-                    {items.filter(i=>(i.cat==="res"||i.cat==="comp")&&!STARTING_RES[familyId].includes(toSlug(i.name))&&!STARTING_COMP[familyId].includes(toSlug(i.name))).filter(i=>{
-                      var slug=toSlug(i.name);
-                      var isNeeded=i.cat==="res"?task.zasoby.some(z=>z.id===slug):task.kompetencje.some(k=>k.id===slug);
-                      return !isNeeded;
-                    }).map((i,idx)=>{
-                      var slug=toSlug(i.name);
-                      var isZmylka=(i.cat==="res"&&ZMYLKI_RES.includes(slug))||(i.cat==="comp"&&ZMYLKI_COMP.includes(slug));
-                      var ext=i.cat==="res"?".png":".jpg";
-                      return(<div key={idx} style={{width:100}}>
-                        <img src={IMG_BASE+i.cat+"_"+slug+ext} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:isZmylka?"3px solid #C00":"2px solid #D4C4A8"}} alt={i.name}/>
-                      </div>);
-                    })}
-                    {items.filter(i=>(i.cat==="res"||i.cat==="comp")&&!STARTING_RES[familyId].includes(toSlug(i.name))&&!STARTING_COMP[familyId].includes(toSlug(i.name))).filter(i=>{
-                      var slug=toSlug(i.name);
-                      var isNeeded=i.cat==="res"?task.zasoby.some(z=>z.id===slug):task.kompetencje.some(k=>k.id===slug);
-                      return !isNeeded;
-                    }).length===0&&<span style={{fontSize:13,color:"#888",fontStyle:"italic"}}>Brak</span>}
-                  </div>
-                </div>
-              </div>}
-              
-              {/* === PROFIL RODZIN (tylko przy pełnym dostępie) === */}
-              {playerDebriefTab==="profil"&&debriefFullAccess&&<div>
-                <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:12}}>Profil rodzin</div>
-                <div style={{fontSize:13,color:"#888",fontStyle:"italic"}}>Wykres radarowy porównujący wyniki rodzin w poszczególnych kategoriach.</div>
-                {/* TODO: wykres radarowy - na razie tabela */}
-                <div style={{marginTop:12}}>
-                  <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-                    <thead><tr style={{background:"#F5F0E8"}}>
-                      <th style={{padding:8,textAlign:"left",borderBottom:"2px solid #D4C4A8"}}>Rodzina</th>
-                      <th style={{padding:8,textAlign:"center",borderBottom:"2px solid #D4C4A8"}}>Zasoby</th>
-                      <th style={{padding:8,textAlign:"center",borderBottom:"2px solid #D4C4A8"}}>Kompetencje</th>
-                      <th style={{padding:8,textAlign:"center",borderBottom:"2px solid #D4C4A8"}}>Gotówka</th>
-                      <th style={{padding:8,textAlign:"center",borderBottom:"2px solid #D4C4A8"}}>Działka</th>
-                      <th style={{padding:8,textAlign:"center",borderBottom:"2px solid #D4C4A8"}}>Mapa</th>
-                      <th style={{padding:8,textAlign:"center",borderBottom:"2px solid #D4C4A8"}}>Relacje</th>
-                    </tr></thead>
-                    <tbody>{F.map(f=>(<tr key={f} style={{background:f===familyId?"#FFF8E7":"#fff"}}>
-                      <td style={{padding:8,fontWeight:700,color:FC[f],borderBottom:"1px solid #E8E0D0"}}>{FN[f]}</td>
-                      <td style={{padding:8,textAlign:"center",borderBottom:"1px solid #E8E0D0"}}>{scores[f].zasoby}</td>
-                      <td style={{padding:8,textAlign:"center",borderBottom:"1px solid #E8E0D0"}}>{scores[f].kompetencje}</td>
-                      <td style={{padding:8,textAlign:"center",borderBottom:"1px solid #E8E0D0"}}>{scores[f].gotowka}</td>
-                      <td style={{padding:8,textAlign:"center",borderBottom:"1px solid #E8E0D0"}}>{scores[f].dzialka}</td>
-                      <td style={{padding:8,textAlign:"center",borderBottom:"1px solid #E8E0D0"}}>{scores[f].mapa}</td>
-                      <td style={{padding:8,textAlign:"center",borderBottom:"1px solid #E8E0D0"}}>{scores[f].relacje}</td>
-                    </tr>))}</tbody>
-                  </table>
-                </div>
-              </div>}
-              
-              {/* === RYTM ROZGRYWKI (tylko przy pełnym dostępie) === */}
-              {playerDebriefTab==="rytm"&&debriefFullAccess&&(()=>{
-                var PHASES=["F1·T1","F1·T2","F1·T3","F2·T1","F2·T2","F2·T3","F3·T1","F3·T2","F3·T3"];
-                function hmColor(n){
-                  if(n===0)return"#F0EBE0";
-                  if(n===1)return"#F5E0A0";
-                  if(n<=3)return"#E8C060";
-                  if(n===4)return"#D4A853";
-                  return"#8B5E20";
-                }
-                var txPerPhase={adams:[0,0,0,0,0,0,0,0,0],bennet:[0,0,0,0,0,0,0,0,0],clinton:[0,0,0,0,0,0,0,0,0],dexter:[0,0,0,0,0,0,0,0,0]};
-                txs.forEach((tx,i)=>{
-                  var phase=Math.min(8,Math.floor(i/(txs.length/9)));
-                  if(tx.from&&txPerPhase[tx.from])txPerPhase[tx.from][phase]++;
-                  if(tx.to&&txPerPhase[tx.to])txPerPhase[tx.to][phase]++;
-                });
-                return <div>
-                  <div style={{overflowX:"auto"}}>
-                    <table style={{borderCollapse:"collapse",width:"100%",fontSize:12}}>
-                      <thead>
-                        <tr style={{background:"#F0E8D4"}}>
-                          <th style={{padding:"5px 7px",textAlign:"left",border:"0.5px solid #D4C4A8",fontSize:10,fontWeight:700,color:"#5C4A3A"}}>Rodzina</th>
-                          {PHASES.map(p=><th key={p} style={{padding:"5px 7px",textAlign:"center",border:"0.5px solid #D4C4A8",fontSize:10,fontWeight:700,color:"#5C4A3A"}}>{p}</th>)}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {F.map(f=><tr key={f} style={{background:f===familyId?"#FFF8E7":"#fff"}}>
-                          <td style={{padding:"5px 10px",textAlign:"left",fontWeight:700,border:"0.5px solid #D4C4A8",color:FC[f]}}>{FN[f]}</td>
-                          {txPerPhase[f].map((n,i)=><td key={i} style={{padding:"5px 7px",textAlign:"center",border:"0.5px solid #D4C4A8",background:hmColor(n),fontWeight:n>0?700:400}}>{n}</td>)}
-                        </tr>)}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:8,alignItems:"center",fontSize:11,color:"#8B7355"}}>
-                    <span>Liczba transakcji:</span>
-                    {[[0,"#F0EBE0"],[1,"#F5E0A0"],["2–3","#E8C060"],[4,"#D4A853"],["5+","#8B5E20"]].map(([l,c])=><span key={l} style={{display:"flex",alignItems:"center",gap:3}}><span style={{width:14,height:10,borderRadius:2,background:c,border:"0.5px solid #ccc"}}></span>{l}</span>)}
-                  </div>
-                </div>;
-              })()}
-              
-              {/* === MACIERZ HANDLU (tylko przy pełnym dostępie) === */}
-              {playerDebriefTab==="handel"&&debriefFullAccess&&<div>
-                <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:12}}>Macierz handlu</div>
-                {(()=>{
-                  var matrix={};F.forEach(a=>{matrix[a]={};F.forEach(b=>{matrix[a][b]=0;});});
-                  txs.filter(t=>t.status==="done").forEach(t=>{
-                    matrix[t.from][t.to]++;matrix[t.to][t.from]++;
-                  });
-                  return(<table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-                    <thead><tr style={{background:"#F5F0E8"}}>
-                      <th style={{padding:8,borderBottom:"2px solid #D4C4A8"}}></th>
-                      {F.map(f=><th key={f} style={{padding:8,textAlign:"center",borderBottom:"2px solid #D4C4A8",color:FC[f],fontWeight:700}}>{FN[f].slice(0,-5)}</th>)}
-                    </tr></thead>
-                    <tbody>{F.map(a=>(<tr key={a}>
-                      <td style={{padding:8,fontWeight:700,color:FC[a],borderBottom:"1px solid #E8E0D0"}}>{FN[a].slice(0,-5)}</td>
-                      {F.map(b=><td key={b} style={{padding:8,textAlign:"center",borderBottom:"1px solid #E8E0D0",background:a===b?"#E8E0D0":"#fff"}}>{a===b?"—":matrix[a][b]}</td>)}
-                    </tr>))}</tbody>
-                  </table>);
-                })()}
-              </div>}
-              
-              {/* === RELACJE (tylko przy pełnym dostępie) === */}
-              {playerDebriefTab==="relacje"&&debriefFullAccess&&<div>
-                <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:12}}>Macierz relacji</div>
-                {(()=>{
-                  var CATS=[{key:"partnership",label:"Partnerstwo"},{key:"rules",label:"Przestrzeganie zasad"},{key:"communication",label:"Komunikacja"}];
-                  return(<div>
-                    {CATS.map(cat=>(<div key={cat.key} style={{marginBottom:16}}>
-                      <div style={{fontSize:14,fontWeight:600,color:"#5C4A3A",marginBottom:8}}>{cat.label}</div>
-                      <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-                        <thead><tr style={{background:"#F5F0E8"}}>
-                          <th style={{padding:6,borderBottom:"1px solid #D4C4A8"}}></th>
-                          {F.map(f=><th key={f} style={{padding:6,textAlign:"center",borderBottom:"1px solid #D4C4A8",color:FC[f]}}>{FN[f].slice(0,-5)}</th>)}
-                        </tr></thead>
-                        <tbody>{F.map(rater=>(<tr key={rater}>
-                          <td style={{padding:6,fontWeight:600,color:FC[rater],borderBottom:"1px solid #E8E0D0"}}>{FN[rater].slice(0,-5)}</td>
-                          {F.map(target=>{
-                            var val=relations[rater]&&relations[rater][target]&&relations[rater][target][cat.key];
-                            return<td key={target} style={{padding:6,textAlign:"center",borderBottom:"1px solid #E8E0D0",background:rater===target?"#E8E0D0":"#fff"}}>{rater===target?"—":(val||"—")}</td>;
-                          })}
-                        </tr>))}</tbody>
-                      </table>
-                    </div>))}
-                  </div>);
-                })()}
-              </div>}
-              
-            </div>);
-          })()}
+          {activeTab==="results"&&debriefUnlocked&&<PlayerDebriefingPanel familyId={familyId} fd={fd} txs={txs} blindFate={blindFate} relations={relations} revDuels={revDuels} debriefFullAccess={debriefFullAccess} playerDebriefTab={playerDebriefTab} setPlayerDebriefTab={setPlayerDebriefTab}/>}
           {activeTab==="rev"&&revEnabled&&(()=>{
             var rc=revActive.find(d=>d.familyA===familyId||d.familyB===familyId)||revCurrent;
             var duelTimer=rc?getRevTimer(rc.id):-1;
