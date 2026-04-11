@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.14.0</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.14.1</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -581,7 +581,7 @@ function Lobby({onJoin}){
 /* ========== CARD IMAGES (loaded from img/ folder) ========== */
 const IMG_BASE = "img/";
 function toSlug(s){return s.toLowerCase().replace(/ą/g,'a').replace(/ć/g,'c').replace(/ę/g,'e').replace(/ł/g,'l').replace(/ń/g,'n').replace(/ó/g,'o').replace(/ś/g,'s').replace(/ź/g,'z').replace(/ż/g,'z').replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');}
-function imgUrl(prefix,name){var ext=(prefix==="res")?".png":".jpg";return IMG_BASE+prefix+'_'+toSlug(name)+ext;}
+function imgUrl(prefix,name){var ext=(prefix==="res"||prefix==="note-res")?".png":".jpg";return IMG_BASE+prefix+'_'+toSlug(name)+ext;}
 function mapImgUrl(n){return IMG_BASE+'map_fragment-'+n+'.jpg';}
 
 /* ========== REVOLVER IMAGES ========== */
@@ -4201,7 +4201,7 @@ function App({roomCode,role,playerId,playerName}) {
             </div>
             {familyView.orphanNR.length>0&&<div>
               <div style={{fontSize:22,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:8,marginTop:4,textAlign:"center"}} className="wt">Notatki dziadka — informacje o zasobach</div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,marginBottom:20}}>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,marginBottom:20}}>
                 {familyView.orphanNR.map(n=><NoteCard key={n.id} item={n} type="res"/>)}
               </div>
             </div>}
