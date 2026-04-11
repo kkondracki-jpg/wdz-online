@@ -1829,7 +1829,7 @@ function PolicyCardNew({type, status, activeForRoll}) {
   var is50 = type === "p50";
   var imgName = is50 ? "policy_50" : "policy_100";
   var imgH = is50 ? 352 : 353;
-  var statusY = is50 ? 54.4 : 47.4;
+  var statusYFromBottom = is50 ? 54.4 : 47.4; // distance from bottom edge
   var statusText = activeForRoll ? "aktywna" : status === "owned" ? "w posiadaniu" : status === "used" ? "wykorzystana" : "nie wykupiona";
   
   return (
@@ -1843,12 +1843,12 @@ function PolicyCardNew({type, status, activeForRoll}) {
       {!imgOk && <div style={{width:"100%",height:"100%",background:"#E8DCC8",display:"flex",alignItems:"center",justifyContent:"center"}}>
         <span style={{fontFamily:"'Aka Posse',serif",fontSize:16,color:"#51211B"}}>{is50?"polisa 50%":"polisa 100%"}</span>
       </div>}
-      {/* Status text overlay - positioned in the designated box */}
+      {/* Status text overlay - positioned from bottom edge */}
       <div style={{
         position:"absolute",
         left:"50%",
-        top:(statusY/imgH*100)+"%",
-        transform:"translate(-50%,-50%)",
+        bottom:(statusYFromBottom/imgH*100)+"%",
+        transform:"translate(-50%,50%)",
         width:183,
         height:43.4,
         display:"flex",
@@ -1945,11 +1945,11 @@ function BlindFateFamily({fId, blindFate}) {
       />}
       {!bgOk && <div style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",background:"linear-gradient(135deg,#4C130F 0%,#2A0A08 100%)",borderRadius:8,zIndex:0}}/>}
       
-      {/* Content Grid */}
-      <div style={{position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:15,padding:15}}>
+      {/* Content Grid - cards take priority, board can shrink */}
+      <div style={{position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"1fr 1.2fr 1fr",gap:15,padding:15,alignItems:"stretch"}}>
         
         {/* COLUMN 1: Board with dice */}
-        <div style={{position:"relative",aspectRatio:"1/1"}}>
+        <div style={{position:"relative",aspectRatio:"1/1",maxHeight:"100%"}}>
           {boardOk && <img 
             src={IMG_BASE+"plansza_slepy-los.png"} 
             style={{width:"100%",height:"100%",objectFit:"contain",display:"block"}} 
@@ -1989,10 +1989,17 @@ function BlindFateFamily({fId, blindFate}) {
               <DiceSVG value={currentRoll.dice2} variant="dark" rolling={false} size={diceSize}/>
             </>}
             
-            {/* Sum display */}
+            {/* Sum display with settlement */}
             {showSum && <div style={{textAlign:"center"}}>
               <div style={{fontSize:64,fontWeight:700,color:"#FFF",textShadow:"0 2px 8px rgba(0,0,0,0.5)",fontFamily:"'Aka Posse',serif"}}>{currentRoll.sum}</div>
               <div style={{fontSize:18,color:"#FFF8E7",marginTop:4}}>{currentRoll.dice1} + {currentRoll.dice2}</div>
+              {/* Settlement info */}
+              <div style={{marginTop:12}}>
+                <div style={{fontSize:14,fontWeight:700,color:"#FFF",marginBottom:4}}>ROZLICZENIE:</div>
+                <div style={{fontSize:28,fontWeight:700,color:"#FFF",textShadow:"0 2px 6px rgba(0,0,0,0.5)"}}>{currentRoll.netEffectText}</div>
+                {currentRoll.policyUsed&&currentRoll.event&&currentRoll.event.type!=="gain"&&currentRoll.event.type!=="gain_policy"&&
+                  <div style={{fontSize:12,color:"#FFF8E7",marginTop:4}}>Polisa zmniejsza stratę o {currentRoll.policyUsed}%</div>}
+              </div>
             </div>}
           </div>
           
@@ -2032,38 +2039,11 @@ function BlindFateFamily({fId, blindFate}) {
             color:"#51211B",
             fontStyle:"italic"
           }}>Szeryf przygotowuje losowanie...</div>}
-          
-          {!currentRoll&&<div style={{
-            position:"absolute",
-            left:"50%",
-            bottom:"15%",
-            transform:"translateX(-50%)",
-            background:"rgba(255,248,231,0.9)",
-            padding:"8px 16px",
-            borderRadius:6,
-            fontSize:13,
-            color:"#51211B",
-            fontStyle:"italic"
-          }}>Oczekuj na sygnał Szeryfa...</div>}
         </div>
         
         {/* COLUMN 2: Fate Card */}
-        <div style={{display:"flex",flexDirection:"column"}}>
+        <div style={{display:"flex",flexDirection:"column",height:"100%"}}>
           <FateEventCard sum={currentRoll?currentRoll.sum:null} showEvent={!!showEvent}/>
-          
-          {/* Settlement info below card when showing */}
-          {showSum && currentRoll && <div style={{
-            background:"rgba(255,248,231,0.95)",
-            padding:12,
-            borderRadius:6,
-            marginTop:10,
-            textAlign:"center"
-          }}>
-            <div style={{fontSize:14,fontWeight:700,color:"#51211B",marginBottom:4}}>ROZLICZENIE:</div>
-            <div style={{fontSize:28,fontWeight:700,color:currentRoll.netEffect>=0?"#2E5B3C":"#8B2500"}}>{currentRoll.netEffectText}</div>
-            {currentRoll.policyUsed&&currentRoll.event&&currentRoll.event.type!=="gain"&&currentRoll.event.type!=="gain_policy"&&
-              <div style={{fontSize:12,color:"#842504",marginTop:4}}>Polisa zmniejsza stratę o {currentRoll.policyUsed}%</div>}
-          </div>}
         </div>
         
         {/* COLUMN 3: Intro + History + Policies */}
