@@ -1946,17 +1946,17 @@ function BlindFateFamily({fId, blindFate}) {
       {!bgOk && <div style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",background:"linear-gradient(135deg,#4C130F 0%,#2A0A08 100%)",borderRadius:8,zIndex:0}}/>}
       
       {/* Content Grid - cards take priority, board can shrink */}
-      <div style={{position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"1fr 1.2fr 1fr",gap:15,padding:15,alignItems:"stretch"}}>
+      <div style={{position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"1fr 1.2fr 1fr",gap:15,padding:15,minHeight:500}}>
         
         {/* COLUMN 1: Board with dice */}
-        <div style={{position:"relative",aspectRatio:"1/1",maxHeight:"100%"}}>
+        <div style={{position:"relative",minHeight:400,display:"flex",alignItems:"center",justifyContent:"center"}}>
           {boardOk && <img 
             src={IMG_BASE+"plansza_slepy-los.png"} 
-            style={{width:"100%",height:"100%",objectFit:"contain",display:"block"}} 
+            style={{width:"100%",maxHeight:"100%",objectFit:"contain",display:"block"}} 
             alt="Plansza Ślepy Los" 
             onError={()=>setBoardOk(false)}
           />}
-          {!boardOk && <div style={{width:"100%",height:"100%",background:"rgba(76,19,15,0.8)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          {!boardOk && <div style={{width:300,height:300,background:"rgba(76,19,15,0.8)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}}>
             <div style={{width:"80%",height:"80%",border:"4px solid #842504",borderRadius:"50%"}}/>
           </div>}
           
@@ -2047,7 +2047,7 @@ function BlindFateFamily({fId, blindFate}) {
         </div>
         
         {/* COLUMN 3: Intro + History + Policies */}
-        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        <div style={{display:"flex",flexDirection:"column",gap:10,minHeight:400}}>
           
           {/* Intro text */}
           <div style={{
@@ -3985,7 +3985,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.12.1</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.12.2</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
