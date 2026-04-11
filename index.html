@@ -1963,23 +1963,18 @@ function BlindFateFamily({fId, blindFate}) {
       {!bgOk && <div style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",background:"linear-gradient(135deg,#4C130F 0%,#2A0A08 100%)",borderRadius:8,zIndex:0}}/>}
       
       {/* Content Grid - 2 rows, 3 columns */}
-      <div style={{position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gridTemplateRows:"auto 1fr",gap:30,padding:20,alignItems:"stretch"}}>
+      <div style={{position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gridTemplateRows:"auto 1fr",gap:15,padding:15,alignItems:"stretch"}}>
         
-        {/* ROW 1, COL 1: Intro text + History */}
-        <div style={{gridColumn:"1 / 2",gridRow:"1",display:"flex",flexDirection:"column",gap:10}}>
-          {/* Intro text */}
-          <div style={{
-            background:"rgba(255,248,231,0.85)",
-            padding:12,
-            borderRadius:6,
-            flex:"0 0 auto"
-          }}>
-            <p style={{fontSize:12,color:"#51211B",lineHeight:1.5,margin:0,fontFamily:"'Aka Posse',serif"}}>
-              O zysku lub stracie w biznesie decyduje czasem ślepy los. Dwukrotnie w trakcie gry rzucicie kośćmi. Suma oczek wskaże losowe wydarzenie - może ono przynieść zysk lub stratę.
-            </p>
-            <p style={{fontSize:12,color:"#51211B",lineHeight:1.5,margin:"8px 0 0 0",fontFamily:"'Aka Posse',serif",fontStyle:"italic"}}>
-              Oczekujcie na Szeryfa. Wyjaśni wam szczegóły.
-            </p>
+        {/* ROW 1, COL 1: Tabliczka + History */}
+        <div style={{gridColumn:"1 / 2",gridRow:"1",display:"flex",flexDirection:"column",gap:8}}>
+          {/* Tabliczka image */}
+          <div style={{flex:"0 0 auto"}}>
+            <img 
+              src={IMG_BASE+"slepy-los_tabliczka.png"} 
+              style={{width:"100%",height:"auto",display:"block",borderRadius:6}} 
+              alt="Ślepy Los"
+              onError={(e)=>{e.target.style.display="none";}}
+            />
           </div>
           
           {/* History */}
@@ -4004,7 +3999,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.13.4</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.13.5</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
