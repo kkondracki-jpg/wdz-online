@@ -1945,18 +1945,18 @@ function BlindFateFamily({fId, blindFate}) {
       />}
       {!bgOk && <div style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",background:"linear-gradient(135deg,#4C130F 0%,#2A0A08 100%)",borderRadius:8,zIndex:0}}/>}
       
-      {/* Content Grid - cards take priority, board can shrink */}
-      <div style={{position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"1fr 1.2fr 1fr",gap:15,padding:15,minHeight:500}}>
+      {/* Content Grid - 2 rows */}
+      <div style={{position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gridTemplateRows:"auto auto",gap:15,padding:15}}>
         
-        {/* COLUMN 1: Board with dice */}
-        <div style={{position:"relative",minHeight:400,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        {/* ROW 1, COL 1-2: Board with dice */}
+        <div style={{gridColumn:"1 / 3",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",minHeight:350}}>
           {boardOk && <img 
             src={IMG_BASE+"plansza_slepy-los.png"} 
-            style={{width:"100%",maxHeight:"100%",objectFit:"contain",display:"block"}} 
+            style={{maxWidth:"100%",maxHeight:400,objectFit:"contain",display:"block"}} 
             alt="Plansza Ślepy Los" 
             onError={()=>setBoardOk(false)}
           />}
-          {!boardOk && <div style={{width:300,height:300,background:"rgba(76,19,15,0.8)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          {!boardOk && <div style={{width:350,height:350,background:"rgba(76,19,15,0.8)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}}>
             <div style={{width:"80%",height:"80%",border:"4px solid #842504",borderRadius:"50%"}}/>
           </div>}
           
@@ -1964,7 +1964,7 @@ function BlindFateFamily({fId, blindFate}) {
           <div style={{
             position:"absolute",
             top:"50%",
-            left:"50%",
+            left:"33%",
             transform:"translate(-50%,-50%)",
             display:"flex",
             gap:diceGap,
@@ -2006,8 +2006,8 @@ function BlindFateFamily({fId, blindFate}) {
           {/* Roll button - positioned in circle */}
           {showRollButton && <div style={{
             position:"absolute",
-            left:"50%",
-            bottom:"20%",
+            left:"33%",
+            bottom:"15%",
             transform:"translateX(-50%)"
           }}>
             <div className="roll-btn-wrap" data-roll={fId+"-"+currentRollIdx}>
@@ -2029,8 +2029,8 @@ function BlindFateFamily({fId, blindFate}) {
           {/* Waiting message */}
           {currentRoll&&!currentRoll.diceReady&&!currentRoll.resolved&&<div style={{
             position:"absolute",
-            left:"50%",
-            bottom:"15%",
+            left:"33%",
+            bottom:"10%",
             transform:"translateX(-50%)",
             background:"rgba(255,248,231,0.9)",
             padding:"8px 16px",
@@ -2041,14 +2041,23 @@ function BlindFateFamily({fId, blindFate}) {
           }}>Szeryf przygotowuje losowanie...</div>}
         </div>
         
-        {/* COLUMN 2: Fate Card */}
-        <div style={{display:"flex",flexDirection:"column",height:"100%",minHeight:400,background:"#FFF8E7",borderRadius:6,overflow:"hidden"}}>
+        {/* ROW 1, COL 3: Fate Card */}
+        <div style={{gridColumn:"3 / 4",display:"flex",flexDirection:"column",minHeight:350,background:"#FFF8E7",borderRadius:6,overflow:"hidden"}}>
           <FateEventCard sum={currentRoll?currentRoll.sum:null} showEvent={!!showEvent}/>
         </div>
         
-        {/* COLUMN 3: Intro + History + Policies */}
-        <div style={{display:"flex",flexDirection:"column",gap:10,minHeight:400}}>
-          
+        {/* ROW 2, COL 1: Policy 100% */}
+        <div style={{gridColumn:"1 / 2"}}>
+          <PolicyCardNew type="p100" status={policies.p100} activeForRoll={activePolicy===100}/>
+        </div>
+        
+        {/* ROW 2, COL 2: Policy 50% */}
+        <div style={{gridColumn:"2 / 3"}}>
+          <PolicyCardNew type="p50" status={policies.p50} activeForRoll={activePolicy===50}/>
+        </div>
+        
+        {/* ROW 2, COL 3: Intro text + History */}
+        <div style={{gridColumn:"3 / 4",display:"flex",flexDirection:"column",gap:10}}>
           {/* Intro text */}
           <div style={{
             background:"rgba(255,248,231,0.85)",
@@ -2071,7 +2080,6 @@ function BlindFateFamily({fId, blindFate}) {
             borderRadius:6,
             flex:"1 1 auto",
             minHeight:60,
-            maxHeight:120,
             overflowY:"auto"
           }}>
             <div style={{fontSize:11,fontWeight:700,color:"#842504",marginBottom:6,fontFamily:"'Aka Posse',serif"}}>Historia losowań</div>
@@ -2082,12 +2090,6 @@ function BlindFateFamily({fId, blindFate}) {
               </div>
             ))}
           </div>
-          
-          {/* Policy 50% */}
-          <PolicyCardNew type="p50" status={policies.p50} activeForRoll={activePolicy===50}/>
-          
-          {/* Policy 100% */}
-          <PolicyCardNew type="p100" status={policies.p100} activeForRoll={activePolicy===100}/>
         </div>
       </div>
     </div>
@@ -3985,7 +3987,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.12.2</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.13.0</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
