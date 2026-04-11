@@ -2045,11 +2045,11 @@ function BlindFateFamily({fId, blindFate}) {
             </div>}
           </div>
           
-          {/* Roll button - positioned in circle, raised by 40px */}
+          {/* Roll button - positioned in circle, raised by 160px */}
           {showRollButton && <div style={{
             position:"absolute",
             left:"50%",
-            bottom:"calc(15% + 40px)",
+            bottom:"calc(15% + 160px)",
             transform:"translateX(-50%)"
           }}>
             <div className="roll-btn-wrap" data-roll={fId+"-"+currentRollIdx}>
@@ -3983,7 +3983,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.13.2</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.13.3</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
