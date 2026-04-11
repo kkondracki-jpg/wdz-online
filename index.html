@@ -1828,36 +1828,32 @@ function PolicyCardNew({type, status, activeForRoll}) {
   const [imgOk,setImgOk]=useState(true);
   var is50 = type === "p50";
   var imgName = is50 ? "policy_50" : "policy_100";
-  var imgH = is50 ? 352 : 353;
-  var statusYFromBottom = is50 ? 54.4 : 47.4; // distance from bottom edge
   var statusText = activeForRoll ? "aktywna" : status === "owned" ? "w posiadaniu" : status === "used" ? "wykorzystana" : "nie wykupiona";
   
   return (
-    <div style={{position:"relative",width:285,height:imgH/2,overflow:"hidden",borderRadius:4}}>
+    <div style={{position:"relative",width:"100%",overflow:"hidden",borderRadius:6}}>
       {imgOk && <img 
         src={IMG_BASE+imgName+".png"} 
-        style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} 
+        style={{width:"100%",height:"auto",display:"block"}} 
         alt={is50?"Polisa 50%":"Polisa 100%"} 
         onError={()=>setImgOk(false)}
       />}
-      {!imgOk && <div style={{width:"100%",height:"100%",background:"#E8DCC8",display:"flex",alignItems:"center",justifyContent:"center"}}>
-        <span style={{fontFamily:"'Aka Posse',serif",fontSize:16,color:"#51211B"}}>{is50?"polisa 50%":"polisa 100%"}</span>
+      {!imgOk && <div style={{width:"100%",paddingTop:"61.75%",background:"#E8DCC8",position:"relative"}}>
+        <span style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B"}}>{is50?"polisa 50%":"polisa 100%"}</span>
       </div>}
       {/* Status text overlay - positioned from bottom edge */}
       <div style={{
         position:"absolute",
         left:"50%",
-        bottom:(statusYFromBottom/imgH*100)+"%",
+        bottom:"15%",
         transform:"translate(-50%,50%)",
-        width:183,
-        height:43.4,
         display:"flex",
         alignItems:"center",
         justifyContent:"center"
       }}>
         <span style={{
           fontFamily:"'Aka Posse',serif",
-          fontSize:14,
+          fontSize:18,
           color:"#000",
           textTransform:"lowercase",
           textAlign:"center"
@@ -1945,18 +1941,18 @@ function BlindFateFamily({fId, blindFate}) {
       />}
       {!bgOk && <div style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",background:"linear-gradient(135deg,#4C130F 0%,#2A0A08 100%)",borderRadius:8,zIndex:0}}/>}
       
-      {/* Content Grid - 2 rows */}
-      <div style={{position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gridTemplateRows:"auto auto",gap:15,padding:15}}>
+      {/* Content Grid - 2 rows, 3 columns */}
+      <div style={{position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gridTemplateRows:"1fr auto",gap:30,padding:20}}>
         
         {/* ROW 1, COL 1-2: Board with dice */}
-        <div style={{gridColumn:"1 / 3",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",minHeight:350}}>
+        <div style={{gridColumn:"1 / 3",gridRow:"1",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",minHeight:450}}>
           {boardOk && <img 
             src={IMG_BASE+"plansza_slepy-los.png"} 
-            style={{maxWidth:"100%",maxHeight:400,objectFit:"contain",display:"block"}} 
+            style={{width:"100%",height:"100%",objectFit:"contain",display:"block"}} 
             alt="Plansza Ślepy Los" 
             onError={()=>setBoardOk(false)}
           />}
-          {!boardOk && <div style={{width:350,height:350,background:"rgba(76,19,15,0.8)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          {!boardOk && <div style={{width:"100%",height:"100%",maxWidth:450,maxHeight:450,background:"rgba(76,19,15,0.8)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",margin:"auto"}}>
             <div style={{width:"80%",height:"80%",border:"4px solid #842504",borderRadius:"50%"}}/>
           </div>}
           
@@ -2042,22 +2038,22 @@ function BlindFateFamily({fId, blindFate}) {
         </div>
         
         {/* ROW 1, COL 3: Fate Card */}
-        <div style={{gridColumn:"3 / 4",display:"flex",flexDirection:"column",minHeight:350,background:"#FFF8E7",borderRadius:6,overflow:"hidden"}}>
+        <div style={{gridColumn:"3 / 4",gridRow:"1",display:"flex",flexDirection:"column",minHeight:450,background:"#FFF8E7",borderRadius:6,overflow:"hidden"}}>
           <FateEventCard sum={currentRoll?currentRoll.sum:null} showEvent={!!showEvent}/>
         </div>
         
         {/* ROW 2, COL 1: Policy 100% */}
-        <div style={{gridColumn:"1 / 2"}}>
+        <div style={{gridColumn:"1 / 2",gridRow:"2"}}>
           <PolicyCardNew type="p100" status={policies.p100} activeForRoll={activePolicy===100}/>
         </div>
         
         {/* ROW 2, COL 2: Policy 50% */}
-        <div style={{gridColumn:"2 / 3"}}>
+        <div style={{gridColumn:"2 / 3",gridRow:"2"}}>
           <PolicyCardNew type="p50" status={policies.p50} activeForRoll={activePolicy===50}/>
         </div>
         
         {/* ROW 2, COL 3: Intro text + History */}
-        <div style={{gridColumn:"3 / 4",display:"flex",flexDirection:"column",gap:10}}>
+        <div style={{gridColumn:"3 / 4",gridRow:"2",display:"flex",flexDirection:"column",gap:10}}>
           {/* Intro text */}
           <div style={{
             background:"rgba(255,248,231,0.85)",
@@ -3987,7 +3983,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.13.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.13.1</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
