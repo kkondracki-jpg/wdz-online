@@ -57,6 +57,33 @@
       100%{transform:rotateX(900deg) rotateY(450deg) rotateZ(360deg)}
     }
     .dice-rolling .dice-cube{animation:diceRoll 2s cubic-bezier(0.2,0.8,0.3,1) forwards}
+    /* NEW DICE SVG */
+    .dice-svg-wrap{display:inline-block;transition:transform 0.3s ease}
+    .dice-svg-wrap.rolling{animation:diceSvgRoll 2s ease-in-out}
+    @keyframes diceSvgRoll{
+      0%{transform:rotate(0deg) scale(1)}
+      10%{transform:rotate(-15deg) scale(1.05)}
+      20%{transform:rotate(20deg) scale(1.1)}
+      30%{transform:rotate(-25deg) scale(1.08)}
+      40%{transform:rotate(30deg) scale(1.12)}
+      50%{transform:rotate(-20deg) scale(1.1)}
+      60%{transform:rotate(25deg) scale(1.08)}
+      70%{transform:rotate(-15deg) scale(1.05)}
+      80%{transform:rotate(10deg) scale(1.02)}
+      90%{transform:rotate(-5deg) scale(1)}
+      100%{transform:rotate(0deg) scale(1)}
+    }
+    /* ROLL BUTTON */
+    .roll-btn-wrap{cursor:pointer;transition:transform 0.15s ease,filter 0.15s ease}
+    .roll-btn-wrap:hover{transform:scale(1.05);filter:brightness(1.1)}
+    .roll-btn-wrap:active{transform:scale(0.95);filter:brightness(0.95)}
+    /* BLIND FATE LAYOUT */
+    .blind-fate-container{position:relative;width:100%;max-width:1200px;margin:0 auto}
+    .blind-fate-bg{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;border-radius:8px}
+    .blind-fate-content{position:relative;z-index:1;display:grid;grid-template-columns:1fr auto auto;gap:15px;padding:15px}
+    .blind-fate-board{position:relative;width:100%;aspect-ratio:1/1}
+    .blind-fate-card{width:285px;flex-shrink:0}
+    .blind-fate-col3{width:285px;display:flex;flex-direction:column;gap:15px;flex-shrink:0}
   </style>
 </head>
 <body>
@@ -1701,6 +1728,56 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
 }
 
 /* ========== 3D DICE ========== */
+/* SVG Dice - Western Style */
+function DiceSVG({value, variant, rolling, size}) {
+  var sz = size || 120;
+  var isLight = variant === "light";
+  // Colors based on WDZ palette
+  var bgGrad = isLight 
+    ? {start:"#FFF8E7", end:"#E8DCC8"} 
+    : {start:"#5C3D2E", end:"#3A2518"};
+  var dotColor = isLight ? "#4C130F" : "#D4A853";
+  var borderColor = isLight ? "#A89070" : "#2C1810";
+  var shadowColor = isLight ? "rgba(0,0,0,0.15)" : "rgba(0,0,0,0.3)";
+  
+  // Dot positions (percentage based)
+  var dotPatterns = {
+    1: [[50,50]],
+    2: [[28,28],[72,72]],
+    3: [[28,28],[50,50],[72,72]],
+    4: [[28,28],[72,28],[28,72],[72,72]],
+    5: [[28,28],[72,28],[50,50],[28,72],[72,72]],
+    6: [[28,28],[72,28],[28,50],[72,50],[28,72],[72,72]]
+  };
+  var dots = dotPatterns[value] || [];
+  var dotR = sz * 0.09;
+  var gradId = "diceGrad_"+variant+"_"+(value||0);
+  
+  return (
+    <div className={"dice-svg-wrap"+(rolling?" rolling":"")} style={{width:sz,height:sz}}>
+      <svg width={sz} height={sz} viewBox={"0 0 "+sz+" "+sz}>
+        <defs>
+          <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={bgGrad.start}/>
+            <stop offset="100%" stopColor={bgGrad.end}/>
+          </linearGradient>
+          <filter id="diceShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="2" dy="3" stdDeviation="3" floodColor={shadowColor}/>
+          </filter>
+        </defs>
+        <rect x="4" y="4" width={sz-8} height={sz-8} rx={sz*0.12} ry={sz*0.12} 
+          fill={"url(#"+gradId+")"} stroke={borderColor} strokeWidth="2" filter="url(#diceShadow)"/>
+        {dots.map((d,i) => (
+          <circle key={i} cx={d[0]/100*sz} cy={d[1]/100*sz} r={dotR} fill={dotColor}>
+            <animate attributeName="opacity" from="0" to="1" dur="0.3s" begin={(i*0.05)+"s"} fill="freeze"/>
+          </circle>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+// Backwards compatibility wrapper
 function DiceDots({value}) {
   var dp={1:[[50,50]],2:[[25,25],[75,75]],3:[[25,25],[50,50],[75,75]],4:[[25,25],[75,25],[25,75],[75,75]],5:[[25,25],[75,25],[50,50],[25,75],[75,75]],6:[[25,25],[75,25],[25,50],[75,50],[25,75],[75,75]]};
   return (dp[value]||[]).map((d,i)=><div key={i} style={{position:"absolute",left:(d[0]/100*56)-5+"px",top:(d[1]/100*56)-5+"px",width:10,height:10,borderRadius:"50%",background:"#2C1810"}}/>);
@@ -1733,17 +1810,61 @@ function FateEventCard({sum, showEvent}) {
   const [prevSrc,setPrevSrc]=useState(null);
   var ev=sum?BLIND_FATE_EVENTS[sum]:null;
   var fileName=showEvent&&sum?"los_"+String(sum).padStart(2,"0"):"los_01";
-  var src=IMG_BASE+fileName+".jpg";
+  var src=IMG_BASE+fileName+".png";
   // Track src changes for transition
   useEffect(()=>{if(showEvent&&sum){setPrevSrc(src);}},[showEvent,sum]);
-  return (<div style={{flex:2,borderRadius:6,border:"2px solid #D4C4A8",background:"#FFF8E7",overflow:"hidden"}}>
-    {imgOk&&<img src={src} style={{width:"100%",height:"auto",display:"block",transition:"opacity 0.6s ease"}} alt={showEvent&&ev?ev.text:"Ślepy los"} onError={()=>setImgOk(false)}/>}
-    {(!imgOk&&showEvent&&ev)&&<div style={{padding:16,textAlign:"center"}}>
+  return (<div style={{width:"100%",height:"100%",borderRadius:6,overflow:"hidden"}}>
+    {imgOk&&<img src={src} style={{width:"100%",height:"100%",objectFit:"contain",display:"block",transition:"opacity 0.6s ease"}} alt={showEvent&&ev?ev.text:"Ślepy los"} onError={()=>setImgOk(false)}/>}
+    {(!imgOk&&showEvent&&ev)&&<div style={{padding:16,textAlign:"center",background:"#FFF8E7",height:"100%",display:"flex",flexDirection:"column",justifyContent:"center"}}>
       <div style={{fontSize:15,fontWeight:600,color:"#2C1810",lineHeight:1.5}}>{ev.text}</div>
       <div style={{fontSize:20,fontWeight:700,color:ev.amount>=0?"#2E5B3C":"#8B2500",marginTop:8}}>{ev.amount>=0?"+":""}{ev.amount} $</div>
     </div>}
-    {(!imgOk&&!showEvent)&&<div style={{padding:24,textAlign:"center",color:"#A89070",fontSize:14,fontStyle:"italic"}}>Karta zakryta</div>}
+    {(!imgOk&&!showEvent)&&<div style={{padding:24,textAlign:"center",color:"#A89070",fontSize:14,fontStyle:"italic",background:"#FFF8E7",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>Karta zakryta</div>}
   </div>);
+}
+
+/* Policy Card with status overlay */
+function PolicyCardNew({type, status, activeForRoll}) {
+  const [imgOk,setImgOk]=useState(true);
+  var is50 = type === "p50";
+  var imgName = is50 ? "policy_50" : "policy_100";
+  var imgH = is50 ? 352 : 353;
+  var statusY = is50 ? 54.4 : 47.4;
+  var statusText = activeForRoll ? "aktywna" : status === "owned" ? "w posiadaniu" : status === "used" ? "wykorzystana" : "nie wykupiona";
+  
+  return (
+    <div style={{position:"relative",width:285,height:imgH/2,overflow:"hidden",borderRadius:4}}>
+      {imgOk && <img 
+        src={IMG_BASE+imgName+".png"} 
+        style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} 
+        alt={is50?"Polisa 50%":"Polisa 100%"} 
+        onError={()=>setImgOk(false)}
+      />}
+      {!imgOk && <div style={{width:"100%",height:"100%",background:"#E8DCC8",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <span style={{fontFamily:"'Aka Posse',serif",fontSize:16,color:"#51211B"}}>{is50?"polisa 50%":"polisa 100%"}</span>
+      </div>}
+      {/* Status text overlay - positioned in the designated box */}
+      <div style={{
+        position:"absolute",
+        left:"50%",
+        top:(statusY/imgH*100)+"%",
+        transform:"translate(-50%,-50%)",
+        width:183,
+        height:43.4,
+        display:"flex",
+        alignItems:"center",
+        justifyContent:"center"
+      }}>
+        <span style={{
+          fontFamily:"'Aka Posse',serif",
+          fontSize:14,
+          color:"#000",
+          textTransform:"lowercase",
+          textAlign:"center"
+        }}>{statusText}</span>
+      </div>
+    </div>
+  );
 }
 
 function PolicyCardFate({pKey, label, price, status, imgName, activeForRoll}) {
@@ -1755,7 +1876,7 @@ function PolicyCardFate({pKey, label, price, status, imgName, activeForRoll}) {
   var opa=isActive?1:status==="owned"?0.85:0.65;
   return (<div style={{flex:1}}>
     <div style={{border:"2px solid "+borderCol,borderRadius:6,overflow:"hidden",opacity:opa,filter:isActive?"none":"grayscale(40%)"}}>
-      {imgOk&&<img src={IMG_BASE+imgName+".jpg"} style={{width:"100%",height:"auto",display:"block"}} alt={label} onError={()=>setImgOk(false)}/>}
+      {imgOk&&<img src={IMG_BASE+imgName+".png"} style={{width:"100%",height:"auto",display:"block"}} alt={label} onError={()=>setImgOk(false)}/>}
       {!imgOk&&<div style={{padding:16,textAlign:"center"}}>
         <div style={{fontSize:13,fontWeight:700,color:"#842504"}}>{label}</div>
         <div style={{fontSize:13,color:"#8B7355"}}>Cena: {price}</div>
@@ -1767,62 +1888,230 @@ function PolicyCardFate({pKey, label, price, status, imgName, activeForRoll}) {
   </div>);
 }
 
+/* ========== BLIND FATE FAMILY - NEW LAYOUT ========== */
 function BlindFateFamily({fId, blindFate}) {
   var bf=blindFate[fId]||{}, policies=bf.policies||{p50:null,p100:null}, rolls=bf.rolls||[];
   var currentRollIdx=rolls.length>0?rolls.length-1:-1;
   var currentRoll=currentRollIdx>=0?rolls[currentRollIdx]:null;
   var showEvent=currentRoll&&currentRoll.resolved&&currentRoll.showCard;
   var activePolicy=currentRoll?currentRoll.policyUsed:null;
+  const [bgOk,setBgOk]=useState(true);
+  const [boardOk,setBoardOk]=useState(true);
+  const [btnOk,setBtnOk]=useState(true);
+  
+  // History formatting
   function fmtHistory(roll,idx){
     if(!roll.resolved)return null;
     var ev=BLIND_FATE_EVENTS[roll.sum];
     var polTxt=roll.policyUsed?" (polisa "+roll.policyUsed+"%)":"";
     var effectTxt=roll.netEffect>=0?"+"+roll.netEffect+" $":roll.netEffect+" $";
-    if(roll.event&&roll.event.type==="loss_resources") effectTxt="utrata 10% zasobów na koniec rozgrywki";
-    return "Losowanie "+(idx+1)+": Rzut ["+roll.dice1+"+"+roll.dice2+"="+roll.sum+"] — "+ev.text+" → "+effectTxt+polTxt;
+    if(roll.event&&roll.event.type==="loss_resources") effectTxt="utrata 10% zasobów";
+    return {idx:idx+1, dice:roll.dice1+"+"+roll.dice2+"="+roll.sum, text:ev?ev.text:"", effect:effectTxt, pol:polTxt};
   }
-  return (<div>
-    <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
-      <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Ślepy los</div>
-    </div>
-    {/* --- Instrukcja: 2/3 obrazek + 1/3 akordeon --- */}
-    <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:16,marginBottom:16,alignItems:"start"}}>
-      <img src={IMG_BASE+"instrukcja_slepy-los.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Instrukcja — Ślepy los"/>
-      <img src={IMG_BASE+"instrukcja_polisy.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Polisy ubezpieczeniowe"/>
-    </div>
-    {/* --- Karty polis + zdarzenie — bezpośrednio na tle --- */}
-    <div style={{display:"flex",gap:8,alignItems:"flex-start",marginBottom:12}}>
-      <PolicyCardFate pKey="p100" label="Polisa 100%" price="50 $" status={policies.p100} imgName="policy_100" activeForRoll={activePolicy===100}/>
-      <PolicyCardFate pKey="p50" label="Polisa 50%" price="30 $" status={policies.p50} imgName="policy_50" activeForRoll={activePolicy===50}/>
-      <FateEventCard sum={currentRoll?currentRoll.sum:null} showEvent={!!showEvent}/>
-    </div>
-    {/* Przycisk rzutu */}
-    {currentRoll&&!currentRoll.diceReady&&!currentRoll.resolved&&<div style={{textAlign:"center",padding:12,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Szeryf przygotowuje losowanie...</div>}
-    {currentRoll&&currentRoll.diceReady&&!currentRoll.resolved&&!currentRoll.rolling&&<div style={{textAlign:"center",padding:12}}>
-      <button data-roll={fId+"-"+currentRollIdx} style={{...btnS("fate"),fontSize:16,padding:"14px 32px",borderRadius:8}}>Rzuć kośćmi</button>
-    </div>}
-    {/* Kości — bez tła */}
-    {currentRoll&&(currentRoll.rolling||(currentRoll.resolved&&currentRoll.showDice))&&<div style={{textAlign:"center",marginBottom:10}}>
-      <div style={{display:"flex",justifyContent:"center",gap:16,marginBottom:6}}>
-        <Dice3D rolling={currentRoll.rolling} value={currentRoll.resolved?currentRoll.dice1:null}/>
-        <Dice3D rolling={currentRoll.rolling} value={currentRoll.resolved?currentRoll.dice2:null}/>
+  
+  var resolvedRolls = rolls.filter(r=>r.resolved).map((r,i)=>fmtHistory(r,i)).filter(Boolean);
+  
+  // Determine dice state
+  var showStaticDice = !currentRoll || (!currentRoll.rolling && !currentRoll.showDice && !currentRoll.showCard);
+  var showRollingDice = currentRoll && currentRoll.rolling;
+  var showResultDice = currentRoll && currentRoll.resolved && currentRoll.showDice && !currentRoll.showCard;
+  var showSum = currentRoll && currentRoll.resolved && currentRoll.showCard;
+  var showRollButton = currentRoll && currentRoll.diceReady && !currentRoll.resolved && !currentRoll.rolling;
+  
+  // Static dice values (random but consistent per render)
+  var staticD1 = 3, staticD2 = 4;
+  
+  // Board dimensions (scaled from 1140px original to fit container)
+  var boardSize = 570; // Half of original for responsive
+  var circleCenter = boardSize / 2;
+  var circleRadius = (584 / 1140) * boardSize / 2;
+  
+  // Button position (from bottom-left of board: 570, 360 → scaled)
+  var btnX = circleCenter;
+  var btnY = boardSize - (360 / 1140 * boardSize);
+  
+  // Dice position (center of circle)
+  var diceSize = 100; // Size of each die
+  var diceGap = 10;
+  
+  return (
+    <div className="blind-fate-container" style={{position:"relative"}}>
+      {/* Background */}
+      {bgOk && <img 
+        src={IMG_BASE+"slepy-los_tlo.png"} 
+        style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"cover",borderRadius:8,zIndex:0}} 
+        alt="" 
+        onError={()=>setBgOk(false)}
+      />}
+      {!bgOk && <div style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",background:"linear-gradient(135deg,#4C130F 0%,#2A0A08 100%)",borderRadius:8,zIndex:0}}/>}
+      
+      {/* Content Grid */}
+      <div style={{position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:15,padding:15}}>
+        
+        {/* COLUMN 1: Board with dice */}
+        <div style={{position:"relative",aspectRatio:"1/1"}}>
+          {boardOk && <img 
+            src={IMG_BASE+"plansza_slepy-los.png"} 
+            style={{width:"100%",height:"100%",objectFit:"contain",display:"block"}} 
+            alt="Plansza Ślepy Los" 
+            onError={()=>setBoardOk(false)}
+          />}
+          {!boardOk && <div style={{width:"100%",height:"100%",background:"rgba(76,19,15,0.8)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <div style={{width:"80%",height:"80%",border:"4px solid #842504",borderRadius:"50%"}}/>
+          </div>}
+          
+          {/* Dice container - centered in circle */}
+          <div style={{
+            position:"absolute",
+            top:"50%",
+            left:"50%",
+            transform:"translate(-50%,-50%)",
+            display:"flex",
+            gap:diceGap,
+            alignItems:"center",
+            justifyContent:"center"
+          }}>
+            {/* Static dice */}
+            {showStaticDice && <>
+              <DiceSVG value={staticD1} variant="light" rolling={false} size={diceSize}/>
+              <DiceSVG value={staticD2} variant="dark" rolling={false} size={diceSize}/>
+            </>}
+            
+            {/* Rolling dice */}
+            {showRollingDice && <>
+              <DiceSVG value={1} variant="light" rolling={true} size={diceSize}/>
+              <DiceSVG value={1} variant="dark" rolling={true} size={diceSize}/>
+            </>}
+            
+            {/* Result dice */}
+            {showResultDice && <>
+              <DiceSVG value={currentRoll.dice1} variant="light" rolling={false} size={diceSize}/>
+              <DiceSVG value={currentRoll.dice2} variant="dark" rolling={false} size={diceSize}/>
+            </>}
+            
+            {/* Sum display */}
+            {showSum && <div style={{textAlign:"center"}}>
+              <div style={{fontSize:64,fontWeight:700,color:"#FFF",textShadow:"0 2px 8px rgba(0,0,0,0.5)",fontFamily:"'Aka Posse',serif"}}>{currentRoll.sum}</div>
+              <div style={{fontSize:18,color:"#FFF8E7",marginTop:4}}>{currentRoll.dice1} + {currentRoll.dice2}</div>
+            </div>}
+          </div>
+          
+          {/* Roll button - positioned in circle */}
+          {showRollButton && <div style={{
+            position:"absolute",
+            left:"50%",
+            bottom:"20%",
+            transform:"translateX(-50%)"
+          }}>
+            <div className="roll-btn-wrap" data-roll={fId+"-"+currentRollIdx}>
+              {btnOk && <img 
+                src={IMG_BASE+"rzut_koscmi.png"} 
+                style={{height:40,width:"auto",display:"block",cursor:"pointer"}} 
+                alt="Rzuć kośćmi"
+                onError={()=>setBtnOk(false)}
+              />}
+              {!btnOk && <button data-roll={fId+"-"+currentRollIdx} style={{
+                ...btnS("fate"),
+                fontSize:14,
+                padding:"10px 24px",
+                borderRadius:6
+              }}>Rzuć kośćmi</button>}
+            </div>
+          </div>}
+          
+          {/* Waiting message */}
+          {currentRoll&&!currentRoll.diceReady&&!currentRoll.resolved&&<div style={{
+            position:"absolute",
+            left:"50%",
+            bottom:"15%",
+            transform:"translateX(-50%)",
+            background:"rgba(255,248,231,0.9)",
+            padding:"8px 16px",
+            borderRadius:6,
+            fontSize:13,
+            color:"#51211B",
+            fontStyle:"italic"
+          }}>Szeryf przygotowuje losowanie...</div>}
+          
+          {!currentRoll&&<div style={{
+            position:"absolute",
+            left:"50%",
+            bottom:"15%",
+            transform:"translateX(-50%)",
+            background:"rgba(255,248,231,0.9)",
+            padding:"8px 16px",
+            borderRadius:6,
+            fontSize:13,
+            color:"#51211B",
+            fontStyle:"italic"
+          }}>Oczekuj na sygnał Szeryfa...</div>}
+        </div>
+        
+        {/* COLUMN 2: Fate Card */}
+        <div style={{display:"flex",flexDirection:"column"}}>
+          <FateEventCard sum={currentRoll?currentRoll.sum:null} showEvent={!!showEvent}/>
+          
+          {/* Settlement info below card when showing */}
+          {showSum && currentRoll && <div style={{
+            background:"rgba(255,248,231,0.95)",
+            padding:12,
+            borderRadius:6,
+            marginTop:10,
+            textAlign:"center"
+          }}>
+            <div style={{fontSize:14,fontWeight:700,color:"#51211B",marginBottom:4}}>ROZLICZENIE:</div>
+            <div style={{fontSize:28,fontWeight:700,color:currentRoll.netEffect>=0?"#2E5B3C":"#8B2500"}}>{currentRoll.netEffectText}</div>
+            {currentRoll.policyUsed&&currentRoll.event&&currentRoll.event.type!=="gain"&&currentRoll.event.type!=="gain_policy"&&
+              <div style={{fontSize:12,color:"#842504",marginTop:4}}>Polisa zmniejsza stratę o {currentRoll.policyUsed}%</div>}
+          </div>}
+        </div>
+        
+        {/* COLUMN 3: Intro + History + Policies */}
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          
+          {/* Intro text */}
+          <div style={{
+            background:"rgba(255,248,231,0.85)",
+            padding:12,
+            borderRadius:6,
+            flex:"0 0 auto"
+          }}>
+            <p style={{fontSize:12,color:"#51211B",lineHeight:1.5,margin:0,fontFamily:"'Aka Posse',serif"}}>
+              O zysku lub stracie w biznesie decyduje czasem ślepy los. Dwukrotnie w trakcie gry rzucicie kośćmi. Suma oczek wskaże losowe wydarzenie - może ono przynieść zysk lub stratę.
+            </p>
+            <p style={{fontSize:12,color:"#51211B",lineHeight:1.5,margin:"8px 0 0 0",fontFamily:"'Aka Posse',serif",fontStyle:"italic"}}>
+              Oczekujcie na Szeryfa. Wyjaśni wam szczegóły.
+            </p>
+          </div>
+          
+          {/* History */}
+          <div style={{
+            background:"rgba(255,248,231,0.85)",
+            padding:10,
+            borderRadius:6,
+            flex:"1 1 auto",
+            minHeight:60,
+            maxHeight:120,
+            overflowY:"auto"
+          }}>
+            <div style={{fontSize:11,fontWeight:700,color:"#842504",marginBottom:6,fontFamily:"'Aka Posse',serif"}}>Historia losowań</div>
+            {resolvedRolls.length===0 && <div style={{fontSize:11,color:"#A89070",fontStyle:"italic"}}>Brak losowań</div>}
+            {resolvedRolls.map((h,i)=>(
+              <div key={i} style={{fontSize:10,color:"#51211B",padding:"3px 0",borderBottom:"1px solid rgba(209,168,83,0.3)",lineHeight:1.4}}>
+                <b>Losowanie {h.idx}:</b> [{h.dice}] {h.effect}{h.pol}
+              </div>
+            ))}
+          </div>
+          
+          {/* Policy 50% */}
+          <PolicyCardNew type="p50" status={policies.p50} activeForRoll={activePolicy===50}/>
+          
+          {/* Policy 100% */}
+          <PolicyCardNew type="p100" status={policies.p100} activeForRoll={activePolicy===100}/>
+        </div>
       </div>
-      {currentRoll.rolling&&<div style={{fontSize:14,color:"#4C130F",fontWeight:600}}>Kości w powietrzu...</div>}
-      {currentRoll.resolved&&currentRoll.showDice&&<div style={{fontSize:16,fontWeight:700,color:"#2C1810"}}>{currentRoll.dice1} + {currentRoll.dice2} = {currentRoll.sum}</div>}
-    </div>}
-    {/* Rozliczenie — bez tła, większy tekst */}
-    {currentRoll&&currentRoll.resolved&&currentRoll.showCard&&<div className="card-reveal" style={{textAlign:"center",marginTop:8,marginBottom:12}}>
-      <div style={{fontSize:18,fontWeight:700,color:"#2C1810",marginBottom:4}}>ROZLICZENIE:</div>
-      <div style={{fontSize:38,fontWeight:700,color:currentRoll.netEffect>=0?"#2E5B3C":"#8B2500"}}>{currentRoll.netEffectText}</div>
-      {currentRoll.policyUsed&&currentRoll.event&&currentRoll.event.type!=="gain"&&currentRoll.event.type!=="gain_policy"&&<div style={{fontSize:14,color:"#842504",marginTop:4}}>Polisa zmniejsza stratę o {currentRoll.policyUsed}%</div>}
-    </div>}
-    {!currentRoll&&<div style={{textAlign:"center",padding:12,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Oczekuj na sygnał Szeryfa do losowania...</div>}
-    {/* Historia losowań */}
-    {rolls.filter(r=>r.resolved).length>0&&<div style={{background:"#FFF8E7",borderRadius:6,padding:12,marginTop:8}}>
-      <div style={{fontSize:14,fontWeight:700,color:"#842504",marginBottom:8}}>Historia losowań</div>
-      {rolls.map((r,i)=>{var h=fmtHistory(r,i);return h?<div key={i} style={{fontSize:13,color:"#5C4A3A",padding:"4px 0",borderBottom:"1px solid #E0D8D0",lineHeight:1.5}}>{h}</div>:null;})}
-    </div>}
-  </div>);
+    </div>
+  );
 }
 
 /* ========== PLAYER DEBRIEFING PANEL (WYNIKI DLA GRACZA) ========== */
@@ -3667,10 +3956,10 @@ function App({roomCode,role,playerId,playerName}) {
         rolls[rollIdx]=roll;bf.rolls=rolls;n[fId]=bf;return n;
       });
 
-      // After 1.5s delay, show event card and apply effects
+      // After 5s delay (dice result visible), show sum and event card
       diceTimeouts.current.push(setTimeout(()=>{
         setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var rolls=(bf.rolls||[]).slice();
-          rolls[rollIdx]={...rolls[rollIdx],showCard:true};bf.rolls=rolls;n[fId]=bf;return n;});
+          rolls[rollIdx]={...rolls[rollIdx],showCard:true,showDice:false};bf.rolls=rolls;n[fId]=bf;return n;});
 
         var ev2=BLIND_FATE_EVENTS[sum];
         // P4 — oblicz netEffect z closure zamiast setter-hack
@@ -3694,7 +3983,7 @@ function App({roomCode,role,playerId,playerName}) {
         setTxs(prev2=>[{id:txId(),type:"fate",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:desc},...prev2]);
         showMsg(FM[fId].nom+": "+ev2.text);
 
-        // Auto-hide after 30s + P1/P2 cleanup
+        // Auto-hide after 20s (sum visible), return to static dice + P1/P2 cleanup
         diceTimeouts.current.push(setTimeout(()=>{
           setBlindFate(prev=>{var n={...prev};var bf={...(n[fId]||{})};var rls=(bf.rolls||[]).slice();
             if(rls[rollIdx])rls[rollIdx]={...rls[rollIdx],showCard:false,showDice:false};
@@ -3702,8 +3991,8 @@ function App({roomCode,role,playerId,playerName}) {
           diceRolling.current=false;           // P2 — odblokuj sync
           delete rollingInProgress.current[lockKey]; // P1 — odblokuj rzut
           if(lockRef)lockRef.remove();         // P5 — zwolnij Firebase lock
-        },30000));
-      },1500));
+        },20000));
+      },5000));
     },2000));
   }
 
@@ -3716,7 +4005,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.11.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.12.0</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
