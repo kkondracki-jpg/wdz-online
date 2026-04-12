@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.14.2</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.14.4</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -450,7 +450,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.14.2</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.14.4</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1130,16 +1130,13 @@ function InfoPopup({title, children, wide, icon}) {
 }
 
 /* ========== TASK HEADER (image with text fallback) ========== */
-function TaskHeader({imgName, fallbackText, children}) {
+function TaskHeader({imgName, fallbackText}) {
   const [imgOk, setImgOk] = useState(true);
-  return (<div style={{padding:"8px 14px",marginBottom:10}}>
-    <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-      {imgOk 
-        ? <img src={IMG_BASE+imgName+".png"} style={{flex:1,maxWidth:"100%",height:"auto",display:"block"}} alt={fallbackText} onError={()=>setImgOk(false)}/>
-        : <div style={{flex:1,fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,textAlign:"center"}} className="wt">{fallbackText}</div>
-      }
-      {children}
-    </div>
+  return (<div style={{marginBottom:6}}>
+    {imgOk 
+      ? <img src={IMG_BASE+imgName+".png"} style={{width:"100%",height:"auto",display:"block"}} alt={fallbackText} onError={()=>setImgOk(false)}/>
+      : <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4,textAlign:"center"}} className="wt">{fallbackText}</div>
+    }
   </div>);
 }
 
@@ -4027,7 +4024,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.14.2</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.14.4</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -4166,14 +4163,15 @@ function App({roomCode,role,playerId,playerName}) {
             var taskBg={padding:"8px 14px",marginBottom:10};
             return (<div key={familyId}>
             {/* --- ZASOBY --- */}
-            <TaskHeader imgName="naglowek_zasoby" fallbackText="Pozyskanie zasobów do prowadzenia przedsiębiorstwa">
+            <TaskHeader imgName="naglowek_zasoby" fallbackText="Pozyskanie zasobów do prowadzenia przedsiębiorstwa"/>
+            <div style={{display:"flex",alignItems:"center",marginBottom:8,fontSize:30,color:"#51211B"}}>
+              <div style={{flex:1,display:"flex",gap:16,justifyContent:"center"}}>
+                <span>Udokumentowany postęp: <b>{docResPct}%</b></span>
+                <span>Liczba punktów: <b>{resPoints}</b> <span style={{color:"#A89070"}}>(max 30)</span></span>
+              </div>
               <InfoPopup title="ZASOBY — max 30 pkt" wide>
                 <img src={IMG_BASE+"instrukcja_zasoby-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — zasoby"/>
               </InfoPopup>
-            </TaskHeader>
-            <div style={{display:"flex",gap:16,marginTop:-4,marginBottom:8,fontSize:15,justifyContent:"center",color:"#51211B"}}>
-              <span>Udokumentowany postęp: <b>{docResPct}%</b></span>
-              <span>Liczba punktów: <b>{resPoints}</b> <span style={{color:"#A89070"}}>(max 30)</span></span>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:12}}>
               {familyView.mergedRes.map(({item,note})=><ResourceCard key={item.id} item={item} note={note} isSheriff={viewSheriff}/>)}
@@ -4185,14 +4183,15 @@ function App({roomCode,role,playerId,playerName}) {
               </div>
             </div>}
             {/* --- KOMPETENCJE --- */}
-            <TaskHeader imgName="naglowek_kompetencje" fallbackText="Pozyskanie kompetencji do prowadzenia przedsiębiorstwa">
+            <TaskHeader imgName="naglowek_kompetencje" fallbackText="Pozyskanie kompetencji do prowadzenia przedsiębiorstwa"/>
+            <div style={{display:"flex",alignItems:"center",marginBottom:8,fontSize:30,color:"#51211B"}}>
+              <div style={{flex:1,display:"flex",gap:16,justifyContent:"center"}}>
+                <span>Udokumentowany postęp: <b>{docCompPct}%</b></span>
+                <span>Liczba punktów: <b>{compPoints}</b> <span style={{color:"#A89070"}}>(max 25)</span></span>
+              </div>
               <InfoPopup title="KOMPETENCJE — max 25 pkt" wide>
                 <img src={IMG_BASE+"instrukcja_kompetencje-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — kompetencje"/>
               </InfoPopup>
-            </TaskHeader>
-            <div style={{display:"flex",gap:16,marginTop:-4,marginBottom:8,fontSize:15,justifyContent:"center",color:"#51211B"}}>
-              <span>Udokumentowany postęp: <b>{docCompPct}%</b></span>
-              <span>Liczba punktów: <b>{compPoints}</b> <span style={{color:"#A89070"}}>(max 25)</span></span>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:12}}>
               {familyView.mergedComp.map(({item,note})=><CompCard key={item.id} item={item} note={note} isSheriff={viewSheriff}/>)}
@@ -4204,28 +4203,30 @@ function App({roomCode,role,playerId,playerName}) {
               </div>
             </div>}
             {/* --- DZIAŁKI --- */}
-            <TaskHeader imgName="naglowek_dzialka" fallbackText="Pozyskanie prawa własności do właściwej działki">
+            <TaskHeader imgName="naglowek_dzialka" fallbackText="Pozyskanie prawa własności do właściwej działki"/>
+            <div style={{display:"flex",alignItems:"center",marginBottom:8,fontSize:30,color:"#51211B"}}>
+              <div style={{flex:1,display:"flex",gap:16,justifyContent:"center"}}>
+                <span>Punkty: <b>{plotOk?10:0}</b> <span style={{color:"#A89070"}}>(max 10)</span></span>
+              </div>
               <InfoPopup icon="ikona_mapa" wide>
                 <img src={IMG_BASE+"kairoscity_mapa.png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Mapa miasta"/>
               </InfoPopup>
               <InfoPopup title="Zadanie 3: Działka" wide>
                 <img src={IMG_BASE+"instrukcja_dzialka-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — działka"/>
               </InfoPopup>
-            </TaskHeader>
-            <div style={{display:"flex",gap:16,marginTop:-4,marginBottom:8,fontSize:15,justifyContent:"center",color:"#51211B"}}>
-              <span>Punkty: <b>{plotOk?10:0}</b> <span style={{color:"#A89070"}}>(max 10)</span></span>
             </div>
             {!plotOk&&<div style={{marginTop:0,marginBottom:8,padding:"6px 10px",background:"#FFF0F0",border:"1px solid #C09090",borderRadius:4,fontSize:13,color:"#8B2500",fontWeight:600,textAlign:"center"}}>UWAGA! Pozostając na niewłaściwej działce ponosicie na koniec gry dodatkowy koszt w wysokości 50 $.</div>}
             <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:12}}>{familyView.plots.map(p=><GenericCard key={p.id} item={p}/>)}</div>
             {/* --- GOTÓWKA --- */}
-            <TaskHeader imgName="naglowek_gotowka" fallbackText="Pomnożenie gotówki">
+            <TaskHeader imgName="naglowek_gotowka" fallbackText="Pomnożenie gotówki"/>
+            <div style={{display:"flex",alignItems:"center",marginBottom:8,fontSize:30,color:"#51211B"}}>
+              <div style={{flex:1,display:"flex",gap:16,justifyContent:"center"}}>
+                <span>Posiadana gotówka: <b>{cashVal} $</b></span>
+                <span>Punkty: <b>{cashPoints}</b> <span style={{color:"#A89070"}}>(od −25 do 25)</span></span>
+              </div>
               <InfoPopup title="Zadanie 4: Gotówka" wide>
                 <img src={IMG_BASE+"instrukcja_gotowka.png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — gotówka"/>
               </InfoPopup>
-            </TaskHeader>
-            <div style={{display:"flex",gap:16,marginTop:-4,marginBottom:8,fontSize:15,justifyContent:"center",color:"#51211B"}}>
-              <span>Posiadana gotówka: <b>{cashVal} $</b></span>
-              <span>Punkty: <b>{cashPoints}</b> <span style={{color:"#A89070"}}>(od −25 do 25)</span></span>
             </div>
             <img src={IMG_BASE+"kasa_punkty.png"} style={{width:"100%",height:"auto",display:"block",marginBottom:8}} alt="Kasa — punkty"/>
             {bnbEnabled&&(()=>{
@@ -4237,11 +4238,12 @@ function App({roomCode,role,playerId,playerName}) {
               var myProduct=BNB_PRODUCTS[familyId];
               var cardStyle=function(col){return{background:"#FDFAF4",border:"2px solid "+col,borderRadius:6,overflow:"hidden",position:"relative",minWidth:120,maxWidth:160}};
               return(<div style={{marginTop:8}}>
-                <TaskHeader imgName="naglowek_bnb" fallbackText="Biznes na boku">
+                <TaskHeader imgName="naglowek_bnb" fallbackText="Biznes na boku"/>
+                <div style={{display:"flex",justifyContent:"flex-end",marginBottom:8}}>
                   <InfoPopup title="Biznes na boku — warunki" wide>
                     <img src={IMG_BASE+"bnb_waronki-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Warunki — Biznes na boku"/>
                   </InfoPopup>
-                </TaskHeader>
+                </div>
                 {/* Obrazek instrukcji — pełna szerokość */}
                 <img src={IMG_BASE+"bnb_"+familyId+".png"} style={{width:"100%",height:"auto",display:"block",marginBottom:12}} alt={"Biznes na boku — "+familyId}/>
                 {/* Twój produkt */}
