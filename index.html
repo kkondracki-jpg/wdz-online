@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.14.5</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.16.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -415,12 +415,12 @@ function Lobby({onJoin}){
     navigator.clipboard.writeText(link).then(()=>{
       setCopied(prev=>({...prev,[fId]:true}));
       setTimeout(()=>setCopied(prev=>({...prev,[fId]:false})),2500);
-    }).catch(()=>{/* clipboard failed — ignore silently */});
+    }).catch(()=>{alert("Nie udało się skopiować. Skopiuj ręcznie: "+link);});
   }
 
   function copyAllLinks(){
     var text=FO.map(fId=>FM[fId].nom+": "+buildFamilyLink(roomCode,fId)).join("\n");
-    navigator.clipboard.writeText(text).then(()=>{setCopiedAll(true);setTimeout(()=>setCopiedAll(false),2500);}).catch(()=>{});
+    navigator.clipboard.writeText(text).then(()=>{setCopiedAll(true);setTimeout(()=>setCopiedAll(false),2500);}).catch(()=>{alert("Nie udało się skopiować linków.");});
   }
 
   function getFamilyMembers(fId){
@@ -450,7 +450,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.14.5</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.16.0</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -581,7 +581,7 @@ function imgUrl(prefix,name){var ext=(prefix==="res"||prefix==="note-res")?".png
 function mapImgUrl(n){return IMG_BASE+'map_fragment-'+n+'.jpg';}
 
 /* ========== REVOLVER IMAGES ========== */
-const REV_IMG_MAP = {POJEDYNEK:"Rew_1-POJEDYNEK.jpg",DOMINACJA:"Rew_3-DOMINACJA.jpg",PRZEWAGA:"Rew_2-PRZEWAGA.jpg",WYGRANA:"Rew_4-WYGRANA.jpg",NABOJ_ZNACZNIK:"Rew_5-Naboj-znacznik.png",NABOJ_AMMO:"Rew_6-Naboj-amunicja.png"};
+const REV_IMG_MAP = {POJEDYNEK:"Rew_1-POJEDYNEK.png",DOMINACJA:"Rew_3-DOMINACJA.png",PRZEWAGA:"Rew_2-PRZEWAGA.png",WYGRANA:"Rew_4-WYGRANA.png",NABOJ_ZNACZNIK:"Rew_5-Naboj-znacznik.png",NABOJ_AMMO:"Rew_6-Naboj-amunicja.png"};
 function getRevImg(key){return REV_IMG_MAP[key]?IMG_BASE+REV_IMG_MAP[key]:null;}
 
 /* ========== SCHEDULE STAGES ========== */
@@ -1073,6 +1073,7 @@ function fmtItems(items){
 function calcRelationScore(fId, relations) {
   if(!relations) return 0;
   var totalStars=0;
+  // Max: 3 rodziny × 3 kategorie × 5 gwiazdek = 45
   FO.forEach(rater=>{
     if(rater===fId) return;
     var r=relations[rater];
@@ -1080,7 +1081,8 @@ function calcRelationScore(fId, relations) {
     var ratings=r[fId];
     totalStars+=(ratings.partnership||0)+(ratings.rules||0)+(ratings.communication||0);
   });
-  return Math.round((totalStars*2/3)*10)/10;
+  // P1-2: Normalizacja do [0..20] — spójne z CATS_MAX.relacje=20
+  return Math.round((totalStars/45)*20*10)/10;
 }
 
 /* ========== STAR RATING ========== */
@@ -2090,6 +2092,156 @@ function BlindFateFamily({fId, blindFate}) {
   );
 }
 
+/* ========== REWOLWEROWIEC NEW UI COMPONENT ========== */
+function RewolwerowiecNew({rc,familyId,duelTimer,revSubmitShots,revDuels,getRevTimer}){
+  var isPlayer=rc&&(rc.familyA===familyId||rc.familyB===familyId);
+  var isA=rc&&rc.familyA===familyId;
+  var myAmmo=rc?(isA?rc.ammoA:rc.ammoB):50;
+  var myShots=rc?(isA?rc.shotsA:rc.shotsB):null;
+  var isActive=rc&&rc.status==="playing";
+  var canInput=isActive&&myShots===null;
+  var shotsDeclared=isActive&&myShots!==null;
+  
+  // Pozycje pól planszy (X) i mapowanie bulletPos
+  var BOARD_FIELDS=[
+    {x:105,pos:-3,img:"WYGRANA"},{x:270,pos:-2,img:"DOMINACJA"},{x:435,pos:-1,img:"PRZEWAGA"},
+    {x:600,pos:0,img:"POJEDYNEK"},
+    {x:765,pos:1,img:"PRZEWAGA"},{x:930,pos:2,img:"DOMINACJA"},{x:1095,pos:3,img:"WYGRANA"}
+  ];
+  
+  // Stan inputu nabojów
+  var [shotInput,setShotInput]=useState(1);
+  
+  // Funkcja hold dla +/-
+  var holdRef=useRef(null);
+  function startHold(delta){
+    if(!canInput)return;
+    setShotInput(v=>Math.max(0,Math.min(myAmmo,v+delta)));
+    holdRef.current=setInterval(()=>setShotInput(v=>Math.max(0,Math.min(myAmmo,v+delta))),120);
+  }
+  function stopHold(){if(holdRef.current){clearInterval(holdRef.current);holdRef.current=null;}}
+  
+  // Reset inputu gdy nowa runda
+  useEffect(()=>{if(canInput)setShotInput(1);},[canInput]);
+  
+  // AmmoGrid dla nowego UI
+  function AmmoGridNew({ammo}){
+    var ammoImg=getRevImg("NABOJ_AMMO");
+    var rows=[];
+    for(var r=0;r<5;r++){
+      var cols=[];
+      for(var c=0;c<10;c++){
+        var idx=r*10+c;var alive=idx<ammo;
+        cols.push(ammoImg?
+          <div key={c} style={{width:14,height:28,transition:"all 0.3s",opacity:alive?1:0.15}}><img src={ammoImg} style={{width:14,height:28,objectFit:"contain"}} alt=""/></div>
+          :<div key={c} style={{width:14,height:28,borderRadius:3,background:alive?"#A75F4A":"#E8E0D0",border:"1px solid "+(alive?"rgba(0,0,0,0.2)":"#D4C4A8"),transition:"all 0.3s",opacity:alive?1:0.3}}/>
+        );
+      }
+      rows.push(<div key={r} style={{display:"flex",gap:2,marginBottom:2}}>{cols}</div>);
+    }
+    return <div>{rows}</div>;
+  }
+  
+  // Styl tekstu Aka Posse
+  var akaStyle=function(pt,color){return{fontFamily:"'Aka Posse',serif",fontSize:pt*1.333,color:color||"#51211B",textTransform:"uppercase"};};
+  
+  return(
+  <div style={{position:"relative",width:1200,height:770,margin:"0 auto",overflow:"hidden"}}>
+    {/* TŁO */}
+    <img src={IMG_BASE+"Rew_0-background.png"} alt="" style={{position:"absolute",width:1200,height:770,left:0,top:0,zIndex:0}}/>
+    
+    {/* PLANSZA - 7 pól */}
+    {BOARD_FIELDS.map((f,i)=>(
+      <img key={i} src={getRevImg(f.img)} alt={f.img} style={{position:"absolute",left:f.x,bottom:500,width:160,height:160,zIndex:1,border:rc&&rc.bulletPos===f.pos?"3px solid #8B2500":"none",boxSizing:"border-box"}}/>
+    ))}
+    
+    {/* NABÓJ NA PLANSZY */}
+    {rc&&rc.status!=="betting"&&(()=>{
+      var bulletField=BOARD_FIELDS.find(f=>f.pos===rc.bulletPos);
+      if(!bulletField)return null;
+      var bulletX=bulletField.x+80; // środek pola
+      return(
+        <img src={getRevImg("NABOJ_ZNACZNIK")} alt="nabój" style={{position:"absolute",left:bulletX-25,bottom:500+80-25,width:50,height:50,zIndex:5,filter:"drop-shadow(0 2px 4px rgba(0,0,0,0.5))",transition:"left 0.6s ease-in-out"}}/>
+      );
+    })()}
+    
+    {/* SYMBOLE RODZIN */}
+    {rc&&rc.status!=="betting"&&<>
+      <img src={IMG_BASE+"rew_"+rc.familyA+".png"} alt={rc.familyA} style={{position:"absolute",left:103,bottom:644,width:100,zIndex:2}}/>
+      <img src={IMG_BASE+"rew_"+rc.familyB+".png"} alt={rc.familyB} style={{position:"absolute",left:1097,bottom:644,width:100,zIndex:2}}/>
+    </>}
+    
+    {/* LICZNIKI OBSTAWIONYCH NABOJÓW */}
+    {rc&&rc.status!=="betting"&&<>
+      <div style={{position:"absolute",left:203,bottom:648,zIndex:3,...akaStyle(11),textAlign:"center"}}>
+        {rc.status==="playing"&&rc.timerPhase==="declaration"?"0":rc.shotsA!==null?rc.shotsA:"0"}
+      </div>
+      <div style={{position:"absolute",left:997,bottom:648,zIndex:3,...akaStyle(11),textAlign:"center"}}>
+        {rc.status==="playing"&&rc.timerPhase==="declaration"?"0":rc.shotsB!==null?rc.shotsB:"0"}
+      </div>
+    </>}
+    
+    {/* STAWKA */}
+    {rc&&rc.status!=="betting"&&(
+      <div style={{position:"absolute",left:600,bottom:370,zIndex:3,...akaStyle(7),transform:"translateX(-50%)"}}>
+        STAWKA: {rc.bet} $
+      </div>
+    )}
+    
+    {/* AMUNICJA - siatka */}
+    <div style={{position:"absolute",left:149,bottom:230,zIndex:3}}>
+      <AmmoGridNew ammo={rc?myAmmo:50}/>
+    </div>
+    
+    {/* AMUNICJA - napis */}
+    <div style={{position:"absolute",left:149,bottom:350,zIndex:3,...akaStyle(4.5)}}>
+      WASZA AMUNICJA: {rc?myAmmo:50}/50
+    </div>
+    
+    {/* ZEGAR */}
+    {rc&&isActive&&rc.timerPhase&&duelTimer>0&&(
+      <div style={{position:"absolute",left:1052.5,bottom:202,zIndex:3,...akaStyle(11.5,"#D7B56D"),transform:"translateX(-50%)"}}>
+        {duelTimer} S
+      </div>
+    )}
+    
+    {/* NAPISY CZASOWE */}
+    {rc&&isActive&&rc.timerPhase&&duelTimer>0&&(
+      <div style={{position:"absolute",left:1052.5,bottom:352,zIndex:3,...akaStyle(7),transform:"translateX(-50%)"}}>
+        {rc.timerPhase==="declaration"?"CZAS NA DECYZJĘ:":"KOLEJNA TURA ZA:"}
+      </div>
+    )}
+    
+    {/* WYBÓR NABOJÓW - przyciski i input */}
+    <img src={IMG_BASE+"Rew_minus.png"} alt="-" style={{position:"absolute",left:360,bottom:210,width:50,height:50,zIndex:4,cursor:canInput?"pointer":"not-allowed",opacity:canInput?1:0.5}} onMouseDown={()=>startHold(-1)} onMouseUp={stopHold} onMouseLeave={stopHold} onTouchStart={()=>startHold(-1)} onTouchEnd={stopHold}/>
+    <div style={{position:"absolute",left:450,bottom:210,zIndex:4,width:80,textAlign:"center",transform:"translateX(-50%)",...akaStyle(15,shotsDeclared?"#C00000":"#51211B")}}>
+      {canInput?shotInput:(myShots!==null?myShots:0)}
+    </div>
+    <img src={IMG_BASE+"Rew_plus.png"} alt="+" style={{position:"absolute",left:540,bottom:210,width:50,height:50,zIndex:4,cursor:canInput?"pointer":"not-allowed",opacity:canInput?1:0.5}} onMouseDown={()=>startHold(1)} onMouseUp={stopHold} onMouseLeave={stopHold} onTouchStart={()=>startHold(1)} onTouchEnd={stopHold}/>
+    <img src={IMG_BASE+"Rew_zatwierdz.png"} alt="Zatwierdź" style={{position:"absolute",left:450,bottom:135,width:100,height:30.3,zIndex:4,transform:"translateX(-50%)",cursor:canInput?"pointer":"not-allowed",opacity:canInput?1:0.5}} onClick={()=>{if(canInput)revSubmitShots(familyId,shotInput);}}/>
+    
+    {/* POLE PRZEBIEGU ROZGRYWKI */}
+    <div style={{position:"absolute",left:740,bottom:300,width:244,height:130,zIndex:3,background:"rgba(255,255,255,0.85)",border:"1px solid #51211B",borderRadius:4,overflow:"auto",padding:6}}>
+      {(rc?.rounds||[]).map((r,i)=>{
+        var myWin=isA?(r.winner==="A"):(r.winner==="B");
+        var draw=r.winner==="draw";
+        return(
+          <div key={i} style={{...akaStyle(5),marginBottom:4,color:myWin?"#2E5B3C":draw?"#8B7355":"#842504"}}>
+            RUNDA {i+1}: {myWin?"→ WYGRYWASZ":draw?"= REMIS":"→ PRZEGRYWASZ"}
+          </div>
+        );
+      })}
+      {rc&&rc.status==="finished"&&<>
+        <div style={{...akaStyle(6,"#8B2500"),marginTop:8}}>KONIEC POJEDYNKU!</div>
+        {rc.winner&&<div style={{...akaStyle(5),color:FM[rc.winner].col}}>WYGRYWA: {FM[rc.winner].nom.toUpperCase()} ({rc.winField})</div>}
+      </>}
+    </div>
+    
+    {/* DEBUG INFO */}
+    <div style={{position:"absolute",left:10,bottom:10,color:"rgba(255,255,255,0.5)",fontSize:10,fontFamily:"monospace",zIndex:10}}>v0.2 | {rc?rc.status:"brak pojedynku"} | timer:{duelTimer}</div>
+  </div>);
+}
+
 /* ========== UNIFIED DEBRIEFING PANEL ========== */
 function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,debriefFullAccess,debriefTab,setDebriefTab,readOnly,debriefNotes,setDebriefNotes,debriefUnlocked,setDebriefUnlocked,setDebriefFullAccess,showMsg}){
   const [publicView,setPublicView]=useState(false);
@@ -2147,8 +2299,9 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
       var plots=items.filter(i=>i.cat==="plot");
       var plotOk=plots.some(p=>p.plotNr===FM[f].tPlot);
       var plotPts=plotOk?10:0;
-      var mapFrags=items.filter(i=>i.cat==="map").length;
-      var mapPts=Math.min(10,mapFrags*2);
+      // P1-1: Unikalne fragmenty mapy (spójne z calcScore)
+      var uniqueMapFrags=[...new Set(items.filter(i=>i.cat==="map").map(m=>m.fragNr))];
+      var mapPts=uniqueMapFrags.length>=4?10:uniqueMapFrags.length*2;
       var relPts=Math.round(calcRelationScore(f, relations));
       scores[f]={zasoby:resPts,kompetencje:compPts,gotowka:cashPts,dzialka:plotPts,mapa:mapPts,relacje:relPts};
     });
@@ -2638,8 +2791,9 @@ function SheriffPlanningTab({readOnly,roomCode,lobbyPlayers,gameStarted,setGameS
 
   function getLobbyMembers(fId){var fd=lobbyPlayers[fId];if(!fd||!fd.members)return[];return Object.entries(fd.members).map(([id,m])=>({id,...m})).filter(m=>m.name);}
   function isOnlineMember(m){return m.lastSeen&&(Date.now()-m.lastSeen)<90000;}
-  function copyLnk(fId){var lnk=buildFamilyLink(roomCode,fId);navigator.clipboard.writeText(lnk).then(()=>{setCpd(p=>({...p,[fId]:true}));setTimeout(()=>setCpd(p=>({...p,[fId]:false})),2500);}).catch(()=>{});}
-  function copyAll(){var txt=FO.map(fId=>FM[fId].nom+": "+buildFamilyLink(roomCode,fId)).join("\n");navigator.clipboard.writeText(txt).then(()=>{setCpAll(true);setTimeout(()=>setCpAll(false),2500);}).catch(()=>{});}
+  // P3-3: Feedback błędu clipboard
+  function copyLnk(fId){var lnk=buildFamilyLink(roomCode,fId);navigator.clipboard.writeText(lnk).then(()=>{setCpd(p=>({...p,[fId]:true}));setTimeout(()=>setCpd(p=>({...p,[fId]:false})),2500);}).catch(()=>{showMsg("Błąd kopiowania — skopiuj ręcznie link z paska adresu");});}
+  function copyAll(){var txt=FO.map(fId=>FM[fId].nom+": "+buildFamilyLink(roomCode,fId)).join("\n");navigator.clipboard.writeText(txt).then(()=>{setCpAll(true);setTimeout(()=>setCpAll(false),2500);}).catch(()=>{showMsg("Błąd kopiowania — skopiuj linki pojedynczo");});}
   var connFam=FO.filter(f=>{var fd=lobbyPlayers[f];if(!fd)return false;if(fd.members)return Object.keys(fd.members).length>0;return fd.connected;});
   var canStart=!readOnly&&connFam.length>0;
 
@@ -2719,13 +2873,14 @@ function SheriffPlanningTab({readOnly,roomCode,lobbyPlayers,gameStarted,setGameS
 }
 
 /* ========== SHERIFF PANEL ========== */
-function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNotes,setConsultNotes,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,manualMode,setManualMode,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,fateEnabled,setFateEnabled,mapEnabled,setMapEnabled,revEnabled,setRevEnabled,revMaxBet,setRevMaxBet,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle,revMode,setRevMode,revActive,setRevActive,revStartTournament,getRevTimer,revRevealDuel,revSettleDuel}) {
+function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNotes,setConsultNotes,setFd,showMsg,blindFate,setBlindFate,showResults,setShowResults,onViewFamily,plotPenalties,setPlotPenalties,setTxs,biznesNaBoku,setBiznesNaBoku,relations,relationsUnlocked,setRelationsUnlocked,gameStarted,stageIdx,stageDurations,setStageDurations,startStage,pauseTimer,resumeTimer,advanceStage,timerRunning,timerPaused,secondsLeft,manualMode,setManualMode,sheriffCalls,setSheriffCalls,bnbEnabled,setBnbEnabled,bnbSettled,activateBnb,settleBnb,fateEnabled,setFateEnabled,mapEnabled,setMapEnabled,revEnabled,setRevEnabled,revNewUI,setRevNewUI,revMaxBet,setRevMaxBet,revDuels,revCurrent,revNewDuel,revSetBet,revReveal,revSettle,revMode,setRevMode,revActive,setRevActive,revStartTournament,getRevTimer,revRevealDuel,revSettleDuel}) {
   function applyPlotPenalties(){
     FO.forEach(fId=>{
       if(plotPenalties[fId]) return;
       var f=FM[fId],d=fd[fId],plotI=d.items.find(i=>i.cat===C_PLOT),plotOk=plotI&&plotI.plotNr===f.tPlot;
       if(!plotOk){
-        setFd(prev=>{var n={...prev};n[fId]={...n[fId],cash:n[fId].cash-50};return n;});
+        // P2-3: Guard — nie schodź poniżej 0 (spójne z claimMapBonus)
+        setFd(prev=>{var n={...prev};var newCash=Math.max(0,n[fId].cash-50);n[fId]={...n[fId],cash:newCash};return n;});
         setTxs(prev=>[{id:txId(),type:"penalty",from:fId,to:"sheriff",status:"accepted",offeredItems:[],description:"Dodatkowy koszt 50 $ wynikający z posiadania niewłaściwej działki (nr "+(plotI?plotI.plotNr:"?")+", docelowa: "+f.tPlot+")"},...prev]);
         setPlotPenalties(prev=>({...prev,[fId]:true}));
       }
@@ -3090,6 +3245,11 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
           {!readOnly&&revActive.length===0&&<button style={btnS("danger",false)} onClick={()=>setRevEnabled(false)}>Zablokuj REWOLWEROWIEC</button>}
         </div>}
       </div>
+      {/* Feature flag: nowy interfejs */}
+      {!readOnly&&<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8,padding:"6px 10px",background:"#FFF8E0",border:"1px dashed #D4A853",borderRadius:4}}>
+        <input type="checkbox" id="revNewUIToggle" checked={revNewUI} onChange={e=>setRevNewUI(e.target.checked)} style={{width:16,height:16,cursor:"pointer"}}/>
+        <label htmlFor="revNewUIToggle" style={{fontSize:13,color:"#8B6914",cursor:"pointer"}}>Nowy interfejs Rewolwerowca (test)</label>
+      </div>}
       {revEnabled&&<div>
         {/* Mode toggle + Max bet */}
         {!readOnly&&<div style={{display:"flex",gap:12,alignItems:"center",marginBottom:12,flexWrap:"wrap"}}>
@@ -3339,6 +3499,7 @@ function App({roomCode,role,playerId,playerName}) {
 
   // === REWOLWEROWIEC STATE ===
   const [revEnabled,setRevEnabled]=useState(false);
+  const [revNewUI,setRevNewUI]=useState(false); // feature flag: nowy interfejs Rewolwerowca
   const [revMaxBet,setRevMaxBet]=useState(60);
   const [revDuels,setRevDuels]=useState([]);
   const [revMode,setRevMode]=useState("arena"); // 'arena' | 'tournament'
@@ -3525,7 +3686,7 @@ function App({roomCode,role,playerId,playerName}) {
     stateRef.current={fd,txs:txs.length?txs:[],consultations,consultNotes,blindFate,mapBonusClaimed,mapLayout,mapEnabled,plotPenalties,
       relations,relationsUnlocked,biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,
       debriefUnlocked,debriefFullAccess,debriefNotes,debriefCorrectMode,
-      revEnabled,revMaxBet,revMode,revDuels:revDuels.length?revDuels:[],revActive:revActiveToFB(revActive),revCurrent:revDuelToFB(revCurrent),
+      revEnabled,revNewUI,revMaxBet,revMode,revDuels:revDuels.length?revDuels:[],revActive:revActiveToFB(revActive),revCurrent:revDuelToFB(revCurrent),
       gameStarted,stageIdx,stageDurations,
       timerRunning,timerPaused,timerStartedAt,timerDuration,timerPausedSecondsLeft,
       sheriffCalls:sheriffCalls.length?sheriffCalls:[]};
@@ -3545,15 +3706,20 @@ function App({roomCode,role,playerId,playerName}) {
       var fields=["fd","txs","consultations","consultNotes","blindFate","mapBonusClaimed","mapLayout","mapEnabled",
         "plotPenalties","relations","relationsUnlocked","biznesNaBoku","bnbEnabled","bnbSettled","fateEnabled",
         "showResults","debriefUnlocked","debriefFullAccess","debriefNotes","debriefCorrectMode",
-        "revEnabled","revMaxBet","revMode","revDuels","revActive","revCurrent",
+        "revEnabled","revNewUI","revMaxBet","revMode","revDuels","revActive","revCurrent",
         "gameStarted","stageIdx","stageDurations","timerRunning","timerPaused","timerStartedAt","timerDuration",
         "timerPausedSecondsLeft","sheriffCalls"];
       fields.forEach(function(k){
         if(JSON.stringify(cur[k])!==JSON.stringify(prev[k]))diff[k]=cur[k]!==undefined?cur[k]:null;
       });
       if(Object.keys(diff).length>0){
-        db.ref("rooms/"+roomCode+"/gameState").update(diff);
-        prevSyncRef.current={...prev,...diff};
+        // P1-4: Error handling z toastem
+        db.ref("rooms/"+roomCode+"/gameState").update(diff).then(function(){
+          prevSyncRef.current={...prev,...diff};
+        }).catch(function(err){
+          console.error("syncToFB error:",err);
+          showMsg("Błąd synchronizacji: "+(err.message||"nieznany błąd"));
+        });
       }
     };
     if(immediate)doSync();
@@ -3610,6 +3776,7 @@ function App({roomCode,role,playerId,playerName}) {
       if(s.debriefNotes)setDebriefNotes(s.debriefNotes);
       if(s.debriefCorrectMode!==undefined)setDebriefCorrectMode(s.debriefCorrectMode);
       if(s.revEnabled!==undefined)setRevEnabled(s.revEnabled);
+      if(s.revNewUI!==undefined)setRevNewUI(s.revNewUI);
       if(s.revMaxBet!==undefined)setRevMaxBet(s.revMaxBet);
       if(s.revDuels)setRevDuels(Array.isArray(s.revDuels)?s.revDuels:Object.values(s.revDuels));
       if(s.revMode)setRevMode(s.revMode);
@@ -3644,7 +3811,7 @@ function App({roomCode,role,playerId,playerName}) {
     syncToFB();
   },[fd,txs,consultations,consultNotes,blindFate,mapBonusClaimed,mapLayout,mapEnabled,plotPenalties,relations,relationsUnlocked,
     biznesNaBoku,bnbEnabled,bnbSettled,fateEnabled,showResults,debriefUnlocked,debriefFullAccess,debriefNotes,debriefCorrectMode,
-    revEnabled,revMaxBet,revMode,revDuels,
+    revEnabled,revNewUI,revMaxBet,revMode,revDuels,
     revActive,gameStarted,stageIdx,stageDurations,timerRunning,timerPaused,timerStartedAt,timerDuration,timerPausedSecondsLeft,sheriffCalls]);
 
   const showMsg=useCallback(m=>{setToast(m);setTimeout(()=>setToast(null),3000);},[]);
@@ -3723,8 +3890,36 @@ function App({roomCode,role,playerId,playerName}) {
   },[fd]);
 
   // claimMapBonus — wywoływana ręcznie przez gracza (przycisk Zatwierdź)
+  // P0-3: Atomowy claim przez Firebase transaction — first-write-wins
   function claimMapBonus(fId){
     if(mapBonusClaimed[fId]) return;
+    // Sprawdź czy ktoś już wygrał (lokalnie)
+    var anyWinner=Object.values(mapBonusClaimed).some(v=>v);
+    if(anyWinner){showMsg("Bonus mapy został już przyznany innej rodzinie!");return;}
+    // Firebase transaction — atomowe sprawdzenie i zapis
+    if(db){
+      db.ref("rooms/"+roomCode+"/gameState/mapBonusClaimed").transaction(function(current){
+        // current = obecny stan w Firebase (może być null lub obiekt)
+        if(!current) current={};
+        // Sprawdź czy ktoś już wygrał
+        var alreadyWon=Object.values(current).some(v=>v);
+        if(alreadyWon) return; // abort — ktoś już wygrał
+        // First-write-wins: ustaw tego gracza jako zwycięzcę
+        current[fId]=true;
+        return current;
+      },function(err,committed,snapshot){
+        if(err){showMsg("Błąd zapisu: "+err.message);return;}
+        if(!committed){showMsg("Bonus mapy został już przyznany innej rodzinie!");return;}
+        // Sukces — nalicz bonus/kary lokalnie (sync zaktualizuje resztę)
+        applyMapBonusLocally(fId);
+      });
+    } else {
+      // Brak Firebase — lokalnie (development)
+      setMapBonusClaimed(prev=>({...prev,[fId]:true}));
+      applyMapBonusLocally(fId);
+    }
+  }
+  function applyMapBonusLocally(fId){
     setMapBonusClaimed(prev=>({...prev,[fId]:true}));
     setFd(prev=>{
       var n={...prev};
@@ -3804,10 +3999,10 @@ function App({roomCode,role,playerId,playerName}) {
   function advanceStage(){if(timerRef.current)clearInterval(timerRef.current);setTimerRunning(false);
     if(stageIdx<STAGES.length-1)startStage(stageIdx+1);else{showMsg("Rozgrywka zako\u0144czona!");}}
 
-  function resetP(){
+  function resetP(keepLock){
     setShowP(false);setPMode(null);setPStep(1);setTFam(null);setSelItems([]);setPrice(0);setECash(0);setRTx(null);setSending(false);
-    // T5 — zwolnij blokadę formularza TX
-    if(db&&cf)db.ref("rooms/"+roomCode+"/txLock/"+cf).transaction(function(v){return v===sessionId.current?null:v;});
+    // T5 — zwolnij blokadę formularza TX (chyba że keepLock=true)
+    if(!keepLock&&db&&cf)db.ref("rooms/"+roomCode+"/txLock/"+cf).transaction(function(v){return v===sessionId.current?null:v;});
   }
   // T5 — otwieranie formularza TX z blokadą per rodzina
   function openTxForm(pMode,extra){
@@ -3818,7 +4013,7 @@ function App({roomCode,role,playerId,playerName}) {
     },function(err,committed){
       if(!committed){showMsg("Formularz transakcji jest już otwarty przez innego uczestnika tej rodziny!");return;}
       db.ref("rooms/"+roomCode+"/txLock/"+cf).onDisconnect().remove();
-      resetP();setShowP(true);setPMode(pMode);if(extra)extra();
+      resetP(true);setShowP(true);setPMode(pMode);if(extra)extra();
     });
   }
   function toggleItem(item){
@@ -3867,10 +4062,12 @@ function App({roomCode,role,playerId,playerName}) {
     setBnbSettled(true);showMsg("Biznes na boku — rozliczono!");
   }
 
-  function validateMapDuplicate(targetFam, items) {
+  // P1-3: Opcjonalny parametr fdOverride dla walidacji na aktualnym stanie
+  function validateMapDuplicate(targetFam, items, fdOverride) {
+    var fdToUse = fdOverride || fd;
     var mapItems = items.filter(i => i.cat === C_MAP);
     if (mapItems.length === 0) return true;
-    var targetMaps = fd[targetFam].items.filter(i => i.cat === C_MAP);
+    var targetMaps = fdToUse[targetFam].items.filter(i => i.cat === C_MAP);
     for (var mi of mapItems) {
       if (targetMaps.some(t => t.fragNr === mi.fragNr)) return false;
     }
@@ -3895,30 +4092,46 @@ function App({roomCode,role,playerId,playerName}) {
     if(dup2){showMsg("Taka propozycja barteru już oczekuje na odpowiedź!");return;}
     setTxs(p=>[{id:txId(),type:"barter",from:cf,to:tFam,offeredItems:selItems.slice(),offeredCash:Number(eCash)||0,responseItems:null,responseCash:0,status:"awaiting_response"},...p]);setSending(true);resetP();showMsg("Propozycja barteru wysłana");}
   function submitResponse(){if(!rTx||!selItems.length)return;setSending(true);setTxs(p=>p.map(t=>t.id!==rTx?t:{...t,responseItems:selItems.slice(),responseCash:Number(eCash)||0,status:"pending"}));resetP();showMsg("Kontr-oferta wysłana!");}
-  function acceptTx(txId){setTxs(p=>p.map(tx=>{if(tx.id!==txId)return tx;
+  // P1-3: Ref do komunikacji błędu walidacji z wnętrza setFd
+  const txValidationError=useRef(null);
+  function acceptTx(txId){
+    txValidationError.current=null;
+    setTxs(p=>p.map(tx=>{if(tx.id!==txId)return tx;
     // S2 — guard: nie akceptuj już zaakceptowanej TX
     if(tx.status==="accepted")return tx;
-    // === WALIDACJA (Nr 4) ===
-    var seller=fd[tx.from],buyer=fd[tx.to];
-    if(tx.type==="sale"){
-      var missing=tx.offeredItems.filter(oi=>!seller.items.find(si=>si.id===oi.id));
-      if(missing.length){showMsg("Błąd: sprzedawca nie posiada już tych kart!");return{...tx,status:"rejected"};}
-      if(buyer.cash<tx.price){showMsg("Błąd: kupujący nie ma wystarczającej gotówki ("+buyer.cash+" $ < "+tx.price+" $)!");return{...tx,status:"rejected"};}
-    }
-    if(tx.type==="barter"){
-      var missingFrom=tx.offeredItems.filter(oi=>!seller.items.find(si=>si.id===oi.id));
-      var missingTo=tx.responseItems?tx.responseItems.filter(ri=>!buyer.items.find(bi=>bi.id===ri.id)):[];
-      if(missingFrom.length||missingTo.length){showMsg("Błąd: jedna ze stron nie posiada już oferowanych kart!");return{...tx,status:"rejected"};}
-      if(tx.offeredCash>0&&seller.cash<tx.offeredCash){showMsg("Błąd: brak gotówki na dopłatę!");return{...tx,status:"rejected"};}
-      if(tx.responseCash>0&&buyer.cash<tx.responseCash){showMsg("Błąd: brak gotówki na dopłatę!");return{...tx,status:"rejected"};}
-    }
-    // MAP DUPLICATE CHECK — re-validate at accept time
-    if(tx.type==="sale"&&!validateMapDuplicate(tx.to,tx.offeredItems)){showMsg("Błąd: kupujący już posiada ten fragment mapy!");return{...tx,status:"rejected"};}
-    if(tx.type==="barter"){
-      if(!validateMapDuplicate(tx.to,tx.offeredItems)){showMsg("Błąd: jedna ze stron już posiada oferowany fragment mapy!");return{...tx,status:"rejected"};}
-      if(tx.responseItems&&!validateMapDuplicate(tx.from,tx.responseItems)){showMsg("Błąd: jedna ze stron już posiada oferowany fragment mapy!");return{...tx,status:"rejected"};}
-    }
-    setFd(fd2=>{var n={...fd2};var f={...n[tx.from],items:n[tx.from].items.slice(),cash:n[tx.from].cash};var t={...n[tx.to],items:n[tx.to].items.slice(),cash:n[tx.to].cash};if(tx.type==="sale"){f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);f.cash+=tx.price;t.cash-=tx.price;}else{f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);t.items=t.items.filter(i=>!tx.responseItems.find(r=>r.id===i.id));f.items=f.items.concat(tx.responseItems);if(tx.offeredCash>0){f.cash-=tx.offeredCash;t.cash+=tx.offeredCash;}if(tx.responseCash>0){t.cash-=tx.responseCash;f.cash+=tx.responseCash;}}n[tx.from]=f;n[tx.to]=t;return n;});return{...tx,status:"accepted",phase:getPhaseIndex(stageIdx)};}));showMsg("Operacja zrealizowana!");}
+    // P1-3: Walidacja przeniesiona do setFd — tutaj tylko wstępny check
+    setFd(fd2=>{
+      var seller=fd2[tx.from],buyer=fd2[tx.to];
+      // === WALIDACJA NA AKTUALNYM STANIE (P1-3) ===
+      if(tx.type==="sale"){
+        var missing=tx.offeredItems.filter(oi=>!seller.items.find(si=>si.id===oi.id));
+        if(missing.length){txValidationError.current="Błąd: sprzedawca nie posiada już tych kart!";return fd2;}
+        if(buyer.cash<tx.price){txValidationError.current="Błąd: kupujący nie ma wystarczającej gotówki ("+buyer.cash+" $ < "+tx.price+" $)!";return fd2;}
+      }
+      if(tx.type==="barter"){
+        var missingFrom=tx.offeredItems.filter(oi=>!seller.items.find(si=>si.id===oi.id));
+        var missingTo=tx.responseItems?tx.responseItems.filter(ri=>!buyer.items.find(bi=>bi.id===ri.id)):[];
+        if(missingFrom.length||missingTo.length){txValidationError.current="Błąd: jedna ze stron nie posiada już oferowanych kart!";return fd2;}
+        if(tx.offeredCash>0&&seller.cash<tx.offeredCash){txValidationError.current="Błąd: brak gotówki na dopłatę!";return fd2;}
+        if(tx.responseCash>0&&buyer.cash<tx.responseCash){txValidationError.current="Błąd: brak gotówki na dopłatę!";return fd2;}
+      }
+      // MAP DUPLICATE CHECK — re-validate at accept time
+      if(tx.type==="sale"&&!validateMapDuplicate(tx.to,tx.offeredItems,fd2)){txValidationError.current="Błąd: kupujący już posiada ten fragment mapy!";return fd2;}
+      if(tx.type==="barter"){
+        if(!validateMapDuplicate(tx.to,tx.offeredItems,fd2)){txValidationError.current="Błąd: jedna ze stron już posiada oferowany fragment mapy!";return fd2;}
+        if(tx.responseItems&&!validateMapDuplicate(tx.from,tx.responseItems,fd2)){txValidationError.current="Błąd: jedna ze stron już posiada oferowany fragment mapy!";return fd2;}
+      }
+      // Walidacja OK — wykonaj transfer
+      var n={...fd2};var f={...n[tx.from],items:n[tx.from].items.slice(),cash:n[tx.from].cash};var t={...n[tx.to],items:n[tx.to].items.slice(),cash:n[tx.to].cash};
+      if(tx.type==="sale"){f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);f.cash+=tx.price;t.cash-=tx.price;}
+      else{f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);t.items=t.items.filter(i=>!tx.responseItems.find(r=>r.id===i.id));f.items=f.items.concat(tx.responseItems);if(tx.offeredCash>0){f.cash-=tx.offeredCash;t.cash+=tx.offeredCash;}if(tx.responseCash>0){t.cash-=tx.responseCash;f.cash+=tx.responseCash;}}
+      n[tx.from]=f;n[tx.to]=t;return n;
+    });
+    // P1-3: Sprawdź błąd walidacji po setFd
+    if(txValidationError.current){showMsg(txValidationError.current);return{...tx,status:"rejected"};}
+    return{...tx,status:"accepted",phase:getPhaseIndex(stageIdx)};}));
+    if(!txValidationError.current)showMsg("Operacja zrealizowana!");
+  }
   function rejectTx(txId){setTxs(p=>p.map(t=>t.id===txId?{...t,status:"rejected"}:t));showMsg("Operacja odrzucona.");}
 
   function rollDice(fId,rollIdx){
@@ -4016,7 +4229,8 @@ function App({roomCode,role,playerId,playerName}) {
   }
 
   var rootRef=React.useRef(null);
-  useEffect(()=>{var el=rootRef.current;if(!el)return;function h(e){var btn=e.target.closest("[data-roll]");if(!btn)return;var p=btn.getAttribute("data-roll").split("-");rollDice(p[0],parseInt(p[1]));}el.addEventListener("click",h);return()=>el.removeEventListener("click",h);});
+  // P2-2: Pusty dependency array — mount-once
+  useEffect(()=>{var el=rootRef.current;if(!el)return;function h(e){var btn=e.target.closest("[data-roll]");if(!btn)return;var p=btn.getAttribute("data-roll").split("-");rollDice(p[0],parseInt(p[1]));}el.addEventListener("click",h);return()=>el.removeEventListener("click",h);},[]);
 
   return (<div ref={rootRef}>
     <ConnectionIndicator online={online}/>
@@ -4024,7 +4238,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.14.5</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.16.0</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -4111,7 +4325,7 @@ function App({roomCode,role,playerId,playerName}) {
         })}
       </div>
       {sheriffTab==="planning"&&<SheriffPlanningTab readOnly={isSheriff2} roomCode={roomCode} lobbyPlayers={lobbyPlayers} gameStarted={gameStarted} setGameStarted={setGameStarted} showMsg={showMsg} db={db} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} bnbEnabled={bnbEnabled} activateBnb={activateBnb}/>}
-      {sheriffTab==="game"&&<SheriffPanel readOnly={isSheriff2} fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} consultNotes={consultNotes} setConsultNotes={setConsultNotes} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} manualMode={manualMode} setManualMode={setManualMode} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle} revMode={revMode} setRevMode={setRevMode} revActive={revActive} setRevActive={setRevActive} revStartTournament={revStartTournament} getRevTimer={getRevTimer} revRevealDuel={revRevealDuel} revSettleDuel={revSettleDuel}/>}
+      {sheriffTab==="game"&&<SheriffPanel readOnly={isSheriff2} fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} consultNotes={consultNotes} setConsultNotes={setConsultNotes} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} manualMode={manualMode} setManualMode={setManualMode} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revNewUI={revNewUI} setRevNewUI={setRevNewUI} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle} revMode={revMode} setRevMode={setRevMode} revActive={revActive} setRevActive={setRevActive} revStartTournament={revStartTournament} getRevTimer={getRevTimer} revRevealDuel={revRevealDuel} revSettleDuel={revSettleDuel}/>}
       {sheriffTab==="results"&&<DebriefingPanel viewMode="sheriff" familyId={null} fd={fd} txs={txs} blindFate={blindFate} relations={relations} revDuels={revDuels} debriefFullAccess={debriefFullAccess} debriefTab={sheriffDebriefTab} setDebriefTab={setSheriffDebriefTab} readOnly={isSheriff2} debriefNotes={debriefNotes} setDebriefNotes={setDebriefNotes} debriefUnlocked={debriefUnlocked} setDebriefUnlocked={setDebriefUnlocked} setDebriefFullAccess={setDebriefFullAccess} showMsg={showMsg}/>}
     </div>}
 
@@ -4299,7 +4513,11 @@ function App({roomCode,role,playerId,playerName}) {
             </div>);
           })()}
           {activeTab==="results"&&debriefUnlocked&&<DebriefingPanel viewMode="player" familyId={familyId} fd={fd} txs={txs} blindFate={blindFate} relations={relations} revDuels={revDuels} debriefFullAccess={debriefFullAccess} debriefTab={playerDebriefTab} setDebriefTab={setPlayerDebriefTab} readOnly={true} debriefNotes={{}} setDebriefNotes={null} debriefUnlocked={debriefUnlocked} setDebriefUnlocked={null} setDebriefFullAccess={null} showMsg={null}/>}
-          {activeTab==="rev"&&revEnabled&&(()=>{
+          {activeTab==="rev"&&revEnabled&&(revNewUI ? (()=>{
+            var rc=revActive.find(d=>d.familyA===familyId||d.familyB===familyId)||revCurrent;
+            var duelTimer=rc?getRevTimer(rc.id):-1;
+            return <RewolwerowiecNew rc={rc} familyId={familyId} duelTimer={duelTimer} revSubmitShots={revSubmitShots} revDuels={revDuels} getRevTimer={getRevTimer}/>;
+          })() : (()=>{
             var rc=revActive.find(d=>d.familyA===familyId||d.familyB===familyId)||revCurrent;
             var duelTimer=rc?getRevTimer(rc.id):-1;
             var isPlayer=rc&&(rc.familyA===familyId||rc.familyB===familyId);
@@ -4445,7 +4663,7 @@ function App({roomCode,role,playerId,playerName}) {
                 );})}
               </div>}
             </div></div>);
-          })()}
+          })())}
         </div>
         {(activeTab==="inv"||activeTab==="tutorial")&&<div>
           {/* Przyciski transakcji */}
@@ -4456,7 +4674,9 @@ function App({roomCode,role,playerId,playerName}) {
           {!viewSheriff&&<div style={{marginBottom:16}}>
             {(()=>{var myWaiting=sheriffCalls.filter(c=>c.fId===cf&&c.status==="waiting");var hasWaiting=myWaiting.length>0;
               return(<div>
-                <button style={{...btnS("sheriff"),width:"100%",fontSize:14,padding:"12px",display:"flex",justifyContent:"space-between",alignItems:"center"}} onClick={()=>{
+                {/* P2-4: Blokada gdy istnieje aktywne wezwanie */}
+                <button style={{...btnS("sheriff"),width:"100%",fontSize:14,padding:"12px",display:"flex",justifyContent:"space-between",alignItems:"center",opacity:hasWaiting?0.6:1,cursor:hasWaiting?"not-allowed":"pointer"}} disabled={hasWaiting} onClick={()=>{
+                  if(hasWaiting)return;
                   setSheriffCalls(prev=>[...prev,{fId:cf,status:"waiting",ts:Date.now()}]);
                   showMsg("Wezwano Szeryfa!");
                 }}>
