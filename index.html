@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.17.2</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.17.3</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -450,7 +450,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.17.2</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.17.3</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1843,7 +1843,7 @@ function PolicyCardNew({type, status, activeForRoll}) {
         onError={()=>setImgOk(false)}
       />}
       {!imgOk && <div style={{width:"100%",paddingTop:"61.75%",background:"#E8DCC8",position:"relative"}}>
-        <span style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B"}}>{is50?"polisa 50%":"polisa 100%"}</span>
+        <span style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B"}}>{is50?"polisa 50%":"polisa 100%"}</span>
       </div>}
       {/* Status text overlay - positioned from bottom edge */}
       <div style={{
@@ -2007,7 +2007,7 @@ function BlindFateFamily({fId, blindFate}) {
             position:"absolute",
             top:"50%",
             left:"50%",
-            transform:"translate(-50%,-50%)",
+            transform:"translate(-50%,50%)",
             display:"flex",
             gap:diceGap,
             alignItems:"center",
@@ -2186,7 +2186,7 @@ function RewolwerowiecNew({rc,familyId,duelTimer,revSubmitShots,revDuels,getRevT
     
     {/* PLANSZA - 7 pól */}
     {BOARD_FIELDS.map((f,i)=>(
-      <img key={i} src={getRevImg(f.img)} alt={f.img} style={{position:"absolute",left:f.x,bottom:500,width:160,height:160,zIndex:1,border:rc&&rc.bulletPos===f.pos?"3px solid #8B2500":"none",boxSizing:"border-box",transform:"translate(-50%,-50%)"}}/>
+      <img key={i} src={getRevImg(f.img)} alt={f.img} style={{position:"absolute",left:f.x,bottom:500,width:160,height:160,zIndex:1,border:rc&&rc.bulletPos===f.pos?"3px solid #8B2500":"none",boxSizing:"border-box",transform:"translate(-50%,50%)"}}/>
     ))}
     
     {/* NABÓJ NA PLANSZY */}
@@ -2194,67 +2194,67 @@ function RewolwerowiecNew({rc,familyId,duelTimer,revSubmitShots,revDuels,getRevT
       var bulletField=BOARD_FIELDS.find(f=>f.pos===rc.bulletPos);
       if(!bulletField)return null;
       return(
-        <img src={getRevImg("NABOJ_ZNACZNIK")} alt="nabój" style={{position:"absolute",left:bulletField.x,bottom:500,width:50,height:50,zIndex:5,filter:"drop-shadow(0 2px 4px rgba(0,0,0,0.5))",transition:"left 0.6s ease-in-out",transform:"translate(-50%,-50%)"}}/>
+        <img src={getRevImg("NABOJ_ZNACZNIK")} alt="nabój" style={{position:"absolute",left:bulletField.x,bottom:500,width:50,height:50,zIndex:5,filter:"drop-shadow(0 2px 4px rgba(0,0,0,0.5))",transition:"left 0.6s ease-in-out",transform:"translate(-50%,50%)"}}/>
       );
     })()}
     
     {/* SYMBOLE RODZIN */}
     {rc&&rc.status!=="betting"&&<>
-      <img src={IMG_BASE+"rew_"+rc.familyA+".png"} alt={rc.familyA} style={{position:"absolute",left:105,bottom:644,width:100,zIndex:2,transform:"translate(-50%,-50%)"}}/>
-      <img src={IMG_BASE+"rew_"+rc.familyB+".png"} alt={rc.familyB} style={{position:"absolute",left:1095,bottom:644,width:100,zIndex:2,transform:"translate(-50%,-50%)"}}/>
+      <img src={IMG_BASE+"rew_"+rc.familyA+".png"} alt={rc.familyA} style={{position:"absolute",left:105,bottom:644,width:100,zIndex:2,transform:"translate(-50%,50%)"}}/>
+      <img src={IMG_BASE+"rew_"+rc.familyB+".png"} alt={rc.familyB} style={{position:"absolute",left:1095,bottom:644,width:100,zIndex:2,transform:"translate(-50%,50%)"}}/>
     </>}
     
     {/* LICZNIKI OBSTAWIONYCH NABOJÓW */}
     {rc&&rc.status!=="betting"&&<>
-      <div style={{position:"absolute",left:203,bottom:648,zIndex:3,...akaStyle(36),textAlign:"center",transform:"translate(-50%,-50%)"}}>
+      <div style={{position:"absolute",left:203,bottom:648,zIndex:3,...akaStyle(36),textAlign:"center",transform:"translate(-50%,50%)"}}>
         {rc.status==="playing"&&rc.timerPhase==="declaration"?"0":rc.shotsA!==null?rc.shotsA:"0"}
       </div>
-      <div style={{position:"absolute",left:997,bottom:648,zIndex:3,...akaStyle(36),textAlign:"center",transform:"translate(-50%,-50%)"}}>
+      <div style={{position:"absolute",left:997,bottom:648,zIndex:3,...akaStyle(36),textAlign:"center",transform:"translate(-50%,50%)"}}>
         {rc.status==="playing"&&rc.timerPhase==="declaration"?"0":rc.shotsB!==null?rc.shotsB:"0"}
       </div>
     </>}
     
     {/* STAWKA */}
     {rc&&rc.status!=="betting"&&(
-      <div style={{position:"absolute",left:600,bottom:370,zIndex:3,...akaStyle(29),transform:"translate(-50%,-50%)"}}>
+      <div style={{position:"absolute",left:600,bottom:370,zIndex:3,...akaStyle(29),transform:"translate(-50%,50%)"}}>
         STAWKA: {rc.bet} $
       </div>
     )}
     
     {/* AMUNICJA - siatka */}
-    <div style={{position:"absolute",left:149,bottom:230,zIndex:3,transform:"translate(-50%,-50%)"}}>
+    <div style={{position:"absolute",left:149,bottom:230,zIndex:3,transform:"translate(-50%,50%)"}}>
       <AmmoGridNew ammo={rc?myAmmo:50}/>
     </div>
     
     {/* AMUNICJA - napis */}
-    <div style={{position:"absolute",left:149,bottom:350,zIndex:3,...akaStyle(16),transform:"translate(-50%,-50%)"}}>
+    <div style={{position:"absolute",left:149,bottom:350,zIndex:3,...akaStyle(16),transform:"translate(-50%,50%)"}}>
       WASZA AMUNICJA: {rc?myAmmo:50}/50
     </div>
     
     {/* ZEGAR */}
     {rc&&isActive&&rc.timerPhase&&duelTimer>0&&(
-      <div style={{position:"absolute",left:1052.5,bottom:202,zIndex:3,...akaStyle(38,"#D7B56D"),transform:"translate(-50%,-50%)"}}>
+      <div style={{position:"absolute",left:1052.5,bottom:202,zIndex:3,...akaStyle(38,"#D7B56D"),transform:"translate(-50%,50%)"}}>
         {duelTimer} S
       </div>
     )}
     
     {/* NAPISY CZASOWE */}
     {rc&&isActive&&rc.timerPhase&&duelTimer>0&&(
-      <div style={{position:"absolute",left:1052.5,bottom:352,zIndex:3,...akaStyle(25),transform:"translate(-50%,-50%)"}}>
+      <div style={{position:"absolute",left:1052.5,bottom:352,zIndex:3,...akaStyle(25),transform:"translate(-50%,50%)"}}>
         {rc.timerPhase==="declaration"?"CZAS NA DECYZJĘ:":"KOLEJNA TURA ZA:"}
       </div>
     )}
     
     {/* WYBÓR NABOJÓW - przyciski i input */}
-    <img src={IMG_BASE+"Rew_minus.png"} alt="-" style={{position:"absolute",left:360,bottom:210,width:50,height:50,zIndex:4,cursor:canInput?"pointer":"not-allowed",opacity:canInput?1:0.5,transform:"translate(-50%,-50%)"}} onMouseDown={()=>startHold(-1)} onMouseUp={stopHold} onMouseLeave={stopHold} onTouchStart={()=>startHold(-1)} onTouchEnd={stopHold}/>
-    <div style={{position:"absolute",left:450,bottom:210,zIndex:4,width:80,textAlign:"center",transform:"translate(-50%,-50%)",...akaStyle(49,shotsDeclared?"#C00000":"#51211B")}}>
+    <img src={IMG_BASE+"Rew_minus.png"} alt="-" style={{position:"absolute",left:360,bottom:210,width:50,height:50,zIndex:4,cursor:canInput?"pointer":"not-allowed",opacity:canInput?1:0.5,transform:"translate(-50%,50%)"}} onMouseDown={()=>startHold(-1)} onMouseUp={stopHold} onMouseLeave={stopHold} onTouchStart={()=>startHold(-1)} onTouchEnd={stopHold}/>
+    <div style={{position:"absolute",left:450,bottom:210,zIndex:4,width:80,textAlign:"center",transform:"translate(-50%,50%)",...akaStyle(49,shotsDeclared?"#C00000":"#51211B")}}>
       {canInput?shotInput:(myShots!==null?myShots:0)}
     </div>
-    <img src={IMG_BASE+"Rew_plus.png"} alt="+" style={{position:"absolute",left:540,bottom:210,width:50,height:50,zIndex:4,cursor:canInput?"pointer":"not-allowed",opacity:canInput?1:0.5,transform:"translate(-50%,-50%)"}} onMouseDown={()=>startHold(1)} onMouseUp={stopHold} onMouseLeave={stopHold} onTouchStart={()=>startHold(1)} onTouchEnd={stopHold}/>
-    <img src={IMG_BASE+"Rew_zatwierdz.png"} alt="Zatwierdź" style={{position:"absolute",left:450,bottom:135,width:100,height:30.3,zIndex:4,transform:"translate(-50%,-50%)",cursor:canInput?"pointer":"not-allowed",opacity:canInput?1:0.5}} onClick={()=>{if(canInput)revSubmitShots(familyId,shotInput);}}/>
+    <img src={IMG_BASE+"Rew_plus.png"} alt="+" style={{position:"absolute",left:540,bottom:210,width:50,height:50,zIndex:4,cursor:canInput?"pointer":"not-allowed",opacity:canInput?1:0.5,transform:"translate(-50%,50%)"}} onMouseDown={()=>startHold(1)} onMouseUp={stopHold} onMouseLeave={stopHold} onTouchStart={()=>startHold(1)} onTouchEnd={stopHold}/>
+    <img src={IMG_BASE+"Rew_zatwierdz.png"} alt="Zatwierdź" style={{position:"absolute",left:450,bottom:135,width:100,height:30.3,zIndex:4,transform:"translate(-50%,50%)",cursor:canInput?"pointer":"not-allowed",opacity:canInput?1:0.5}} onClick={()=>{if(canInput)revSubmitShots(familyId,shotInput);}}/>
     
     {/* POLE PRZEBIEGU ROZGRYWKI */}
-    <div style={{position:"absolute",left:740,bottom:300,width:244,height:130,zIndex:3,background:"rgba(255,255,255,0.85)",border:"1px solid #51211B",borderRadius:4,overflow:"auto",padding:6,transform:"translate(-50%,-50%)"}}>
+    <div style={{position:"absolute",left:740,bottom:300,width:244,height:130,zIndex:3,background:"rgba(255,255,255,0.85)",border:"1px solid #51211B",borderRadius:4,overflow:"auto",padding:6,transform:"translate(-50%,50%)"}}>
       {/* Lista zakończonych pojedynków */}
       {myDuels.length>0&&<>
         {myDuels.map((d,i)=>{
@@ -3399,7 +3399,7 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
                     return(<div key={idx} style={{flex:1,border:"2px solid "+(isBullet?"#8B2500":"#D4C4A8"),borderRadius:4,textAlign:"center",position:"relative",overflow:"hidden",minHeight:50}}>
                       {img&&<img src={img} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt={label}/>}
                       {!img&&<div style={{padding:"8px 4px"}}><div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase"}}>{label}</div></div>}
-                      {isBullet&&<div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)"}}>
+                      {isBullet&&<div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,50%)"}}>
                         {getRevImg("NABOJ_ZNACZNIK")?<img src={getRevImg("NABOJ_ZNACZNIK")} style={{height:28,filter:"drop-shadow(0 2px 3px rgba(0,0,0,0.5))"}} alt="nabój"/>:<div style={{fontSize:18}}>●</div>}
                       </div>}
                     </div>);
@@ -4305,7 +4305,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.17.2</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.17.3</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -4400,7 +4400,7 @@ function App({roomCode,role,playerId,playerName}) {
       {/* Belka główna rodziny z licznikiem gotówki */}
       <div style={{position:"relative",width:"100%"}}>
         <img src={IMG_BASE+"belka_"+familyId+".png"} style={{width:"100%",display:"block"}} alt=""/>
-        <div style={{position:"absolute",left:"83.67%",top:"50%",transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',Georgia,serif",fontSize:42,fontWeight:700,color:"#D4A853",background:"transparent"}}>{familyData.cash} $</div>
+        <div style={{position:"absolute",left:"83.67%",top:"50%",transform:"translate(-50%,50%)",fontFamily:"'Aka Posse',Georgia,serif",fontSize:42,fontWeight:700,color:"#D4A853",background:"transparent"}}>{familyData.cash} $</div>
       </div>
       {/* Belka menu */}
       <div style={{position:"relative",width:"100%",marginTop:8}}>
@@ -4617,7 +4617,7 @@ function App({roomCode,role,playerId,playerName}) {
                     return(<div key={idx} style={{flex:1,position:"relative",border:isBullet?"3px solid #8B2500":"2px solid #D4C4A8",borderRadius:6,overflow:"hidden",transition:"border 0.3s",minHeight:80}}>
                       {img&&<img src={img} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt={label}/>}
                       {!img&&<div style={{padding:"12px 6px",textAlign:"center",background:"#F5F0E8",height:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase"}}>{label}</div></div>}
-                      {isBullet&&<div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",transition:"all 0.6s ease-in-out"}}>
+                      {isBullet&&<div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,50%)",transition:"all 0.6s ease-in-out"}}>
                         {getRevImg("NABOJ_ZNACZNIK")?<img src={getRevImg("NABOJ_ZNACZNIK")} style={{height:50,filter:"drop-shadow(0 2px 4px rgba(0,0,0,0.5))"}} alt="nabój"/>:<div style={{fontSize:28,color:"#8B2500"}}>●</div>}
                       </div>}
                     </div>);
