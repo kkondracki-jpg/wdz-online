@@ -1637,7 +1637,7 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
 
   return (<>
     {/* Nagłówek — obrazek */}
-    <img src={IMG_BASE+"naglowek_zyla.png"} style={{width:"100%",height:"auto",display:"block",marginBottom:8}} alt="Złotodajna Żyła"/>
+    <img src={IMG_BASE+"naglowek_zyla.png"} style={{maxWidth:820,width:"100%",height:"auto",display:"block",marginBottom:8,marginLeft:"auto",marginRight:"auto"}} alt="Złotodajna Żyła"/>
     {/* Status — czcionka jak Majątek */}
     <div style={{display:"flex",gap:16,justifyContent:"center",marginBottom:12,fontSize:18,color:"#51211B"}}>
       <span>Liczba punktów: <b>{mapScore}</b> <span style={{color:"#6B5A4A"}}>(max 10)</span></span>
@@ -1648,14 +1648,12 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
     {fId&&<div style={{position:"relative",width:1200,height:750,margin:"0 auto",overflow:"hidden"}}>
       <img src={IMG_BASE+"zlotodajna_zyla_tlo.png"} style={{position:"absolute",width:1200,height:750,left:0,top:0,zIndex:0}} alt=""/>
       {/* Komunikat instrukcyjny — 2 wiersze */}
-      {!claimed&&!readonly&&!winnerFam&&<>
-        <div style={{position:"absolute",left:600,top:663,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B",textAlign:"center",zIndex:2}}>
-          Ułóż z pomocą myszki fragmenty mapy we właściwej kolejności.
+      {!claimed&&!readonly&&!winnerFam&&
+        <div style={{position:"absolute",left:600,top:671,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B",textAlign:"center",zIndex:2,lineHeight:1.5}}>
+          <div>Ułóż z pomocą myszki fragmenty mapy we właściwej kolejności.</div>
+          <div>Gdy pojawi się przycisk „ZATWIERDŹ" kliknij w niego, aby uzyskać premię.</div>
         </div>
-        <div style={{position:"absolute",left:600,top:679,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B",textAlign:"center",zIndex:2}}>
-          Gdy pojawi się przycisk „ZATWIERDŹ" kliknij w niego, aby uzyskać premię.
-        </div>
-      </>}
+      }
       {/* Slot szeryfa (slot 5) — pozycja 1, zablokowany */}
       <div style={{position:"absolute",left:33,top:393,width:222,height:222,zIndex:1,background:"transparent"}}>
         {claimed?<MapFragImg n={5}/>:<img src={IMG_BASE+"zloto_5.png"} style={{width:"100%",height:"auto",display:"block"}} alt="Fragment 5"/>}
@@ -1686,23 +1684,19 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
         <img src={IMG_BASE+"zyla_zatwierdz.png"} style={{display:"block",height:"auto"}} alt="Zatwierdź"/>
       </div>}
       {/* Komunikat — zwycięzca */}
-      {winnerFam&&winnerFam===fId&&<>
-        <div style={{position:"absolute",left:600,top:663,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B",textAlign:"center",zIndex:2}}>
-          Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
+      {winnerFam&&winnerFam===fId&&
+        <div style={{position:"absolute",left:600,top:671,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,textAlign:"center",zIndex:2,lineHeight:1.5}}>
+          <div style={{color:"#51211B"}}>Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!</div>
+          <div style={{color:"#2E7D32"}}>Gratulacje! Premia 300 $ trafia na konto Waszej rodziny!</div>
         </div>
-        <div style={{position:"absolute",left:600,top:679,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#2E7D32",textAlign:"center",zIndex:2}}>
-          Gratulacje! Premia 300 $ trafia na konto Waszej rodziny!
-        </div>
-      </>}
+      }
       {/* Komunikat — przegrani */}
-      {winnerFam&&winnerFam!==fId&&<>
-        <div style={{position:"absolute",left:600,top:663,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B",textAlign:"center",zIndex:2}}>
-          Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
+      {winnerFam&&winnerFam!==fId&&
+        <div style={{position:"absolute",left:600,top:671,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,textAlign:"center",zIndex:2,lineHeight:1.5}}>
+          <div style={{color:"#51211B"}}>Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!</div>
+          <div style={{color:"#C00"}}>Premia 300 $ trafia do rodziny {FM[winnerFam].gen}. Wpłacacie 100 $ na rzecz zwycięzcy.</div>
         </div>
-        <div style={{position:"absolute",left:600,top:679,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#C00",textAlign:"center",zIndex:2}}>
-          Premia 300 $ trafia do rodziny {FM[winnerFam].gen}. Wpłacacie 100 $ na rzecz zwycięzcy.
-        </div>
-      </>}
+      }
     </div>}
     {/* Szeryf / widok bez fId — statyczny */}
     {!fId&&<div style={{display:"flex",gap:3,marginBottom:12}}>
@@ -4515,6 +4509,9 @@ function App({roomCode,role,playerId,playerName}) {
                   <InfoPopup title="Opis produktu" wide icon="ikona_instrukcje">
                     <img src={IMG_BASE+"bnb_"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt={"Biznes na boku — "+familyId}/>
                   </InfoPopup>
+                  <InfoPopup title="Reklama" wide icon="ikona_instrukcje">
+                    <img src={IMG_BASE+"reklama_"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt={"Reklama — "+familyId}/>
+                  </InfoPopup>
                   <InfoPopup title="Biznes na boku — warunki" wide>
                     <img src={IMG_BASE+"bnb_waronki-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Warunki — Biznes na boku"/>
                   </InfoPopup>
@@ -4525,8 +4522,6 @@ function App({roomCode,role,playerId,playerName}) {
                   <div style={{fontSize:15,fontWeight:700,color:"#4C130F"}}>{myProduct.name}</div>
                   <div style={{fontSize:14,color:"#5C4A3A"}}>Do sprzedania: <b>{forSale.length}/{myProduct.qty}</b></div>
                 </div>
-                {/* Reklama — pełna szerokość */}
-                <img src={IMG_BASE+"reklama_"+familyId+".png"} style={{width:"100%",height:"auto",display:"block",marginBottom:16}} alt={"Reklama — "+familyId}/>
                 {/* Zakupione produkty */}
                 {Object.keys(boughtGrouped).length>0&&<div style={{marginBottom:16}}>
                   {Object.keys(boughtGrouped).map(origin=>{var cards=boughtGrouped[origin];var prod=BNB_PRODUCTS[origin];return(
