@@ -1645,7 +1645,7 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
       {fId&&<span>Fragmenty mapy na sprzedaż: <b>{forSale}/3</b></span>}
     </div>
     {/* === PLANSZA Z TŁEM (gracz) === */}
-    {fId&&<div style={{position:"relative",width:1200,height:750,margin:"0 auto",overflow:"hidden"}}>
+    {fId&&<div style={{position:"relative",width:1200,height:750,margin:"0 -16px",overflow:"hidden"}}>
       <img src={IMG_BASE+"zlotodajna_zyla_tlo.png"} style={{position:"absolute",width:1200,height:750,left:0,top:0,zIndex:0}} alt=""/>
       {/* Komunikat instrukcyjny — 2 wiersze */}
       {!claimed&&!readonly&&!winnerFam&&
@@ -1917,7 +1917,7 @@ function BlindFateFamily({fId, blindFate}) {
   }
   
   return (
-    <div style={{width:1200,height:604,position:"relative",margin:"0 auto"}}>
+    <div style={{width:1200,height:604,position:"relative",margin:"0 -16px"}}>
       {/* Background */}
       {bgOk && <img 
         src={IMG_BASE+"slepy-los_tlo.png"} 
@@ -2175,7 +2175,7 @@ function RewolwerowiecNew({rc,familyId,duelTimer,revSubmitShots,revDuels,getRevT
   var akaStyle=function(px,color){return{fontFamily:"'Aka Posse',serif",fontSize:px,color:color||"#51211B",textTransform:"uppercase"};};
   
   return(
-  <div style={{position:"relative",width:1200,height:770,margin:"0 auto",overflow:"hidden"}}>
+  <div style={{position:"relative",width:1200,height:770,margin:"0 -16px",overflow:"hidden"}}>
     {/* TŁO */}
     <img src={IMG_BASE+"Rew_0-background.png"} alt="" style={{position:"absolute",width:1200,height:770,left:0,top:0,zIndex:0}}/>
     
@@ -4381,7 +4381,7 @@ function App({roomCode,role,playerId,playerName}) {
       {sheriffTab==="results"&&<DebriefingPanel viewMode="sheriff" familyId={null} fd={fd} txs={txs} blindFate={blindFate} relations={relations} revDuels={revDuels} debriefFullAccess={debriefFullAccess} debriefTab={sheriffDebriefTab} setDebriefTab={setSheriffDebriefTab} readOnly={isSheriff2} debriefNotes={debriefNotes} setDebriefNotes={setDebriefNotes} debriefUnlocked={debriefUnlocked} setDebriefUnlocked={setDebriefUnlocked} setDebriefFullAccess={setDebriefFullAccess} showMsg={showMsg}/>}
     </div>}
 
-    {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:16,overflowX:"hidden"}}>
+    {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:"16px 0"}}>
       {/* Belka główna rodziny z licznikiem gotówki */}
       <div style={{position:"relative",width:"100%"}}>
         <img src={IMG_BASE+"belka_"+familyId+".png"} style={{width:"100%",display:"block"}} alt=""/>
@@ -4404,7 +4404,7 @@ function App({roomCode,role,playerId,playerName}) {
           })}
         </div>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:(activeTab==="inv"||activeTab==="tutorial")?"1fr 360px":"1fr",gap:20,alignItems:"start",marginTop:12}}>
+      <div style={{display:"grid",gridTemplateColumns:(activeTab==="inv"||activeTab==="tutorial")?"1fr 360px":"1fr",gap:20,alignItems:"start",marginTop:12,padding:"0 16px"}}>
         <div>
           {activeTab==="tutorial"&&<InstructionSlides key={familyId} familyId={familyId} roomCode={roomCode} bnbEnabled={bnbEnabled}/>}
           {activeTab==="inv"&&(()=>{
