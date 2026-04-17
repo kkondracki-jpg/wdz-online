@@ -4381,7 +4381,7 @@ function App({roomCode,role,playerId,playerName}) {
       {sheriffTab==="results"&&<DebriefingPanel viewMode="sheriff" familyId={null} fd={fd} txs={txs} blindFate={blindFate} relations={relations} revDuels={revDuels} debriefFullAccess={debriefFullAccess} debriefTab={sheriffDebriefTab} setDebriefTab={setSheriffDebriefTab} readOnly={isSheriff2} debriefNotes={debriefNotes} setDebriefNotes={setDebriefNotes} debriefUnlocked={debriefUnlocked} setDebriefUnlocked={setDebriefUnlocked} setDebriefFullAccess={setDebriefFullAccess} showMsg={showMsg}/>}
     </div>}
 
-    {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:(activeTab==="map"||activeTab==="fate"||activeTab==="rev")?"16px 0":16}}>
+    {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:16,overflowX:"hidden"}}>
       {/* Belka główna rodziny z licznikiem gotówki */}
       <div style={{position:"relative",width:"100%"}}>
         <img src={IMG_BASE+"belka_"+familyId+".png"} style={{width:"100%",display:"block"}} alt=""/>
