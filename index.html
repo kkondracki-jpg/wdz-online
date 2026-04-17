@@ -1593,32 +1593,6 @@ function MapFragImg({n, size}) {
     :<div style={{height:s,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:700,color:"#A09020",background:"#EDE8B0"}}>{n}</div>;
 }
 
-/* ========== MAP PUZZLE SLOT ========== */
-function MapSlot({slotIdx, fragNr, locked, dragOver, onDragStart, onDragOver, onDragLeave, onDrop, claimed}) {
-  var isEmpty = fragNr===0;
-  var isSpecial = locked; // slot 4 = fragment szeryfa
-  var borderCol = dragOver?"#D4A853":(isSpecial?"#D4A853":(isEmpty?"#D4C4A8":"#A09020"));
-  var borderW = dragOver||isSpecial?"3px":"2px";
-  return (
-    <div
-      draggable={!locked&&!isEmpty&&!claimed}
-      onDragStart={!locked&&!isEmpty&&!claimed?e=>onDragStart(e,slotIdx):null}
-      onDragOver={!locked&&!claimed?e=>onDragOver(e,slotIdx):null}
-      onDragLeave={!locked&&!claimed?e=>onDragLeave(e,slotIdx):null}
-      onDrop={!locked&&!claimed?e=>onDrop(e,slotIdx):null}
-      style={{flex:1,border:borderW+" solid "+borderCol,background:isEmpty?"#F5F0E8":"transparent",
-        cursor:(!locked&&!isEmpty&&!claimed)?"grab":"default",
-        transition:"border-color 0.15s",overflow:"hidden",
-        opacity:(!locked&&!isEmpty&&!claimed)||isEmpty||locked?1:1,
-        boxSizing:"border-box",minHeight:80,position:"relative"}}
-    >
-      {isEmpty&&isSpecial&&<img src={IMG_BASE+"zloto_5.png"} style={{width:"100%",height:"auto",display:"block"}} alt="Fragment 5"/>}
-      {isEmpty&&!isSpecial&&<img src={IMG_BASE+"zloto_1-4.png"} style={{width:"100%",height:"auto",display:"block"}} alt="Pusty slot"/>}
-      {!isEmpty&&<MapFragImg n={fragNr}/>}
-    </div>
-  );
-}
-
 /* ========== MAP TRACKER (full width) ========== */
 function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onClaim, readonly}) {
   const [dragOver,setDragOver]=useState(null);
@@ -1662,79 +1636,90 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
   }
 
   return (<>
-    <div style={{background:"rgba(255,255,255,0.85)",padding:"8px 14px",borderRadius:6,marginBottom:10}}>
-      <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Złotodajna Żyła</div>
-      <div style={{display:"flex",gap:16,marginTop:6,fontSize:14,flexWrap:"wrap"}}>
-        <span>Liczba punktów: <b>{mapScore}</b> <span style={{color:"#6B5A4A"}}>(max 10)</span></span>
-        <span>Posiadane fragmenty mapy: <b>{uniqueNrs.length}/5</b></span>
-        {fId&&<span>Fragmenty mapy na sprzedaż: <b>{forSale}/3</b></span>}
-      </div>
+    {/* Nagłówek — obrazek */}
+    <img src={IMG_BASE+"naglowek_zyla.png"} style={{width:"100%",height:"auto",display:"block",marginBottom:8}} alt="Złotodajna Żyła"/>
+    {/* Status — czcionka jak Majątek */}
+    <div style={{display:"flex",gap:16,justifyContent:"center",marginBottom:12,fontSize:18,color:"#51211B"}}>
+      <span>Liczba punktów: <b>{mapScore}</b> <span style={{color:"#6B5A4A"}}>(max 10)</span></span>
+      <span>Posiadane fragmenty mapy: <b>{uniqueNrs.length}/5</b></span>
+      {fId&&<span>Fragmenty mapy na sprzedaż: <b>{forSale}/3</b></span>}
     </div>
-    {/* --- Instrukcja: 2/3 obrazek + 1/3 akordeon --- */}
-    <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:16,marginBottom:16,alignItems:"start",background:"#fff",backgroundImage:"url("+IMG_BASE+"tlo_uniwersalne.png)",backgroundSize:"cover",backgroundPosition:"center",padding:16,borderRadius:6}}>
-      <img src={IMG_BASE+"instrukcja_zlotodajna-zyla.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Instrukcja — Złotodajna Żyła"/>
-      <img src={IMG_BASE+"instrukcja_historia-mapy.png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4}} alt="Historia mapy"/>
-    </div>
-    {/* --- Plansza puzzle --- */}
-    {fId&&<div style={{marginBottom:12}}>
-      {!claimed&&!readonly&&<div style={{fontSize:14,color:"#842504",fontWeight:600,marginBottom:6}}>
-        Ułóż z pomocą myszki fragmenty mapy we właściwej kolejności. Gdy pojawi się przycisk „ZATWIERDŹ" kliknij w niego, aby uzyskać premię.
-      </div>}
-      <div style={{display:"flex",gap:4}}>
-        {/* Slot 5 — fragment szeryfa, zablokowany, pierwszy z lewej */}
-        <MapSlot slotIdx={4} fragNr={claimed?5:0} locked={true} claimed={false}
-          dragOver={false}
-          onDragStart={()=>{}} onDragOver={()=>{}} onDragLeave={()=>{}} onDrop={()=>{}}/>
-        {layout.map((fragNr,i)=>(
-          <MapSlot key={i} slotIdx={i} fragNr={fragNr} locked={false} claimed={claimed||readonly}
-            dragOver={dragOver===i}
-            onDragStart={handleDragStart} onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave} onDrop={handleDrop}/>
-        ))}
+    {/* === PLANSZA Z TŁEM (gracz) === */}
+    {fId&&<div style={{position:"relative",width:1200,height:750,margin:"0 auto",overflow:"hidden"}}>
+      <img src={IMG_BASE+"zlotodajna_zyla_tlo.png"} style={{position:"absolute",width:1200,height:750,left:0,top:0,zIndex:0}} alt=""/>
+      {/* Komunikat instrukcyjny — 2 wiersze */}
+      {!claimed&&!readonly&&!winnerFam&&<>
+        <div style={{position:"absolute",left:600,top:663,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B",textAlign:"center",zIndex:2}}>
+          Ułóż z pomocą myszki fragmenty mapy we właściwej kolejności.
+        </div>
+        <div style={{position:"absolute",left:600,top:679,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B",textAlign:"center",zIndex:2}}>
+          Gdy pojawi się przycisk \u201eZATWIERD\u0179\u201d kliknij w niego, aby uzyska\u0107 premi\u0119.
+        </div>
+      </>}
+      {/* Slot szeryfa (slot 5) — pozycja 1, zablokowany */}
+      <div style={{position:"absolute",left:33,top:154,width:184,height:184,zIndex:1,background:"transparent"}}>
+        {claimed?<MapFragImg n={5}/>:<img src={IMG_BASE+"zloto_5.png"} style={{width:"100%",height:"auto",display:"block"}} alt="Fragment 5"/>}
       </div>
-      {canClaim&&<div style={{marginTop:10,textAlign:"center"}}>
-        <button onClick={()=>onClaim&&onClaim(fId)}
-          style={{background:"#842504",color:"#F5F0E8",border:"none",borderRadius:4,padding:"10px 28px",
-            fontSize:15,fontWeight:700,cursor:"pointer",letterSpacing:"0.5px",fontFamily:"inherit",
-            boxShadow:"0 2px 8px rgba(0,0,0,0.25)"}}>
-          ✓ Zatwierdź — zgarnij premię 300 $
-        </button>
+      {/* Sloty 0-3 — draggable */}
+      {layout.map((fragNr,i)=>{
+        var posX=[270.5,508,745.5,983][i];
+        var isEmpty=fragNr===0;
+        var isDragOver=dragOver===i;
+        return <div key={i}
+          draggable={!isEmpty&&!claimed&&!readonly}
+          onDragStart={!isEmpty&&!claimed&&!readonly?e=>handleDragStart(e,i):null}
+          onDragOver={!claimed&&!readonly?e=>handleDragOver(e,i):null}
+          onDragLeave={!claimed&&!readonly?e=>handleDragLeave(e,i):null}
+          onDrop={!claimed&&!readonly?e=>handleDrop(e,i):null}
+          style={{position:"absolute",left:posX,top:154,width:184,height:184,zIndex:1,
+            cursor:(!isEmpty&&!claimed&&!readonly)?"grab":"default",
+            background:"transparent",
+            outline:isDragOver?"3px solid #D4A853":"none",
+            transition:"outline 0.15s"}}
+        >
+          {isEmpty&&<img src={IMG_BASE+"zloto_1-4.png"} style={{width:"100%",height:"auto",display:"block"}} alt="Pusty slot"/>}
+          {!isEmpty&&<MapFragImg n={fragNr}/>}
+        </div>;
+      })}
+      {/* Przycisk Zatwierdź — obrazek */}
+      {canClaim&&<div style={{position:"absolute",left:600,top:671.5,transform:"translate(-50%,-50%)",zIndex:2,cursor:"pointer"}} onClick={()=>onClaim&&onClaim(fId)}>
+        <img src={IMG_BASE+"zyla_zatwierdz.png"} style={{display:"block",height:"auto"}} alt="Zatwierd\u017a"/>
       </div>}
+      {/* Komunikat — zwycięzca */}
+      {winnerFam&&winnerFam===fId&&<>
+        <div style={{position:"absolute",left:600,top:663,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B",textAlign:"center",zIndex:2}}>
+          Wszystkie fragmenty mapy jako pierwsza u\u0142o\u017cy\u0142a rodzina {FM[winnerFam].gen}!
+        </div>
+        <div style={{position:"absolute",left:600,top:679,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#2E7D32",textAlign:"center",zIndex:2}}>
+          Gratulacje! Premia 300 $ trafia na konto Waszej rodziny!
+        </div>
+      </>}
+      {/* Komunikat — przegrani */}
+      {winnerFam&&winnerFam!==fId&&<>
+        <div style={{position:"absolute",left:600,top:663,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B",textAlign:"center",zIndex:2}}>
+          Wszystkie fragmenty mapy jako pierwsza u\u0142o\u017cy\u0142a rodzina {FM[winnerFam].gen}!
+        </div>
+        <div style={{position:"absolute",left:600,top:679,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#C00",textAlign:"center",zIndex:2}}>
+          Premia 300 $ trafia do rodziny {FM[winnerFam].gen}. Wp\u0142acacie 100 $ na rzecz zwyci\u0119zcy.
+        </div>
+      </>}
     </div>}
     {/* Szeryf / widok bez fId — statyczny */}
     {!fId&&<div style={{display:"flex",gap:3,marginBottom:12}}>
       {[4,3,2,1].map(n=>{
         var have=uniqueNrs.indexOf(n)>=0;
-        return <div key={n} style={{flex:1,overflow:"hidden",border:"2px solid "+(have?"#A09020":"#D4C4A8"),opacity:have?1:0.3}}>
+        return <div key={n} style={{flex:1,overflow:"hidden",border:have?"none":"2px solid #D4C4A8",background:"transparent",opacity:have?1:0.3}}>
           <MapFragImg n={n}/>
         </div>;
       })}
-      <div style={{flex:1,overflow:"hidden",border:"3px solid #D4A853",opacity:winnerFam?1:0.3}}>
+      <div style={{flex:1,overflow:"hidden",border:winnerFam?"none":"3px solid #D4A853",background:"transparent",opacity:winnerFam?1:0.3}}>
         <MapFragImg n={5}/>
-      </div>
-    </div>}
-    {/* Napisy po zatwierdzeniu — zwycięzca */}
-    {fId&&winnerFam&&winnerFam===fId&&<div style={{marginTop:8,padding:"10px 14px",textAlign:"center"}}>
-      <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:6,letterSpacing:"0.5px"}} className="wt">
-        Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
-      </div>
-      <div style={{fontSize:28,fontWeight:700,color:"#2E7D32",letterSpacing:"1px"}} className="wt">
-        Mapa kompletna! Premia 300 $ zgarnięta.
-      </div>
-    </div>}
-    {/* Napisy po zatwierdzeniu — przegrani */}
-    {fId&&winnerFam&&winnerFam!==fId&&<div style={{marginTop:8,padding:"10px 14px",textAlign:"center"}}>
-      <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:6,letterSpacing:"0.5px"}} className="wt">
-        Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
-      </div>
-      <div style={{fontSize:18,fontWeight:700,color:"#8B2500",letterSpacing:"0.5px"}} className="wt">
-        − 100 $ dla rodziny {fId?FM[fId].gen:""}
       </div>
     </div>}
     {/* Napis dla widoku szeryfa (bez fId) */}
     {!fId&&winnerFam&&<div style={{marginTop:6,padding:8,textAlign:"center"}}>
       <div style={{fontSize:18,fontWeight:700,color:"#842504",letterSpacing:"0.5px"}} className="wt">
-        Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
+        Wszystkie fragmenty mapy jako pierwsza u\u0142o\u017cy\u0142a rodzina {FM[winnerFam].gen}!
       </div>
     </div>}
   </>);
@@ -1975,7 +1960,7 @@ function BlindFateFamily({fId, blindFate}) {
                 onError={()=>setP50Ok(false)}
               />}
               {!p50Ok && <div style={{width:"100%",height:"100%",background:"#E8DCC8",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Aka Posse',serif",fontSize:16,color:"#51211B"}}>polisa 50%</div>}
-              <div style={{position:"absolute",left:"50%",bottom:"15%",transform:"translateX(-50%)",fontFamily:"'Aka Posse',serif",fontSize:18,color:"#000"}}>{policyStatus("p50")}</div>
+              <div style={{position:"absolute",left:"50%",bottom:"5%",transform:"translateX(-50%)",fontFamily:"'Aka Posse',serif",fontSize:18,color:"#000"}}>{policyStatus("p50")}</div>
             </div>
             
             {/* Polisa 100% - 179.3px */}
@@ -1987,7 +1972,7 @@ function BlindFateFamily({fId, blindFate}) {
                 onError={()=>setP100Ok(false)}
               />}
               {!p100Ok && <div style={{width:"100%",height:"100%",background:"#E8DCC8",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Aka Posse',serif",fontSize:16,color:"#51211B"}}>polisa 100%</div>}
-              <div style={{position:"absolute",left:"50%",bottom:"15%",transform:"translateX(-50%)",fontFamily:"'Aka Posse',serif",fontSize:18,color:"#000"}}>{policyStatus("p100")}</div>
+              <div style={{position:"absolute",left:"50%",bottom:"5%",transform:"translateX(-50%)",fontFamily:"'Aka Posse',serif",fontSize:18,color:"#000"}}>{policyStatus("p100")}</div>
             </div>
             
             {/* Historia - flex:1 wypełnia resztę */}
@@ -2332,8 +2317,6 @@ function RewolwerowiecNew({rc,familyId,duelTimer,revSubmitShots,revDuels,getRevT
       </>}
     </div>
     
-    {/* DEBUG INFO */}
-    <div style={{position:"absolute",left:10,bottom:10,color:"rgba(255,255,255,0.5)",fontSize:10,fontFamily:"monospace",zIndex:10}}>v0.2 | {rc?rc.status:"brak pojedynku"} | timer:{duelTimer}</div>
   </div>);
 }
 
@@ -3219,24 +3202,6 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
         </div>
       </div>);
     })()}
-    {/* === 3.5 ZŁOTODAJNA ŻYŁA — STATUS === */}
-    {mapEnabled&&<div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-        <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Złotodajna Żyła</div>
-        <span style={{fontSize:13,fontWeight:700,color:"#8B7714",padding:"3px 10px",background:"#FFF8E7",borderRadius:4,border:"1px solid #D4C870"}}>Wprowadzona</span>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
-        {FO.map(fId=>{
-          var f=FM[fId];
-          var mapItems=fd[fId].items.filter(i=>i.cat===C_MAP);
-          var hasAll=mapItems.length>=4;
-          return(<div key={fId} style={{background:"#fff",border:"1px solid "+f.col,borderRadius:4,padding:8,textAlign:"center"}}>
-            <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:4}}>{f.nom}</div>
-            <div style={{fontSize:12,color:hasAll?"#2E5B3C":"#8B7355"}}>{mapItems.length}/4 fragmentów{hasAll&&" ✓"}</div>
-          </div>);
-        })}
-      </div>
-    </div>}
     {/* === 4. ŚLEPY LOS — KONTROLA === */}
     <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
@@ -3294,7 +3259,6 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
         <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Biznes na boku</div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           <span style={{fontSize:13,fontWeight:700,color:bnbSettled?"#2E5B3C":"#8B7714",padding:"3px 10px",background:bnbSettled?"#E8F5E8":"#FFF8E7",borderRadius:4,border:"1px solid "+(bnbSettled?"#90C090":"#D4C870")}}>{bnbSettled?"Rozliczono":"Aktywny"}</span>
-          {!readOnly&&!bnbSettled&&<button style={btnS("success")} onClick={settleBnb}>Rozlicz BnB</button>}
         </div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
@@ -4091,7 +4055,7 @@ function App({roomCode,role,playerId,playerName}) {
     showMsg("Wznowiono");
   }
   function advanceStage(){if(timerRef.current)clearInterval(timerRef.current);setTimerRunning(false);
-    if(stageIdx<STAGES.length-1)startStage(stageIdx+1);else{showMsg("Rozgrywka zako\u0144czona!");}}
+    if(stageIdx<STAGES.length-1)startStage(stageIdx+1);else{if(bnbEnabled&&!bnbSettled)settleBnb();showMsg("Rozgrywka zako\u0144czona!");}}
 
   function resetP(keepLock){
     setShowP(false);setPMode(null);setPStep(1);setTFam(null);setSelItems([]);setPrice(0);setECash(0);setRTx(null);setSending(false);
@@ -4547,13 +4511,14 @@ function App({roomCode,role,playerId,playerName}) {
               var cardStyle=function(col){return{background:"#FDFAF4",border:"2px solid "+col,borderRadius:6,overflow:"hidden",position:"relative",minWidth:120,maxWidth:160}};
               return(<div style={{marginTop:8}}>
                 <TaskHeader imgName="naglowek_bnb" fallbackText="Biznes na boku"/>
-                <div style={{display:"flex",justifyContent:"flex-end",marginBottom:8}}>
+                <div style={{display:"flex",justifyContent:"flex-end",marginBottom:8,gap:4}}>
+                  <InfoPopup title="Opis produktu" wide icon="ikona_instrukcje">
+                    <img src={IMG_BASE+"bnb_"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt={"Biznes na boku — "+familyId}/>
+                  </InfoPopup>
                   <InfoPopup title="Biznes na boku — warunki" wide>
                     <img src={IMG_BASE+"bnb_waronki-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Warunki — Biznes na boku"/>
                   </InfoPopup>
                 </div>
-                {/* Obrazek instrukcji — pełna szerokość */}
-                <img src={IMG_BASE+"bnb_"+familyId+".png"} style={{width:"100%",height:"auto",display:"block",marginBottom:12}} alt={"Biznes na boku — "+familyId}/>
                 {/* Twój produkt */}
                 <div style={{marginBottom:12}}>
                   <img src={IMG_BASE+myProduct.imgSlug+".jpg"} style={{width:160,height:"auto",display:"block",marginBottom:6}} alt={myProduct.name}/>
@@ -4612,7 +4577,7 @@ function App({roomCode,role,playerId,playerName}) {
             return <RewolwerowiecNew rc={rc} familyId={familyId} duelTimer={duelTimer} revSubmitShots={revSubmitShots} revDuels={revDuels} getRevTimer={getRevTimer}/>;
           })()}
         </div>
-        {(activeTab==="inv"||activeTab==="tutorial")&&<div>
+        {(activeTab==="inv"||activeTab==="tutorial")&&<div style={{position:"sticky",top:12,alignSelf:"start"}}>
           {/* Przyciski transakcji */}
           {!viewSheriff&&<div style={{display:"flex",gap:6,marginBottom:12}}>
             <button style={{...btnS("primary"),flex:1}} onClick={()=>openTxForm("sale")}>Sprzedaż</button>
@@ -4637,7 +4602,7 @@ function App({roomCode,role,playerId,playerName}) {
             })()}
           </div>}
           <FamilyTimerPanel familyId={familyId} stageIdx={stageIdx} secondsLeft={secondsLeft} gameStarted={gameStarted} timerPaused={timerPaused}/>
-          <div style={{background:"#fff",backgroundImage:"url("+IMG_BASE+"tlo_uniwersalne.png)",backgroundSize:"cover",backgroundPosition:"center",borderRadius:6,border:"1px solid #D4C4A8",padding:14}}>
+          <div style={{background:"#fff",backgroundImage:"url("+IMG_BASE+"tlo_uniwersalne.png)",backgroundSize:"cover",backgroundPosition:"center",borderRadius:6,border:"1px solid #D4C4A8",padding:14,maxHeight:400,overflowY:"auto"}}>
             <div style={{fontSize:24,fontWeight:700,letterSpacing:"1.5px",color:"#842504",marginBottom:10,borderBottom:"2px solid #842504",paddingBottom:4}} className="wt">Księgowość {pendingCount>0&&<span className="badge">{pendingCount}</span>}</div>
             {familyTxs.length===0?<div style={{textAlign:"center",padding:24,color:"#A89070",fontSize:13,fontStyle:"italic"}}>Brak wpisów</div>
             :familyTxs.map(t=><TxDisplay key={t.id} tx={t} cf={familyId} onAccept={acceptTx} onReject={rejectTx} onRespond={id=>openTxForm("barter_response",()=>setRTx(id))}/>)}
