@@ -4126,7 +4126,7 @@ function App({roomCode,role,playerId,playerName}) {
     return true;
   }
   function submitSale(){if(!tFam||!selItems.length||price<=0)return;
-    if(!validateMapDuplicate(tFam,selItems)){showMsg("Ta rodzina już posiada ten fragment mapy!");return;}
+    if(!validateMapDuplicate(tFam,selItems,stateRef.current.fd)){showMsg("Ta rodzina już posiada ten fragment mapy!");return;}
     var locked=selItems.filter(i=>isCardLocked(i.id));
     if(locked.length){showMsg("Karta \""+locked[0].name+"\" jest zablokowana w innej transakcji!");return;}
     // S2 — sprawdź duplikat
@@ -4135,7 +4135,7 @@ function App({roomCode,role,playerId,playerName}) {
     if(dup){showMsg("Taka oferta sprzedaży już oczekuje na odpowiedź!");return;}
     setTxs(p=>[{id:txId(),type:"sale",from:cf,to:tFam,offeredItems:selItems.slice(),price:Number(price),status:"pending"},...p]);setSending(true);resetP();showMsg("Oferta sprzedaży wysłana");}
   function submitBarter(){if(!tFam||!selItems.length)return;
-    if(!validateMapDuplicate(tFam,selItems)){showMsg("Ta rodzina już posiada ten fragment mapy!");return;}
+    if(!validateMapDuplicate(tFam,selItems,stateRef.current.fd)){showMsg("Ta rodzina już posiada ten fragment mapy!");return;}
     var locked=selItems.filter(i=>isCardLocked(i.id));
     if(locked.length){showMsg("Karta \""+locked[0].name+"\" jest zablokowana w innej transakcji!");return;}
     // S2 — sprawdź duplikat
@@ -4381,7 +4381,7 @@ function App({roomCode,role,playerId,playerName}) {
       {sheriffTab==="results"&&<DebriefingPanel viewMode="sheriff" familyId={null} fd={fd} txs={txs} blindFate={blindFate} relations={relations} revDuels={revDuels} debriefFullAccess={debriefFullAccess} debriefTab={sheriffDebriefTab} setDebriefTab={setSheriffDebriefTab} readOnly={isSheriff2} debriefNotes={debriefNotes} setDebriefNotes={setDebriefNotes} debriefUnlocked={debriefUnlocked} setDebriefUnlocked={setDebriefUnlocked} setDebriefFullAccess={setDebriefFullAccess} showMsg={showMsg}/>}
     </div>}
 
-    {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:16}}>
+    {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:(activeTab==="map"||activeTab==="fate"||activeTab==="rev")?"16px 0":16}}>
       {/* Belka główna rodziny z licznikiem gotówki */}
       <div style={{position:"relative",width:"100%"}}>
         <img src={IMG_BASE+"belka_"+familyId+".png"} style={{width:"100%",display:"block"}} alt=""/>
@@ -4608,14 +4608,14 @@ function App({roomCode,role,playerId,playerName}) {
 
     {showP&&(<div>
       <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(44,24,16,0.4)",zIndex:99}} onClick={resetP}/>
-      <div style={{position:"fixed",top:0,right:0,width:420,height:"100vh",background:"#FDFAF4",boxShadow:"-4px 0 20px rgba(0,0,0,0.15)",zIndex:100,display:"flex",flexDirection:"column"}}>
-        <div style={{background:pMode==="barter"||pMode==="barter_response"?"#4A3B6B":"#4C130F",color:"#F5F0E8",padding:"14px 18px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <div style={{position:"fixed",top:0,right:0,width:420,height:"100vh",backgroundImage:"url("+IMG_BASE+"sprzedaz_tlo.png)",backgroundSize:"cover",backgroundPosition:"center bottom",backgroundRepeat:"no-repeat",backgroundColor:"#2C1810",boxShadow:"-4px 0 20px rgba(0,0,0,0.15)",zIndex:100,display:"flex",flexDirection:"column"}}>
+        <div style={{background:"transparent",color:"#D7B56D",padding:"14px 18px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:"1px solid #D7B56D"}}>
           <div style={{fontSize:15,fontWeight:700}}>
             {pMode==="sale"&&["Sprzedaż — 1/3: Komu?","Sprzedaż — 2/3: Co?","Sprzedaż — 3/3: Cena"][pStep-1]}
             {pMode==="barter"&&["Barter — 1/3: Komu?","Barter — 2/3: Co oferujesz?","Barter — 3/3: Podsumowanie"][pStep-1]}
             {pMode==="barter_response"&&"Kontr-oferta barterowa"}
           </div>
-          <button style={{background:"none",border:"none",color:"#A89070",fontSize:18,cursor:"pointer"}} onClick={resetP}>X</button>
+          <button style={{background:"none",border:"none",color:"#D7B56D",fontSize:18,cursor:"pointer"}} onClick={resetP}>X</button>
         </div>
         <div style={{padding:16,flex:1,overflowY:"auto"}}>
           {(pMode==="sale"||pMode==="barter")&&pStep===1&&<div style={{display:"flex",flexDirection:"column",gap:6}}>
@@ -4624,9 +4624,16 @@ function App({roomCode,role,playerId,playerName}) {
             })}
           </div>}
           {(pMode==="sale"||pMode==="barter")&&pStep===2&&<div>
-            <div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase",letterSpacing:"1px",marginBottom:8}}>{pMode==="sale"?"Wybierz towar":"Wybierz co oferujesz"}</div>
+            <div style={{fontSize:13,fontWeight:700,color:"#D7B56D",textTransform:"uppercase",letterSpacing:"1px",marginBottom:8}}>{pMode==="sale"?"Wybierz towar":"Wybierz co oferujesz"}</div>
             <div style={{maxHeight:380,overflowY:"auto"}}>{(()=>{
-              var items=my.items.filter(item=>item.cat!==C_BNB);
+              // Zbierz ID kart zaangażowanych w transakcje (pending, awaiting, accepted)
+              var committedIds=new Set();
+              txs.forEach(function(t){
+                if(t.status==="rejected")return;
+                if(t.from===cf&&t.offeredItems)t.offeredItems.forEach(function(i){committedIds.add(i.id);});
+                if(t.to===cf&&t.responseItems)t.responseItems.forEach(function(i){committedIds.add(i.id);});
+              });
+              var items=my.items.filter(item=>item.cat!==C_BNB&&!committedIds.has(item.id));
               var cats=[
                 {cat:C_RES,   label:"Zasoby",                       col:"#A08050",bg:"#FDFAF4"},
                 {cat:C_NRES,  label:"Notatki dziadka — zasoby",     col:"#A08050",bg:"#FFFCF6"},
@@ -4662,8 +4669,8 @@ function App({roomCode,role,playerId,playerName}) {
               var bnbItems=my.items.filter(i=>i.cat===C_BNB);
               var grouped={};bnbItems.forEach(i=>{if(!grouped[i.bnbOrigin])grouped[i.bnbOrigin]=[];grouped[i.bnbOrigin].push(i);});
               if(Object.keys(grouped).length===0)return null;
-              return(<div style={{marginTop:8,borderTop:"1px solid #D4C870",paddingTop:8}}>
-                <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#8B7714",marginBottom:6}}>Biznes na boku</div>
+              return(<div style={{marginTop:8,borderTop:"1px solid #D7B56D",paddingTop:8}}>
+                <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#D7B56D",marginBottom:6}}>Biznes na boku</div>
                 {Object.keys(grouped).map(origin=>{
                   var cards=grouped[origin],prod=BNB_PRODUCTS[origin];
                   var selCount=selItems.filter(i=>i.cat===C_BNB&&i.bnbOrigin===origin).length;
@@ -4694,13 +4701,13 @@ function App({roomCode,role,playerId,playerName}) {
             })()}
             </div>
             {pMode==="barter"&&<div style={{marginTop:10}}>
-              <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:4}}>Dopłata ($)</div>
+              <div style={{fontSize:13,fontWeight:700,color:"#D7B56D",marginBottom:4}}>Dopłata ($)</div>
               <input type="number" min="0" max={my.cash} value={eCash} onChange={e=>setECash(Math.min(Number(e.target.value),my.cash))} style={{width:100,padding:"6px 10px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:14,fontWeight:700,fontFamily:"inherit"}}/>
             </div>}
           </div>}
           {pMode==="sale"&&pStep===3&&<div>
             <div style={{background:"#F0EBE0",padding:12,borderRadius:5,marginBottom:14,fontSize:13,lineHeight:1.5}}><b>Sprzedajesz rodzinie {FM[tFam].gen}:</b><br/>{fmtItems(selItems)}</div>
-            <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:6}}>Cena ($)</div>
+            <div style={{fontSize:13,fontWeight:700,color:"#D7B56D",marginBottom:6}}>Cena ($)</div>
             <input type="number" min="1" value={price} onChange={e=>setPrice(Number(e.target.value))} style={{width:120,padding:"8px 12px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:20,fontWeight:700,fontFamily:"inherit"}}/>
           </div>}
           {pMode==="barter"&&pStep===3&&<div style={{background:"#F0EBE0",padding:12,borderRadius:5,fontSize:13,lineHeight:1.6}}>
@@ -4708,10 +4715,16 @@ function App({roomCode,role,playerId,playerName}) {
           </div>}
           {pMode==="barter_response"&&(()=>{var tx=txs.find(t=>t.id===rTx);if(!tx)return null;return <div>
             <div style={{background:"#F0EBE0",padding:10,borderRadius:5,marginBottom:12,fontSize:13,lineHeight:1.5}}><b>Rodzina {FM[tx.from].gen} oferuje:</b> {fmtItems(tx.offeredItems)}{tx.offeredCash>0?" + "+tx.offeredCash+" $":""}</div>
-            <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:8}}>Co oferujesz w zamian?</div>
+            <div style={{fontSize:13,fontWeight:700,color:"#D7B56D",marginBottom:8}}>Co oferujesz w zamian?</div>
             <div style={{maxHeight:300,overflowY:"auto"}}>{(()=>{
+              var committedIds2=new Set();
+              txs.forEach(function(t){
+                if(t.status==="rejected")return;
+                if(t.from===cf&&t.offeredItems)t.offeredItems.forEach(function(i){committedIds2.add(i.id);});
+                if(t.to===cf&&t.responseItems)t.responseItems.forEach(function(i){committedIds2.add(i.id);});
+              });
               var ownFragNr=FM[cf].mapFrag;
-              var respItems=my.items.filter(item=>item.cat!==C_BNB).filter((item,idx,arr)=>{
+              var respItems=my.items.filter(item=>item.cat!==C_BNB&&!committedIds2.has(item.id)).filter((item,idx,arr)=>{
                 if(item.cat!==C_MAP||item.fragNr!==ownFragNr)return true;
                 // Ukryj oryginał — pierwszą kopię własnego fragmentu pomijamy
                 var firstOwnIdx=arr.findIndex(i=>i.cat===C_MAP&&i.fragNr===ownFragNr);
@@ -4733,8 +4746,8 @@ function App({roomCode,role,playerId,playerName}) {
               var bnbItems=my.items.filter(i=>i.cat===C_BNB);
               var grouped={};bnbItems.forEach(i=>{if(!grouped[i.bnbOrigin])grouped[i.bnbOrigin]=[];grouped[i.bnbOrigin].push(i);});
               if(Object.keys(grouped).length===0)return null;
-              return(<div style={{marginTop:8,borderTop:"1px solid #D4C870",paddingTop:8}}>
-                <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#8B7714",marginBottom:6}}>Biznes na boku</div>
+              return(<div style={{marginTop:8,borderTop:"1px solid #D7B56D",paddingTop:8}}>
+                <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#D7B56D",marginBottom:6}}>Biznes na boku</div>
                 {Object.keys(grouped).map(origin=>{
                   var cards=grouped[origin],prod=BNB_PRODUCTS[origin];
                   var selCount=selItems.filter(i=>i.cat===C_BNB&&i.bnbOrigin===origin).length;
@@ -4764,11 +4777,11 @@ function App({roomCode,role,playerId,playerName}) {
               </div>);
             })()}
             </div>
-            <div style={{marginTop:10}}><div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:4}}>Dopłata ($)</div>
+            <div style={{marginTop:10}}><div style={{fontSize:13,fontWeight:700,color:"#D7B56D",marginBottom:4}}>Dopłata ($)</div>
             <input type="number" min="0" max={my.cash} value={eCash} onChange={e=>setECash(Math.min(Number(e.target.value),my.cash))} style={{width:100,padding:"6px 10px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:14,fontWeight:700,fontFamily:"inherit"}}/></div>
           </div>;})()}
         </div>
-        <div style={{padding:"14px 18px",borderTop:"1px solid #D4C4A8",display:"flex",gap:8,justifyContent:"flex-end"}}>
+        <div style={{padding:"14px 18px",borderTop:"1px solid #D7B56D",display:"flex",gap:8,justifyContent:"flex-end"}}>
           {(pMode==="sale"||pMode==="barter")&&pStep>1&&<button style={btnS("default")} onClick={()=>setPStep(s=>s-1)}>Wstecz</button>}
           <div style={{flex:1}}/>
           {(pMode==="sale"||pMode==="barter")&&pStep<3&&<button style={btnS("primary",(pStep===1&&!tFam)||(pStep===2&&!selItems.length))} onClick={()=>{var fs=formStateRef.current;if(fs.pStep===1&&!fs.tFam)return;if(fs.pStep===2&&!selItems.length)return;setPStep(s=>s+1);}}>Dalej</button>}
