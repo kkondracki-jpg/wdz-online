@@ -4464,7 +4464,7 @@ function App({roomCode,role,playerId,playerName}) {
             </div>
             {familyView.orphanNK.length>0&&<div>
               <TaskHeader imgName="naglowek_info-kompetencje" fallbackText="Notatki dziadka — informacje o kompetencjach"/>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,marginBottom:20}}>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:20}}>
                 {familyView.orphanNK.map(n=><NoteCard key={n.id} item={n} type="comp"/>)}
               </div>
             </div>}
