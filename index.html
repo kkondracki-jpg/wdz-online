@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.20.0</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.21.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -454,7 +454,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.20.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.21.0</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1653,16 +1653,16 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
           Ułóż z pomocą myszki fragmenty mapy we właściwej kolejności.
         </div>
         <div style={{position:"absolute",left:600,top:679,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B",textAlign:"center",zIndex:2}}>
-          Gdy pojawi się przycisk \u201eZATWIERD\u0179\u201d kliknij w niego, aby uzyska\u0107 premi\u0119.
+          Gdy pojawi się przycisk „ZATWIERDŹ" kliknij w niego, aby uzyskać premię.
         </div>
       </>}
       {/* Slot szeryfa (slot 5) — pozycja 1, zablokowany */}
-      <div style={{position:"absolute",left:33,top:154,width:184,height:184,zIndex:1,background:"transparent"}}>
+      <div style={{position:"absolute",left:33,top:393,width:222,height:222,zIndex:1,background:"transparent"}}>
         {claimed?<MapFragImg n={5}/>:<img src={IMG_BASE+"zloto_5.png"} style={{width:"100%",height:"auto",display:"block"}} alt="Fragment 5"/>}
       </div>
       {/* Sloty 0-3 — draggable */}
       {layout.map((fragNr,i)=>{
-        var posX=[270.5,508,745.5,983][i];
+        var posX=[261,489,717,945][i];
         var isEmpty=fragNr===0;
         var isDragOver=dragOver===i;
         return <div key={i}
@@ -1671,7 +1671,7 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
           onDragOver={!claimed&&!readonly?e=>handleDragOver(e,i):null}
           onDragLeave={!claimed&&!readonly?e=>handleDragLeave(e,i):null}
           onDrop={!claimed&&!readonly?e=>handleDrop(e,i):null}
-          style={{position:"absolute",left:posX,top:154,width:184,height:184,zIndex:1,
+          style={{position:"absolute",left:posX,top:393,width:222,height:222,zIndex:1,
             cursor:(!isEmpty&&!claimed&&!readonly)?"grab":"default",
             background:"transparent",
             outline:isDragOver?"3px solid #D4A853":"none",
@@ -1683,12 +1683,12 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
       })}
       {/* Przycisk Zatwierdź — obrazek */}
       {canClaim&&<div style={{position:"absolute",left:600,top:671.5,transform:"translate(-50%,-50%)",zIndex:2,cursor:"pointer"}} onClick={()=>onClaim&&onClaim(fId)}>
-        <img src={IMG_BASE+"zyla_zatwierdz.png"} style={{display:"block",height:"auto"}} alt="Zatwierd\u017a"/>
+        <img src={IMG_BASE+"zyla_zatwierdz.png"} style={{display:"block",height:"auto"}} alt="Zatwierdź"/>
       </div>}
       {/* Komunikat — zwycięzca */}
       {winnerFam&&winnerFam===fId&&<>
         <div style={{position:"absolute",left:600,top:663,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B",textAlign:"center",zIndex:2}}>
-          Wszystkie fragmenty mapy jako pierwsza u\u0142o\u017cy\u0142a rodzina {FM[winnerFam].gen}!
+          Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
         </div>
         <div style={{position:"absolute",left:600,top:679,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#2E7D32",textAlign:"center",zIndex:2}}>
           Gratulacje! Premia 300 $ trafia na konto Waszej rodziny!
@@ -1697,10 +1697,10 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
       {/* Komunikat — przegrani */}
       {winnerFam&&winnerFam!==fId&&<>
         <div style={{position:"absolute",left:600,top:663,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B",textAlign:"center",zIndex:2}}>
-          Wszystkie fragmenty mapy jako pierwsza u\u0142o\u017cy\u0142a rodzina {FM[winnerFam].gen}!
+          Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
         </div>
         <div style={{position:"absolute",left:600,top:679,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#C00",textAlign:"center",zIndex:2}}>
-          Premia 300 $ trafia do rodziny {FM[winnerFam].gen}. Wp\u0142acacie 100 $ na rzecz zwyci\u0119zcy.
+          Premia 300 $ trafia do rodziny {FM[winnerFam].gen}. Wpłacacie 100 $ na rzecz zwycięzcy.
         </div>
       </>}
     </div>}
@@ -1719,7 +1719,7 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
     {/* Napis dla widoku szeryfa (bez fId) */}
     {!fId&&winnerFam&&<div style={{marginTop:6,padding:8,textAlign:"center"}}>
       <div style={{fontSize:18,fontWeight:700,color:"#842504",letterSpacing:"0.5px"}} className="wt">
-        Wszystkie fragmenty mapy jako pierwsza u\u0142o\u017cy\u0142a rodzina {FM[winnerFam].gen}!
+        Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!
       </div>
     </div>}
   </>);
@@ -4296,7 +4296,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.20.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.21.0</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
