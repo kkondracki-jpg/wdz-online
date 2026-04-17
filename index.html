@@ -1649,7 +1649,7 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
       <img src={IMG_BASE+"zlotodajna_zyla_tlo.png"} style={{position:"absolute",width:1200,height:750,left:0,top:0,zIndex:0}} alt=""/>
       {/* Komunikat instrukcyjny — 2 wiersze */}
       {!claimed&&!readonly&&!winnerFam&&
-        <div style={{position:"absolute",left:600,top:671,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B",textAlign:"center",zIndex:2,lineHeight:1.5}}>
+        <div style={{position:"absolute",left:600,top:671,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B",textAlign:"center",zIndex:2,lineHeight:1.5,whiteSpace:"nowrap"}}>
           <div>Ułóż z pomocą myszki fragmenty mapy we właściwej kolejności.</div>
           <div>Gdy pojawi się przycisk „ZATWIERDŹ" kliknij w niego, aby uzyskać premię.</div>
         </div>
@@ -1685,14 +1685,14 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
       </div>}
       {/* Komunikat — zwycięzca */}
       {winnerFam&&winnerFam===fId&&
-        <div style={{position:"absolute",left:600,top:671,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,textAlign:"center",zIndex:2,lineHeight:1.5}}>
+        <div style={{position:"absolute",left:600,top:671,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,textAlign:"center",zIndex:2,lineHeight:1.5,whiteSpace:"nowrap"}}>
           <div style={{color:"#51211B"}}>Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!</div>
           <div style={{color:"#2E7D32"}}>Gratulacje! Premia 300 $ trafia na konto Waszej rodziny!</div>
         </div>
       }
       {/* Komunikat — przegrani */}
       {winnerFam&&winnerFam!==fId&&
-        <div style={{position:"absolute",left:600,top:671,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,textAlign:"center",zIndex:2,lineHeight:1.5}}>
+        <div style={{position:"absolute",left:600,top:671,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,textAlign:"center",zIndex:2,lineHeight:1.5,whiteSpace:"nowrap"}}>
           <div style={{color:"#51211B"}}>Wszystkie fragmenty mapy jako pierwsza ułożyła rodzina {FM[winnerFam].gen}!</div>
           <div style={{color:"#C00"}}>Premia 300 $ trafia do rodziny {FM[winnerFam].gen}. Wpłacacie 100 $ na rzecz zwycięzcy.</div>
         </div>
