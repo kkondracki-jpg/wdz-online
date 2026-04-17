@@ -581,7 +581,7 @@ function Lobby({onJoin}){
 /* ========== CARD IMAGES (loaded from img/ folder) ========== */
 const IMG_BASE = "img/";
 function toSlug(s){return s.toLowerCase().replace(/ą/g,'a').replace(/ć/g,'c').replace(/ę/g,'e').replace(/ł/g,'l').replace(/ń/g,'n').replace(/ó/g,'o').replace(/ś/g,'s').replace(/ź/g,'z').replace(/ż/g,'z').replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');}
-function imgUrl(prefix,name){var ext=(prefix==="res"||prefix==="note-res")?".png":".jpg";return IMG_BASE+prefix+'_'+toSlug(name)+ext;}
+function imgUrl(prefix,name){return IMG_BASE+prefix+'_'+toSlug(name)+'.png';}
 function mapImgUrl(n){return IMG_BASE+'map_fragment-'+n+'.png';}
 
 /* ========== REVOLVER IMAGES ========== */
@@ -2470,7 +2470,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
     });
     
     function renderCard(id,cat,has,pct){
-      var ext=cat==="res"?".png":".jpg";
+      var ext=".png";
       return(<div key={id} style={{width:80,opacity:has?1:0.4,filter:has?"none":"grayscale(100%)"}}>
         <img src={IMG_BASE+cat+"_"+id+ext} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:"2px solid #D4C4A8"}} alt={id}/>
         <div style={{fontSize:10,textAlign:"center",marginTop:2}}>{pct}%</div>
@@ -2594,7 +2594,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
             {STARTING_COMP[fId].filter(cid=>myCompIds.includes(cid)&&!task.kompetencje.some(k=>k.id===cid)).map(cid=>{
               var isZmylka=ZMYLKI_COMP.includes(cid);
               return(<div key={cid} style={{width:100}}>
-                <img src={IMG_BASE+"comp_"+cid+".jpg"} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:isZmylka?"3px solid #C00":"2px solid #D4C4A8"}} alt={cid}/>
+                <img src={IMG_BASE+"comp_"+cid+".png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:isZmylka?"3px solid #C00":"2px solid #D4C4A8"}} alt={cid}/>
               </div>);
             })}
             {STARTING_COMP[fId].filter(cid=>myCompIds.includes(cid)&&!task.kompetencje.some(k=>k.id===cid)).length===0&&<span style={{fontSize:13,color:"#888",fontStyle:"italic"}}>Brak</span>}
@@ -2611,7 +2611,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
           }).map((i,idx)=>{
             var slug=toSlug(i.name);
             var isZmylka=(i.cat==="res"&&ZMYLKI_RES.includes(slug))||(i.cat==="comp"&&ZMYLKI_COMP.includes(slug));
-            var ext=i.cat==="res"?".png":".jpg";
+            var ext=".png";
             return(<div key={idx} style={{width:100}}>
               <img src={IMG_BASE+i.cat+"_"+slug+ext} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:isZmylka?"3px solid #C00":"2px solid #D4C4A8"}} alt={i.name}/>
             </div>);
