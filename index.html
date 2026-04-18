@@ -4587,9 +4587,8 @@ function App({roomCode,role,playerId,playerName}) {
                   showMsg("Wezwano Szeryfa!");
                 }}>
                 <img src={IMG_BASE+"przycisk_wezwij-szeryfa.png"} style={{width:360,height:119,display:"block",filter:hasWaiting?"brightness(0.5) saturate(0.6)":"none",transition:"filter 0.2s"}} alt="Wezwij Szeryfa"/>
-                <div style={{position:"absolute",left:"50%",bottom:45.5,transform:"translateX(-50%)",textAlign:"center",fontFamily:"'Aka Posse',serif",fontSize:14,color:"#FEEAAE",lineHeight:1.5,whiteSpace:"nowrap",width:"max-content"}}>
-                  <div>Konsultacje: {myQLeft}/{myQTotal}</div>
-                  {hasWaiting&&<div>Oczekiwanie na Szeryfa...</div>}
+                <div style={{position:"absolute",left:"50%",bottom:45.4,transform:"translate(-50%, 50%)",fontFamily:"'Aka Posse',serif",fontSize:14,color:"#FEEAAE",whiteSpace:"nowrap"}}>
+                  Konsultacje: {myQLeft}/{myQTotal}
                 </div>
               </div>);
             })()}
