@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.21.0</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.22.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -454,7 +454,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.21.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.22.0</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -957,6 +957,7 @@ clinton:{cards:[
   NK("Sztuka Balsamowania","Zakład Pogrzebowy",27),
   NK("Prowadzenie Kuchni Zbiorowej","Saloon",18),
   NK("Odnajdywanie Źródeł Wody","Ranczo",12),
+  NK("Posługiwanie się Lassem","Ranczo",43),
   PL(20), MP(3), MP(3), MP(3), MP(3),
 ]},
 dexter:{cards:[
@@ -1648,7 +1649,7 @@ function MapTracker({items, mapBonusClaimed, fId, mapLayout, setMapLayout, onCla
     {fId&&<div style={{position:"relative",width:1200,height:750,margin:"0 -16px",overflow:"hidden"}}>
       <img src={IMG_BASE+"zlotodajna_zyla_tlo.png"} style={{position:"absolute",width:1200,height:750,left:0,top:0,zIndex:0}} alt=""/>
       {/* Komunikat instrukcyjny — 2 wiersze */}
-      {!claimed&&!readonly&&!winnerFam&&
+      {!claimed&&!readonly&&!winnerFam&&!canClaim&&
         <div style={{position:"absolute",left:600,top:671,transform:"translate(-50%,-50%)",fontFamily:"'Aka Posse',serif",fontSize:20,color:"#51211B",textAlign:"center",zIndex:2,lineHeight:1.5,whiteSpace:"nowrap",width:"max-content"}}>
           <div>Ułóż z pomocą myszki fragmenty mapy we właściwej kolejności.</div>
           <div>Gdy pojawi się przycisk „ZATWIERDŹ" kliknij w niego, aby uzyskać premię.</div>
@@ -4290,7 +4291,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.21.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.22.0</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -4575,24 +4576,21 @@ function App({roomCode,role,playerId,playerName}) {
         {(activeTab==="inv"||activeTab==="tutorial")&&<div style={{position:"sticky",top:12,alignSelf:"start"}}>
           {/* Przyciski transakcji */}
           {!viewSheriff&&<div style={{display:"flex",gap:6,marginBottom:12}}>
-            <button style={{...btnS("primary"),flex:1}} onClick={()=>openTxForm("sale")}>Sprzedaż</button>
-            <button style={{...btnS("barter"),flex:1}} onClick={()=>openTxForm("barter")}>Barter</button>
+            <img src={IMG_BASE+"przycisk_sprzedaz.png"} style={{width:177,height:50,cursor:"pointer",display:"block"}} alt="Sprzedaż" onClick={()=>openTxForm("sale")}/>
+            <img src={IMG_BASE+"przycisk_barter.png"} style={{width:177,height:50,cursor:"pointer",display:"block"}} alt="Barter" onClick={()=>openTxForm("barter")}/>
           </div>}
           {!viewSheriff&&<div style={{marginBottom:16}}>
             {(()=>{var myWaiting=sheriffCalls.filter(c=>c.fId===cf&&c.status==="waiting");var hasWaiting=myWaiting.length>0;
-              return(<div>
-                {/* P2-4: Blokada gdy istnieje aktywne wezwanie */}
-                <button style={{...btnS("sheriff"),width:"100%",fontSize:14,padding:"12px",display:"flex",justifyContent:"space-between",alignItems:"center",opacity:hasWaiting?0.6:1,cursor:hasWaiting?"not-allowed":"pointer"}} disabled={hasWaiting} onClick={()=>{
+              return(<div style={{position:"relative",width:360,cursor:hasWaiting?"not-allowed":"pointer",background:"transparent"}} onClick={()=>{
                   if(hasWaiting)return;
                   setSheriffCalls(prev=>[...prev,{fId:cf,status:"waiting",ts:Date.now()}]);
                   showMsg("Wezwano Szeryfa!");
                 }}>
-                  <span>Wezwij Szeryfa</span>
-                  <span style={{fontSize:13,opacity:0.8}}>{myQLeft>0?myQLeft+"/"+myQTotal+" pytań":"—"}</span>
-                </button>
-                {hasWaiting&&<div style={{marginTop:6,padding:8,background:"#FFF8E7",border:"1px dashed #D4A853",borderRadius:4,textAlign:"center",fontSize:13,color:"#8B6914",fontWeight:600}}>
-                  Oczekiwanie na Szeryfa...
-                </div>}
+                <img src={IMG_BASE+"przycisk_wezwij-szeryfa.png"} style={{width:360,height:119,display:"block",filter:hasWaiting?"brightness(0.5) saturate(0.6)":"none",transition:"filter 0.2s"}} alt="Wezwij Szeryfa"/>
+                <div style={{position:"absolute",left:"50%",bottom:45.5,transform:"translateX(-50%)",textAlign:"center",fontFamily:"'Aka Posse',serif",fontSize:14,color:"#FEEAAE",lineHeight:1.5,whiteSpace:"nowrap",width:"max-content"}}>
+                  <div>Konsultacje: {myQLeft}/{myQTotal}</div>
+                  {hasWaiting&&<div>Oczekiwanie na Szeryfa...</div>}
+                </div>
               </div>);
             })()}
           </div>}
@@ -4609,18 +4607,18 @@ function App({roomCode,role,playerId,playerName}) {
     {showP&&(<div>
       <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(44,24,16,0.4)",zIndex:99}} onClick={resetP}/>
       <div style={{position:"fixed",top:0,right:0,width:420,height:"100vh",backgroundImage:"url("+IMG_BASE+"sprzedaz_tlo.png)",backgroundSize:"cover",backgroundPosition:"center bottom",backgroundRepeat:"no-repeat",backgroundColor:"#2C1810",boxShadow:"-4px 0 20px rgba(0,0,0,0.15)",zIndex:100,display:"flex",flexDirection:"column"}}>
-        <div style={{background:"transparent",color:"#D7B56D",padding:"14px 18px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:"1px solid #D7B56D"}}>
+        <div style={{background:"#D7B56D",color:"#fff",padding:"14px 18px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:"1px solid #D7B56D"}}>
           <div style={{fontSize:15,fontWeight:700}}>
             {pMode==="sale"&&["Sprzedaż — 1/3: Komu?","Sprzedaż — 2/3: Co?","Sprzedaż — 3/3: Cena"][pStep-1]}
             {pMode==="barter"&&["Barter — 1/3: Komu?","Barter — 2/3: Co oferujesz?","Barter — 3/3: Podsumowanie"][pStep-1]}
             {pMode==="barter_response"&&"Kontr-oferta barterowa"}
           </div>
-          <button style={{background:"none",border:"none",color:"#D7B56D",fontSize:18,cursor:"pointer"}} onClick={resetP}>X</button>
+          <button style={{background:"none",border:"none",color:"#fff",fontSize:18,cursor:"pointer"}} onClick={resetP}>X</button>
         </div>
         <div style={{padding:16,flex:1,overflowY:"auto"}}>
           {(pMode==="sale"||pMode==="barter")&&pStep===1&&<div style={{display:"flex",flexDirection:"column",gap:6}}>
             {FO.filter(f=>f!==cf).map(fId=>{var sel=tFam===fId,col=FM[fId].col;
-              return <div key={fId} onClick={()=>setTFam(fId)} style={{padding:"10px 14px",border:sel?"2px solid "+col:"1px solid #D4C4A8",borderRadius:5,background:sel?col+"15":"#fff",cursor:"pointer",fontWeight:sel?700:400,fontSize:14}}>{FM[fId].nom} ({FM[fId].biz})</div>;
+              return <div key={fId} onClick={()=>setTFam(fId)} style={{padding:"10px 14px",border:sel?"2px solid "+col:"1px solid #D4C4A8",borderRadius:5,background:sel?"rgba(255,255,255,0.85)":"rgba(255,255,255,0.7)",cursor:"pointer",fontWeight:sel?700:400,fontSize:14}}>{FM[fId].nom} ({FM[fId].biz})</div>;
             })}
           </div>}
           {(pMode==="sale"||pMode==="barter")&&pStep===2&&<div>
