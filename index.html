@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.22.0</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.23.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -454,7 +454,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.22.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.23.0</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -2909,27 +2909,6 @@ function SheriffPlanningTab({readOnly,roomCode,lobbyPlayers,gameStarted,setGameS
         </div>
       </div>
     </div>
-    {/* WPROWADŹ DO ROZGRYWKI */}
-    {!gameStarted&&<div style={{marginTop:16,background:"#FDFAF4",border:"1px solid #D4C4A8",padding:"12px 14px"}}>
-      <div style={{fontSize:13,fontWeight:700,color:"#8B7355",marginBottom:10}}>Wprowadź do rozgrywki:</div>
-      <div style={{display:"flex",gap:24,flexWrap:"wrap"}}>
-        <label style={{display:"flex",alignItems:"center",gap:8,cursor:readOnly?"not-allowed":"pointer",opacity:readOnly?0.6:1}}>
-          <input type="checkbox" checked={mapEnabled} onChange={e=>!readOnly&&setMapEnabled(e.target.checked)} disabled={readOnly} style={{width:18,height:18,accentColor:"#8B7714",cursor:readOnly?"not-allowed":"pointer"}}/>
-          <span style={{fontSize:14,color:"#5C4A3A",fontWeight:500}}>Złotodajna Żyła</span>
-          <span style={{fontSize:12,color:"#A89070"}}>(fragmenty mapy)</span>
-        </label>
-        <label style={{display:"flex",alignItems:"center",gap:8,cursor:readOnly?"not-allowed":"pointer",opacity:readOnly?0.6:1}}>
-          <input type="checkbox" checked={bnbEnabled} onChange={e=>{if(!readOnly){if(e.target.checked)activateBnb();else setBnbEnabled(false);}}} disabled={readOnly} style={{width:18,height:18,accentColor:"#8B7714",cursor:readOnly?"not-allowed":"pointer"}}/>
-          <span style={{fontSize:14,color:"#5C4A3A",fontWeight:500}}>Biznes na boku</span>
-          <span style={{fontSize:12,color:"#A89070"}}>(karty produktów)</span>
-        </label>
-      </div>
-    </div>}
-    {gameStarted&&(mapEnabled||bnbEnabled)&&<div style={{marginTop:16,background:"#E8F5E8",border:"1px solid #90C090",padding:"10px 14px",fontSize:13,color:"#2E5B3C"}}>
-      <span style={{fontWeight:700}}>Wprowadzone dodatki:</span>{" "}
-      {mapEnabled&&<span style={{marginRight:12}}>✓ Złotodajna Żyła</span>}
-      {bnbEnabled&&<span>✓ Biznes na boku</span>}
-    </div>}
     <div style={{marginTop:16}}>
       {!gameStarted&&<button onClick={()=>{if(!readOnly){
         db.ref("rooms/"+roomCode+"/meta/status").set("playing");setGameStarted(true);showMsg("Rozgrywka rozpoczęta!");
@@ -3031,19 +3010,49 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
     showMsg("Cofnięto transakcję: "+FM[last.from].nom+" → "+FM[last.to].nom);
   }
 
+  // === NEW: Mechanic tabs, consultation notes, alerts ===
+  const [mechTab,setMechTab]=React.useState("fate");
+  const [expandedNotes,setExpandedNotes]=React.useState({});
+  const [alerts,setAlerts]=React.useState([]);
+  const alertKeysRef=React.useRef(new Set());
+
+  React.useEffect(()=>{
+    var newA=[];
+    function tryAdd(k,text,isAlarm){if(!alertKeysRef.current.has(k)){alertKeysRef.current.add(k);newA.push({key:k,text:text,isAlarm:!!isAlarm,ts:Date.now()});}}
+    // Stage changes
+    if(gameStarted&&stageIdx>=0&&stageIdx<STAGES.length){tryAdd("stage_"+stageIdx,STAGES[stageIdx].label,false);}
+    // Rev: duel needs action
+    revActive.forEach(d=>{
+      if(d.shotsA!==null&&d.shotsB!==null&&d.status==="playing")tryAdd("rev_reveal_"+d.id,FM[d.familyA].nom+" vs "+FM[d.familyB].nom+" \u2014 czeka na ods\u0142oni\u0119cie",true);
+      if(d.status==="finished")tryAdd("rev_settle_"+d.id,FM[d.familyA].nom+" vs "+FM[d.familyB].nom+" \u2014 czeka na rozliczenie",true);
+    });
+    // Fate: not rolled
+    if(fateEnabled){FO.forEach(fId=>{var bf=blindFate[fId]||{};if((bf.rolls||[]).length===0)tryAdd("fate_noroll_"+fId,FM[fId].nom+" \u2014 brak losowania \u015Alepego Losu",true);});}
+    // Pending txs
+    txs.filter(t=>t.status==="pending").forEach(t=>{tryAdd("pending_tx_"+t.id,"Oczekuj\u0105ca transakcja: "+FM[t.from].nom+" \u2192 "+FM[t.to].nom,true);});
+    if(newA.length>0)setAlerts(prev=>[...newA,...prev]);
+  });
+
+  // Consultation helpers (lifted from IIFE)
+  function toggleNotes(fId){setExpandedNotes(prev=>({...prev,[fId]:!prev[fId]}));}
+  var waiting=sheriffCalls.filter(c=>c.status==="waiting");
+  function getFamilyWaiting(fId){return waiting.filter(c=>c.fId===fId);}
+  function getFamilyConsults(fId){return consultations[fId]||[];}
+
+  // Current pairs helper
+  function getCurrentPairs(){
+    if(!gameStarted||stageIdx<0||stageIdx>=STAGES.length)return null;
+    var s=STAGES[stageIdx];if(s.type!=="turn"||s.pairingIdx===null)return null;
+    return{pairs:PAIRINGS[s.pairingIdx],phase:s.phase,turn:s.id.slice(-1)};
+  }
+  function getNextPairs(){
+    for(var ni=stageIdx+1;ni<STAGES.length;ni++){var s=STAGES[ni];if(s.type==="turn"&&s.pairingIdx!==null)return{pairs:PAIRINGS[s.pairingIdx],phase:s.phase,turn:s.id.slice(-1)};} return null;
+  }
+  var curPairs=getCurrentPairs(),nextPairs=getNextPairs();
+
   return (<div style={{maxWidth:1200,margin:"0 auto",padding:16,background:"#fff",backgroundImage:"url("+IMG_BASE+"tlo_uniwersalne.png)",backgroundSize:"cover",backgroundPosition:"center",borderRadius:6}}>
-    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-        {!readOnly&&allTx.length>0&&!undoConfirm&&<button style={btnS("danger")} onClick={()=>setUndoConfirm(true)}>Cofnij ostatnią transakcję</button>}
-        {!readOnly&&undoConfirm&&<div style={{display:"flex",gap:4,alignItems:"center",background:"#FEE",padding:"4px 8px",borderRadius:4,border:"1px solid #C88"}}>
-          <span style={{fontSize:13,color:"#8B2500"}}>Cofnąć: {allTx[0]&&(FM[allTx[0].from].nom+"→"+FM[allTx[0].to].nom)}?</span>
-          <button style={{...btnS("danger"),fontSize:13,padding:"3px 8px"}} onClick={undoLastTx}>Tak</button>
-          <button style={{...btnS("primary"),fontSize:13,padding:"3px 8px"}} onClick={()=>setUndoConfirm(false)}>Nie</button>
-        </div>}
-      </div>
-    </div>
-    {/* === PRZEBIEG ROZGRYWKI === */}
-    <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
+    {/* === 1. PRZEBIEG ROZGRYWKI === */}
+    <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:16}}>
       <div style={{fontSize:20,fontWeight:700,color:"#842504",marginBottom:12}} className="wt">Przebieg rozgrywki</div>
       {readOnly?(<div>
         {timerRunning&&<div style={{fontSize:18,fontWeight:700,color:"#842504",fontFamily:"monospace",marginBottom:6}}>{Math.floor(secondsLeft/60)+":"+(secondsLeft%60<10?"0":"")+(secondsLeft%60)}</div>}
@@ -3056,18 +3065,18 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
         </div>
       </div>):
       !gameStarted?(<div>
-        <div style={{fontSize:13,color:"#5C4A3A",marginBottom:10}}>Ustaw czasy trwania etapów (minuty), a następnie kliknij Start.</div>
+        <div style={{fontSize:13,color:"#5C4A3A",marginBottom:10}}>Ustaw czasy trwania etap\u00f3w (minuty), a nast\u0119pnie kliknij Start.</div>
         {(()=>{
           var grouped=[
             [{key:"PREP",label:"Przygotowanie",ids:["PREP"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-             {key:"F1",label:"Tury Fazy I (wymiana informacji)",ids:["F1T1","F1T2","F1T3"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"×3 tury"},
-             {key:"KN1",label:"Faza I \u2014 Kr\u00f3tka narada",ids:["KN1A","KN1B"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"×2"}],
+             {key:"F1",label:"Tury Fazy I (wymiana informacji)",ids:["F1T1","F1T2","F1T3"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"\u00d73 tury"},
+             {key:"KN1",label:"Faza I \u2014 Kr\u00f3tka narada",ids:["KN1A","KN1B"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"\u00d72"}],
             [{key:"NAR1",label:"Narada rodzinna 1",ids:["NAR1"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-             {key:"F2",label:"Tury Fazy II (pierwsze transakcje)",ids:["F2T1","F2T2","F2T3"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"×3 tury"},
-             {key:"KN2",label:"Faza II \u2014 Kr\u00f3tka narada",ids:["KN2A","KN2B"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"×2"}],
+             {key:"F2",label:"Tury Fazy II (pierwsze transakcje)",ids:["F2T1","F2T2","F2T3"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"\u00d73 tury"},
+             {key:"KN2",label:"Faza II \u2014 Kr\u00f3tka narada",ids:["KN2A","KN2B"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"\u00d72"}],
             [{key:"NAR2",label:"Narada rodzinna 2",ids:["NAR2"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8"},
-             {key:"F3",label:"Tury Fazy III (fina\u0142)",ids:["F3T1","F3T2","F3T3"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"×3 tury"},
-             {key:"KN3",label:"Faza III \u2014 Kr\u00f3tka narada",ids:["KN3A","KN3B"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"×2"}],
+             {key:"F3",label:"Tury Fazy III (fina\u0142)",ids:["F3T1","F3T2","F3T3"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"\u00d73 tury"},
+             {key:"KN3",label:"Faza III \u2014 Kr\u00f3tka narada",ids:["KN3A","KN3B"],color:"#5C4A3A",bg:"#F0EBE0",border:"#D4C4A8",multi:"\u00d72"}],
           ];
           function setGrouped(g,val){setStageDurations(prev=>{var n={...prev};g.ids.forEach(id=>{n[id]=val;});return n;});}
           return(<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
@@ -3078,7 +3087,19 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
             </div>);})}
           </div>);
         })()}
-        <button style={{...btnS("success"),fontSize:16,padding:"10px 32px"}} onClick={()=>startStage(0)}>Start rozgrywki</button>
+        <div style={{display:"flex",gap:16,alignItems:"center",flexWrap:"wrap",marginTop:4}}>
+          <label style={{display:"flex",alignItems:"center",gap:6,cursor:readOnly?"not-allowed":"pointer",opacity:readOnly?0.6:1}}>
+            <input type="checkbox" checked={mapEnabled} onChange={e=>!readOnly&&setMapEnabled(e.target.checked)} disabled={readOnly} style={{width:16,height:16,accentColor:"#8B7714",cursor:readOnly?"not-allowed":"pointer"}}/>
+            <span style={{fontSize:13,color:"#5C4A3A",fontWeight:500}}>Z\u0142otodajna \u017by\u0142a</span>
+          </label>
+          <label style={{display:"flex",alignItems:"center",gap:6,cursor:readOnly?"not-allowed":"pointer",opacity:readOnly?0.6:1}}>
+            <input type="checkbox" checked={bnbEnabled} onChange={e=>{if(!readOnly){if(e.target.checked)activateBnb();else setBnbEnabled(false);}}} disabled={readOnly} style={{width:16,height:16,accentColor:"#8B7714",cursor:readOnly?"not-allowed":"pointer"}}/>
+            <span style={{fontSize:13,color:"#5C4A3A",fontWeight:500}}>Biznes na boku</span>
+          </label>
+          <button onClick={()=>{if(!readOnly){startStage(0);}}} disabled={readOnly} style={{padding:"8px 24px",fontSize:14,fontFamily:"inherit",fontWeight:700,background:readOnly?"#C4B090":"#2E5B3C",color:"#fff",border:"none",borderRadius:4,cursor:readOnly?"not-allowed":"pointer",opacity:readOnly?0.6:1,marginLeft:"auto"}}>
+            Start rozgrywki
+          </button>
+        </div>
       </div>):(<div>
         <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10,flexWrap:"wrap"}}>
           <button style={btnS(manualMode?"success":"sheriff")} onClick={()=>setManualMode(!manualMode)}>{manualMode?"Prze\u0142\u0105cz na tryb auto":"Prze\u0142\u0105cz na tryb r\u0119czny"}</button>
@@ -3088,6 +3109,9 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
           {timerRunning&&<span style={{fontSize:18,fontWeight:700,color:"#842504",fontFamily:"monospace"}}>{Math.floor(secondsLeft/60)+":"+(secondsLeft%60<10?"0":"")+(secondsLeft%60)}</span>}
           <span style={{fontSize:13,color:"#A89070",fontStyle:"italic",marginLeft:8}}>Tryb: {manualMode?"r\u0119czny":"automatyczny"}</span>
         </div>
+        {(mapEnabled||bnbEnabled)&&<div style={{marginBottom:8,padding:"6px 10px",background:"#E8F5E8",border:"1px solid #90C090",borderRadius:4,fontSize:13,color:"#2E5B3C"}}>
+          <span style={{fontWeight:700}}>Dodatki:</span>{" "}{mapEnabled&&<span style={{marginRight:10}}>{"\u2713"} Z\u0142otodajna \u017by\u0142a</span>}{bnbEnabled&&<span>{"\u2713"} Biznes na boku</span>}
+        </div>}
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:4}}>
           {STAGES.map((s,idx)=>{var isCur=idx===stageIdx,isDone=idx<stageIdx;
             return(<div key={s.id} onClick={manualMode?()=>startStage(idx):undefined} style={{padding:"4px 8px",borderRadius:3,fontSize:13,fontWeight:isCur?700:400,background:isCur?"#D4A853":isDone?"#E8F0E8":"#F5F2E8",color:isCur?"#2C1810":isDone?"#2E5B3C":"#A89070",border:isCur?"2px solid #8B6914":"1px solid transparent",opacity:isDone?0.6:1,cursor:manualMode?"pointer":"default"}}>
@@ -3095,18 +3119,12 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
             </div>);
           })}
         </div>
-        {(()=>{
-          var nextTurn=null;
-          for(var ni=stageIdx+1;ni<STAGES.length;ni++){if(STAGES[ni].type==="turn"){nextTurn=STAGES[ni];break;}}
-          if(!nextTurn||nextTurn.pairingIdx===null) return null;
-          var pairs=PAIRINGS[nextTurn.pairingIdx];
-          var tn=nextTurn.id.slice(-1);
-          var ph=nextTurn.phase;
-          var phName="Faza "+(ph===1?"I":ph===2?"II":"III")+", Tura "+tn;
+        {nextPairs&&(()=>{
+          var phName="Faza "+(nextPairs.phase===1?"I":nextPairs.phase===2?"II":"III")+", Tura "+nextPairs.turn;
           return(<div style={{marginTop:12,background:"#4C130F",borderRadius:6,padding:"12px 16px"}}>
-            <div style={{fontSize:12,color:"#D4A853",fontWeight:700,letterSpacing:"0.08em",marginBottom:6,textTransform:"uppercase"}}>Następna tura — {phName}</div>
+            <div style={{fontSize:12,color:"#D4A853",fontWeight:700,letterSpacing:"0.08em",marginBottom:6,textTransform:"uppercase"}}>Nast\u0119pna tura \u2014 {phName}</div>
             <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
-              {pairs.map((p,i)=>(
+              {nextPairs.pairs.map((p,i)=>(
                 <div key={i} style={{fontSize:18,fontWeight:700,color:"#F5F0E8",fontFamily:"'Aka Posse','Alegreya Sans',serif"}}>
                   <span style={{color:FM[p[0]].col!=="transparent"?FM[p[0]].col:"#D4A853"}}>{FM[p[0]].nom}</span>
                   <span style={{color:"#D4A853",margin:"0 8px"}}>{"\u2194"}</span>
@@ -3118,185 +3136,195 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
         })()}
       </div>)}
     </div>
-    {/* === 2. PODGLĄD I WYNIKI RODZIN === */}
-    <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20}}>
-      {FO.map(fId=>{var f=FM[fId],d=fd[fId],sc=calcScore(fId,fd,plotPenalties,biznesNaBoku,bnbEnabled,blindFate);
-        var plotI=d.items.find(i=>i.cat===C_PLOT),plotOk=plotI&&plotI.plotNr===f.tPlot;
-        return (<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:12}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-            <div style={{fontSize:14,fontWeight:700,color:f.col}} className="wt">{f.nom}</div>
-            <button style={{fontSize:13,padding:"2px 6px",background:f.col,color:"#fff",border:"none",borderRadius:3,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>onViewFamily(fId)}>Podgląd</button>
+
+    {/* === 2. PANEL OPERACYJNY === */}
+    {gameStarted&&<div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:16}}>
+      <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:10}} className="wt">Panel operacyjny</div>
+      <div style={{display:"flex",gap:16}}>
+        {/* Left: Alerty feed */}
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#5C4A3A",marginBottom:6}}>Alerty</div>
+          <div style={{maxHeight:140,overflowY:"auto",border:"1px solid #E8E0D0",borderRadius:4,padding:6,background:"#FDFAF4"}}>
+            {alerts.length===0&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak alert\u00f3w</div>}
+            {alerts.map(a=><div key={a.key} style={{fontSize:13,color:a.isAlarm?"#8B2500":"#5C4A3A",padding:"3px 0",borderBottom:"1px solid #F0EBE0"}}>
+              <span style={{fontSize:11,color:"#A89070",marginRight:6}}>{new Date(a.ts).toLocaleTimeString("pl",{hour:"2-digit",minute:"2-digit"})}</span>
+              {a.isAlarm&&<span style={{color:"#8B2500",marginRight:4}}>{"\u26A0"}</span>}
+              {a.text}
+            </div>)}
           </div>
-          <div style={{fontSize:13,color:"#5C4A3A",lineHeight:1.8}}>
-            <div>Gotówka: <b>{d.cash} $</b></div>
-            <div>Działka: nr {plotI?plotI.plotNr:"—"} {plotOk?<span style={{color:"#2E5B3C"}}>OK</span>:<span style={{color:"#C06030"}}>cel: {f.tPlot}</span>}</div>
-            <div style={{marginTop:4,padding:"3px 6px",background:"#F0EBE0",borderRadius:3,fontWeight:700,fontSize:13}}>Wynik: {sc.bizTotal} pkt (biz.) + {calcRelationScore(fId,relations)} pkt (rel.)</div>
-          </div>
-        </div>);
-      })}
-    </div>
-    {/* === 3. KONSULTACJE (2×2) === */}
-    {(()=>{
-      var waiting=sheriffCalls.filter(c=>c.status==="waiting");
-      var [expandedNotes,setExpandedNotes]=React.useState({});
-      function toggleNotes(fId){setExpandedNotes(prev=>({...prev,[fId]:!prev[fId]}));}
-      function getFamilyWaiting(fId){return waiting.filter(c=>c.fId===fId);}
-      function getFamilyConsults(fId){return consultations[fId]||[];}
-      return(<div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-          <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Konsultacje</div>
-          {waiting.length>0&&<div style={{background:"#8B2500",color:"#fff",padding:"4px 12px",borderRadius:12,fontSize:13,fontWeight:700}}>
-            🔔 {waiting.length} {waiting.length===1?"wezwanie oczekuje":"wezwań oczekuje"}
-          </div>}
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-          {FO.map(fId=>{
-            var f=FM[fId];
-            var fWaiting=getFamilyWaiting(fId);
-            var fConsults=getFamilyConsults(fId);
-            var hasWaiting=fWaiting.length>0;
-            var hasActive=fConsults.some(c=>c.questionsUsed<c.questionsTotal);
-            return(<div key={fId} style={{background:hasWaiting?"#FFF0F0":"#FDFAF4",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
-              {/* Header */}
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                <div style={{fontSize:14,fontWeight:700,color:f.col}} className="wt">{f.nom}</div>
-                {hasWaiting&&<div style={{background:"#8B2500",color:"#fff",padding:"2px 8px",borderRadius:10,fontSize:12,fontWeight:600}}>
-                  🔔 {new Date(fWaiting[0].ts).toLocaleTimeString("pl",{hour:"2-digit",minute:"2-digit"})}
-                </div>}
-              </div>
-              {/* Wezwanie */}
-              {hasWaiting&&<div style={{marginBottom:8}}>
-                {fWaiting.map(call=>{var absIdx=sheriffCalls.indexOf(call);return(
-                  <div key={absIdx} style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                    <button style={{...btnS("success"),fontSize:12,padding:"4px 10px"}} onClick={()=>grantConsultation(call.fId)}>Sprzedaj konsultację</button>
-                    <button style={{fontSize:12,padding:"4px 8px",background:"#E8E0D0",color:"#5C4A3A",border:"1px solid #D4C4A8",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>dismissCall(absIdx)}>Odrzuć</button>
+        {/* Right: Pary handlowe */}
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#5C4A3A",marginBottom:6}}>Pary handlowe</div>
+          <div style={{border:"1px solid #E8E0D0",borderRadius:4,padding:8,background:"#FDFAF4"}}>
+            {curPairs?(<div>
+              <div style={{fontSize:12,color:"#A89070",fontWeight:600,marginBottom:4,textTransform:"uppercase",letterSpacing:"0.05em"}}>Aktualna tura</div>
+              <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:8}}>
+                {curPairs.pairs.map((p,i)=>(
+                  <div key={i} style={{fontSize:15,fontWeight:700}}>
+                    <span style={{color:FM[p[0]].col}}>{FM[p[0]].nom}</span>
+                    <span style={{color:"#D4A853",margin:"0 6px"}}>{"\u2194"}</span>
+                    <span style={{color:FM[p[1]].col}}>{FM[p[1]].nom}</span>
                   </div>
-                );})}
-              </div>}
-              {/* Konsultacje */}
-              {fConsults.length===0&&!hasWaiting&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic",marginBottom:6}}>○ brak wezwań</div>}
-              {fConsults.map((c,idx)=>{
-                var used=c.questionsUsed,total=c.questionsTotal,rem=total-used;
-                var dots=[];for(var di=0;di<total;di++){dots.push(<span key={di} style={{color:di<used?"#842504":"#D4C4A8",fontSize:16}}>{di<used?"●":"○"}</span>);}
-                return(<div key={idx} style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}}>
-                  <span style={{fontSize:13,color:"#5C4A3A"}}>Kons. {idx+1}:</span>
-                  <span style={{display:"flex",gap:2}}>{dots}</span>
-                  {rem>0?<button style={{fontSize:12,padding:"2px 8px",background:"#8B6914",color:"#fff",border:"none",borderRadius:3,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>completeConsult(fId,idx)}>Odnotuj</button>
-                  :<span style={{fontSize:12,color:"#2E5B3C",fontWeight:600}}>✓</span>}
-                </div>);
-              })}
-              {/* Notatki toggle */}
-              <div style={{marginTop:8,borderTop:"1px solid #E8E0D0",paddingTop:6}}>
-                <button onClick={()=>toggleNotes(fId)} style={{fontSize:12,padding:"2px 8px",background:"transparent",color:"#8B7355",border:"1px solid #D4C4A8",borderRadius:3,cursor:"pointer",fontFamily:"inherit"}}>
-                  {expandedNotes[fId]?"▼ notatki":"▶ notatki"}
-                </button>
-                {expandedNotes[fId]&&<textarea value={consultNotes[fId]||""} onChange={e=>{var v=e.target.value;setConsultNotes(prev=>({...prev,[fId]:v}));}} style={{width:"100%",minHeight:50,fontSize:12,fontFamily:"inherit",border:"1px solid #D4C4A8",borderRadius:4,padding:6,resize:"vertical",marginTop:6}} placeholder={"Notatki..."}/>}
+                ))}
               </div>
-            </div>);
-          })}
-        </div>
-      </div>);
-    })()}
-    {/* === 4. ŚLEPY LOS — KONTROLA === */}
-    <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-        <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Ślepy los — kontrola</div>
-        {!readOnly&&<button style={btnS(fateEnabled?"danger":"success")} onClick={()=>{setFateEnabled(!fateEnabled);showMsg(fateEnabled?"Ślepy los — zablokowany":"Ślepy los — odblokowany");}}>{fateEnabled?"Zablokuj ŚLEPY LOS":"Odblokuj ŚLEPY LOS"}</button>}
-      </div>
-      {fateEnabled&&<div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
-        {FO.map(fId=>{var f=FM[fId],bf=blindFate[fId]||{},pol=bf.policies||{p50:null,p100:null},rolls=bf.rolls||[];
-          var rollsDone=rolls.filter(r=>r.resolved).length,rollsPending=rolls.filter(r=>!r.resolved).length;
-          var avPol=[];if(pol.p50==="owned")avPol.push({l:"50%",v:50});if(pol.p100==="owned")avPol.push({l:"100%",v:100});
-          return (<div key={fId} style={{background:"#fff",border:"1px solid "+f.col,borderRadius:5,padding:10}}>
-            <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
-            <div style={{display:"flex",gap:4,marginBottom:8,flexWrap:"wrap"}}>
-              <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px",opacity:pol.p50?0.4:1}} onClick={()=>activatePolicy(fId,"p50")} disabled={!!pol.p50}>Polisa 50% (30$)</button>
-              {pol.p50==="owned"&&<button style={{fontSize:13,padding:"3px 8px",background:"#C09090",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>undoPolicy(fId,"p50")}>Cofnij 50%</button>}
-              <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px",opacity:pol.p100?0.4:1}} onClick={()=>activatePolicy(fId,"p100")} disabled={!!pol.p100}>Polisa 100% (50$)</button>
-              {pol.p100==="owned"&&<button style={{fontSize:13,padding:"3px 8px",background:"#C09090",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>undoPolicy(fId,"p100")}>Cofnij 100%</button>}
-            </div>
-            {rollsPending===0&&rollsDone<2&&<div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-              <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px"}} onClick={()=>prepareRoll(fId,null)}>Bez polisy</button>
-              {avPol.map(ap=><button key={ap.v} style={{...btnS("fate"),fontSize:13,padding:"3px 8px"}} onClick={()=>prepareRoll(fId,ap.v)}>Z polisą {ap.l}</button>)}
+            </div>):<div style={{fontSize:13,color:"#A89070",fontStyle:"italic",marginBottom:8}}>Brak aktywnej tury handlowej</div>}
+            {nextPairs&&<div>
+              <div style={{fontSize:12,color:"#A89070",fontWeight:600,marginBottom:4,textTransform:"uppercase",letterSpacing:"0.05em"}}>Nast\u0119pna</div>
+              <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+                {nextPairs.pairs.map((p,i)=>(
+                  <div key={i} style={{fontSize:13,fontWeight:600}}>
+                    <span style={{color:FM[p[0]].col}}>{FM[p[0]].nom}</span>
+                    <span style={{color:"#D4A853",margin:"0 4px"}}>{"\u2194"}</span>
+                    <span style={{color:FM[p[1]].col}}>{FM[p[1]].nom}</span>
+                  </div>
+                ))}
+              </div>
             </div>}
-            {rolls.map((roll,idx)=>(<div key={idx} style={{fontSize:13,color:"#5C4A3A",marginTop:4,padding:4,background:"#FFF8E7",borderRadius:3}}>
-              <b>Rzut {idx+1}:</b> {roll.resolved?<span>{roll.dice1}+{roll.dice2}={roll.sum} &rarr; {roll.netEffectText}{roll.showCard&&<button style={{fontSize:13,padding:"1px 4px",marginLeft:4,cursor:"pointer",background:"#E8E0D0",border:"1px solid #C4B090",borderRadius:2,fontFamily:"inherit"}} onClick={()=>clearCard(fId,idx)}>Ukryj</button>}</span>:<span style={{fontStyle:"italic"}}>oczekuje...</span>}
-            </div>))}
+          </div>
+        </div>
+      </div>
+    </div>}
+
+    {/* === 3. KONSULTACJE === */}
+    <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:16}}>
+      <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:10}} className="wt">Konsultacje</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+        {FO.map(fId=>{
+          var f=FM[fId];
+          var fWaiting=getFamilyWaiting(fId);
+          var fConsults=getFamilyConsults(fId);
+          var hasWaiting=fWaiting.length>0;
+          return(<div key={fId} style={{background:hasWaiting?"#FFF0F0":"#FDFAF4",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+              <div style={{fontSize:14,fontWeight:700,color:f.col}} className="wt">{f.nom}</div>
+              {hasWaiting&&<div style={{background:"#8B2500",color:"#fff",padding:"2px 8px",borderRadius:10,fontSize:12,fontWeight:600}}>
+                {"\uD83D\uDD14"} {new Date(fWaiting[0].ts).toLocaleTimeString("pl",{hour:"2-digit",minute:"2-digit"})}
+              </div>}
+            </div>
+            {hasWaiting&&<div style={{marginBottom:6}}>
+              {fWaiting.map(call=>{var absIdx=sheriffCalls.indexOf(call);return(
+                <div key={absIdx} style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                  <button style={{...btnS("success"),fontSize:12,padding:"3px 8px"}} onClick={()=>grantConsultation(call.fId)}>Sprzedaj</button>
+                  <button style={{fontSize:12,padding:"3px 6px",background:"#E8E0D0",color:"#5C4A3A",border:"1px solid #D4C4A8",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>dismissCall(absIdx)}>Odrzu\u0107</button>
+                </div>
+              );})}
+            </div>}
+            {fConsults.length===0&&!hasWaiting&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic",marginBottom:4}}>{"\u25CB"} brak wezwa\u0144</div>}
+            {fConsults.map((c,idx)=>{
+              var used=c.questionsUsed,total=c.questionsTotal,rem=total-used;
+              var dots=[];for(var di=0;di<total;di++){dots.push(<span key={di} style={{color:di<used?"#842504":"#D4C4A8",fontSize:14}}>{di<used?"\u25CF":"\u25CB"}</span>);}
+              return(<div key={idx} style={{display:"flex",alignItems:"center",gap:6,marginBottom:3,flexWrap:"wrap"}}>
+                <span style={{fontSize:12,color:"#5C4A3A"}}>K{idx+1}:</span>
+                <span style={{display:"flex",gap:1}}>{dots}</span>
+                {rem>0?<button style={{fontSize:11,padding:"2px 6px",background:"#8B6914",color:"#fff",border:"none",borderRadius:3,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>completeConsult(fId,idx)}>Odnotuj</button>
+                :<span style={{fontSize:12,color:"#2E5B3C",fontWeight:600}}>{"\u2713"}</span>}
+              </div>);
+            })}
+            <div style={{marginTop:6,borderTop:"1px solid #E8E0D0",paddingTop:4}}>
+              <button onClick={()=>toggleNotes(fId)} style={{fontSize:11,padding:"2px 6px",background:"transparent",color:"#8B7355",border:"1px solid #D4C4A8",borderRadius:3,cursor:"pointer",fontFamily:"inherit"}}>
+                {expandedNotes[fId]?"\u25BC notatki":"\u25B6 notatki"}
+              </button>
+              {expandedNotes[fId]&&<textarea value={consultNotes[fId]||""} onChange={e=>{var v=e.target.value;setConsultNotes(prev=>({...prev,[fId]:v}));}} style={{width:"100%",minHeight:40,fontSize:12,fontFamily:"inherit",border:"1px solid #D4C4A8",borderRadius:4,padding:4,resize:"vertical",marginTop:4}} placeholder={"Notatki..."}/>}
+            </div>
           </div>);
         })}
+      </div>
+    </div>
+
+    {/* === 4. STATYSTYKI RODZIN === */}
+    <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:16}}>
+      <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:10}} className="wt">Statystyki rodzin</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+        {FO.map(fId=>{var f=FM[fId],d=fd[fId],sc=calcScore(fId,fd,plotPenalties,biznesNaBoku,bnbEnabled,blindFate);
+          var plotI=d.items.find(i=>i.cat===C_PLOT),plotOk=plotI&&plotI.plotNr===f.tPlot;
+          return (<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+              <div style={{fontSize:14,fontWeight:700,color:f.col}} className="wt">{f.nom}</div>
+              <button style={{fontSize:12,padding:"2px 6px",background:f.col,color:"#fff",border:"none",borderRadius:3,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>onViewFamily(fId)}>Podgl\u0105d</button>
+            </div>
+            <div style={{fontSize:13,color:"#5C4A3A",lineHeight:1.7}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <span>Got\u00f3wka: <b>{d.cash} $</b></span>
+                <span>Dz. {plotI?plotI.plotNr:"\u2014"} {plotOk?<span style={{color:"#2E5B3C"}}>{"\u2713"}</span>:<span style={{color:"#C06030"}}>cel:{f.tPlot}</span>}</span>
+              </div>
+              <div style={{padding:"3px 6px",background:"#F0EBE0",borderRadius:3,fontWeight:700,fontSize:13,textAlign:"center",marginTop:4}}>{sc.bizTotal} pkt (biz.) + {calcRelationScore(fId,relations)} pkt (rel.)</div>
+            </div>
+          </div>);
+        })}
+      </div>
+    </div>
+
+    {/* === 5. MECHANIKI === */}
+    <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:16}}>
+      {/* Unlock/lock buttons row */}
+      {!readOnly&&<div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
+        <button style={btnS(fateEnabled?"danger":"success")} onClick={()=>{setFateEnabled(!fateEnabled);showMsg(fateEnabled?"\u015Alepy los \u2014 zablokowany":"\u015Alepy los \u2014 odblokowany");}}>{fateEnabled?"Zablokuj \u015ALEPY LOS":"Odblokuj \u015ALEPY LOS"}</button>
+        {!revEnabled?<button style={btnS("success")} onClick={()=>setRevEnabled(true)}>Odblokuj REWOLWEROWIEC</button>
+        :revActive.length===0&&<button style={btnS("danger")} onClick={()=>setRevEnabled(false)}>Zablokuj REWOLWEROWIEC</button>}
+        {!relationsUnlocked?<button style={btnS("success")} onClick={()=>setRelationsUnlocked(true)}>Odblokuj RELACJE</button>
+        :<button style={btnS("danger")} onClick={()=>{if(window.confirm("Na pewno zablokowa\u0107 zak\u0142adk\u0119 BUDOWANIE RELACJI dla wszystkich graczy?"))setRelationsUnlocked(false);}}>Zablokuj RELACJE</button>}
       </div>}
-    </div>
-    {/* === 5. ŚLEPY LOS — HISTORIA ZBIORCZA === */}
-    <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
-      <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:12}} className="wt">Ślepy los — historia zbiorcza</div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
-      {FO.map(fId=>{var f=FM[fId],bf=blindFate[fId]||{},pol=bf.policies||{p50:null,p100:null},rolls=(bf.rolls||[]).filter(r=>r.resolved);
-        return (<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
-          <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
-          <div style={{fontSize:13,color:"#5C4A3A",marginBottom:4}}>
-            <b>Polisy:</b>{" "}
-            {pol.p50==="owned"?"50% w posiadaniu":pol.p50==="used"?"50% wykorzystana":"50% —"}{" | "}
-            {pol.p100==="owned"?"100% w posiadaniu":pol.p100==="used"?"100% wykorzystana":"100% —"}
-          </div>
-          {rolls.length>0?<div style={{fontSize:13,color:"#5C4A3A"}}>
-            <b>Losowania:</b>
-            {rolls.map((r,i)=>(<div key={i} style={{padding:"3px 0",borderBottom:i<rolls.length-1?"1px dotted #E0D8E8":"none"}}>
-              Rzut {i+1}: {r.dice1}+{r.dice2}={r.sum} — <i>{r.event.text}</i> → <b style={{color:r.netEffect>=0?"#2E5B3C":"#8B2500"}}>{r.netEffectText}</b>{r.policyUsed?" (polisa "+r.policyUsed+"%)":""}
-            </div>))}
-          </div>:<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak losowań</div>}
-        </div>);
-      })}
+      {/* Tab bar */}
+      <div style={{display:"flex",gap:0,borderBottom:"2px solid #842504",marginBottom:12}}>
+        {[{id:"fate",label:"\u015Alepy Los",enabled:fateEnabled},{id:"rev",label:"Rewolwerowiec",enabled:revEnabled},{id:"rel",label:"Relacje",enabled:relationsUnlocked},{id:"bnb",label:"Biznes na boku",enabled:bnbEnabled}].map(tab=>(
+          <button key={tab.id} onClick={()=>tab.enabled&&setMechTab(tab.id)} style={{padding:"8px 16px",fontSize:14,fontWeight:mechTab===tab.id?700:500,color:mechTab===tab.id?"#fff":tab.enabled?"#842504":"#C4B090",background:mechTab===tab.id?"#842504":"transparent",border:"none",borderRadius:"6px 6px 0 0",cursor:tab.enabled?"pointer":"not-allowed",fontFamily:"inherit",opacity:tab.enabled?1:0.5}}>
+            {tab.label}
+          </button>
+        ))}
       </div>
-    </div>
-    {/* === 6. BIZNES NA BOKU — STATUS === */}
-    {bnbEnabled&&<div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-        <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Biznes na boku</div>
-        <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <span style={{fontSize:13,fontWeight:700,color:bnbSettled?"#2E5B3C":"#8B7714",padding:"3px 10px",background:bnbSettled?"#E8F5E8":"#FFF8E7",borderRadius:4,border:"1px solid "+(bnbSettled?"#90C090":"#D4C870")}}>{bnbSettled?"Rozliczono":"Aktywny"}</span>
-        </div>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
-          {FO.map(fId=>{
-            var f=FM[fId],p=BNB_PRODUCTS[fId];
-            var ownCards=fd[fId].items.filter(i=>i.cat===C_BNB&&i.bnbOrigin===fId);
-            var soldCount=p.qty-ownCards.length;
-            var soldAll=ownCards.length===0;
-            var boughtCards=fd[fId].items.filter(i=>i.cat===C_BNB&&i.bnbOrigin!==fId);
-            var boughtGrouped={};boughtCards.forEach(i=>{if(!boughtGrouped[i.bnbOrigin])boughtGrouped[i.bnbOrigin]=0;boughtGrouped[i.bnbOrigin]++;});
-            return(<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
-              <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
-              <div style={{fontSize:13,color:"#5C4A3A",marginBottom:6}}>
-                <b>Sprzedaje:</b> {p.name}
-              </div>
-              <div style={{display:"flex",gap:12,marginBottom:6}}>
-                <div style={{fontSize:13,color:"#5C4A3A"}}>
-                  Stan: <b style={{color:soldAll?"#2E5B3C":"#8B7355"}}>{ownCards.length}/{p.qty}</b>
-                  <span style={{marginLeft:4,fontSize:13,color:"#A89070"}}>(sprzedano {soldCount})</span>
+      {/* Tab content: Ślepy Los */}
+      {mechTab==="fate"&&(fateEnabled?<div>
+        <div style={{marginBottom:16}}>
+          <div style={{fontSize:16,fontWeight:700,color:"#842504",marginBottom:8}} className="wt">{"\u015Alepy los \u2014 kontrola"}</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
+            {FO.map(fId=>{var f=FM[fId],bf=blindFate[fId]||{},pol=bf.policies||{p50:null,p100:null},rolls=bf.rolls||[];
+              var rollsDone=rolls.filter(r=>r.resolved).length,rollsPending=rolls.filter(r=>!r.resolved).length;
+              var avPol=[];if(pol.p50==="owned")avPol.push({l:"50%",v:50});if(pol.p100==="owned")avPol.push({l:"100%",v:100});
+              return (<div key={fId} style={{background:"#FFF8E7",border:"1px solid "+f.col,borderRadius:5,padding:10}}>
+                <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
+                <div style={{display:"flex",gap:4,marginBottom:8,flexWrap:"wrap"}}>
+                  <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px",opacity:pol.p50?0.4:1}} onClick={()=>activatePolicy(fId,"p50")} disabled={!!pol.p50}>Polisa 50% (30$)</button>
+                  {pol.p50==="owned"&&<button style={{fontSize:13,padding:"3px 8px",background:"#C09090",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>undoPolicy(fId,"p50")}>Cofnij 50%</button>}
+                  <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px",opacity:pol.p100?0.4:1}} onClick={()=>activatePolicy(fId,"p100")} disabled={!!pol.p100}>Polisa 100% (50$)</button>
+                  {pol.p100==="owned"&&<button style={{fontSize:13,padding:"3px 8px",background:"#C09090",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontFamily:"inherit",fontWeight:600}} onClick={()=>undoPolicy(fId,"p100")}>Cofnij 100%</button>}
                 </div>
+                {rollsPending===0&&rollsDone<2&&<div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                  <button style={{...btnS("fate"),fontSize:13,padding:"3px 8px"}} onClick={()=>prepareRoll(fId,null)}>Bez polisy</button>
+                  {avPol.map(ap=><button key={ap.v} style={{...btnS("fate"),fontSize:13,padding:"3px 8px"}} onClick={()=>prepareRoll(fId,ap.v)}>Z polis\u0105 {ap.l}</button>)}
+                </div>}
+                {rolls.map((roll,idx)=>(<div key={idx} style={{fontSize:13,color:"#5C4A3A",marginTop:4,padding:4,background:"#FFF8E7",borderRadius:3}}>
+                  <b>Rzut {idx+1}:</b> {roll.resolved?<span>{roll.dice1}+{roll.dice2}={roll.sum} &rarr; {roll.netEffectText}{roll.showCard&&<button style={{fontSize:13,padding:"1px 4px",marginLeft:4,cursor:"pointer",background:"#E8E0D0",border:"1px solid #C4B090",borderRadius:2,fontFamily:"inherit"}} onClick={()=>clearCard(fId,idx)}>Ukryj</button>}</span>:<span style={{fontStyle:"italic"}}>oczekuje...</span>}
+                </div>))}
+              </div>);
+            })}
+          </div>
+        </div>
+        <div>
+          <div style={{fontSize:16,fontWeight:700,color:"#842504",marginBottom:8}} className="wt">{"\u015Alepy los \u2014 historia zbiorcza"}</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
+          {FO.map(fId=>{var f=FM[fId],bf=blindFate[fId]||{},pol=bf.policies||{p50:null,p100:null},rolls=(bf.rolls||[]).filter(r=>r.resolved);
+            return (<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
+              <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
+              <div style={{fontSize:13,color:"#5C4A3A",marginBottom:4}}>
+                <b>Polisy:</b>{" "}
+                {pol.p50==="owned"?"50% w posiadaniu":pol.p50==="used"?"50% wykorzystana":"50% \u2014"}{" | "}
+                {pol.p100==="owned"?"100% w posiadaniu":pol.p100==="used"?"100% wykorzystana":"100% \u2014"}
               </div>
-              {soldAll&&<div style={{fontSize:13,color:"#2E5B3C",fontWeight:600,marginBottom:4}}>Sprzedano wszystko — bonifikata 100 $</div>}
-              {boughtCards.length>0&&<div style={{borderTop:"1px solid #E0D8E8",paddingTop:4,marginTop:4}}>
-                <div style={{fontSize:13,fontWeight:700,color:"#A89070",marginBottom:2}}>Zakupione od innych:</div>
-                {Object.keys(boughtGrouped).map(o=><div key={o} style={{fontSize:13,color:"#5C4A3A"}}>{BNB_PRODUCTS[o].shortName} ×{boughtGrouped[o]} <span style={{color:"#A89070"}}>(od {FM[o].gen})</span></div>)}
-              </div>}
+              {rolls.length>0?<div style={{fontSize:13,color:"#5C4A3A"}}>
+                <b>Losowania:</b>
+                {rolls.map((r,i)=>(<div key={i} style={{padding:"3px 0",borderBottom:i<rolls.length-1?"1px dotted #E0D8E8":"none"}}>
+                  Rzut {i+1}: {r.dice1}+{r.dice2}={r.sum} \u2014 <i>{r.event.text}</i> {"\u2192"} <b style={{color:r.netEffect>=0?"#2E5B3C":"#8B2500"}}>{r.netEffectText}</b>{r.policyUsed?" (polisa "+r.policyUsed+"%)":""}
+                </div>))}
+              </div>:<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak losowa\u0144</div>}
             </div>);
           })}
+          </div>
         </div>
-        {bnbSettled&&<div style={{marginTop:10,padding:8,background:"#E8F5E8",border:"1px solid #90C090",borderRadius:4,fontSize:13,color:"#2E5B3C",textAlign:"center",fontWeight:600}}>Rozliczenie końcowe przeprowadzone — prowizje pobrane</div>}
-    </div>}
-    {/* === 7b. REWOLWEROWIEC === */}
-    <div style={{background:"#FFF8E7",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-        <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Rewolwerowiec</div>
-        {!readOnly&&!revEnabled&&<button style={btnS("success")} onClick={()=>setRevEnabled(true)}>Odblokuj REWOLWEROWIEC</button>}
-        {revEnabled&&<div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <span style={{fontSize:13,fontWeight:700,color:"#8B2500",padding:"3px 10px",background:"#FFE8E0",borderRadius:4,border:"1px solid #842504"}}>Aktywny</span>
-          {!readOnly&&revActive.length===0&&<button style={btnS("danger",false)} onClick={()=>setRevEnabled(false)}>Zablokuj REWOLWEROWIEC</button>}
-        </div>}
-      </div>
-      {revEnabled&&<div>
-        {/* Mode toggle + Max bet */}
+      </div>:<div style={{padding:20,textAlign:"center",color:"#A89070",fontSize:14,fontStyle:"italic"}}>{"\u015Alepy Los jest zablokowany"}</div>)}
+
+      {/* Tab content: Rewolwerowiec */}
+      {mechTab==="rev"&&(revEnabled?<div>
         {!readOnly&&<div style={{display:"flex",gap:12,alignItems:"center",marginBottom:12,flexWrap:"wrap"}}>
           <div style={{display:"flex",gap:4,alignItems:"center",background:"#fff",border:"1px solid #842504",borderRadius:6,overflow:"hidden"}}>
             {["arena","tournament"].map(m=><button key={m} style={{padding:"6px 14px",fontSize:13,fontWeight:700,border:"none",cursor:revActive.length>0?"not-allowed":"pointer",background:revMode===m?"#842504":"transparent",color:revMode===m?"#fff":"#842504",opacity:revActive.length>0&&revMode!==m?0.4:1}} onClick={()=>{if(revActive.length===0)setRevMode(m);}} disabled={revActive.length>0}>{m==="arena"?"Arena":"Turniej"}</button>)}
@@ -3304,72 +3332,55 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
           <label style={{fontSize:13,color:"#5C4A3A"}}>Max stawka ($):</label>
           <input type="number" min={1} step={1} value={revMaxBet} onChange={e=>setRevMaxBet(Math.max(1,parseInt(e.target.value)||1))} style={{width:70,padding:4,borderRadius:4,border:"1px solid #842504",fontSize:13}} disabled={revActive.length>0}/>
         </div>}
-
-        {/* === ARENA MODE === */}
         {revMode==="arena"&&revActive.length===0&&<div>
-          <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:6}}>Wybierz parę do pojedynku:</div>
+          <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:6}}>Wybierz par\u0119 do pojedynku:</div>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
             {FO.map((a,ai)=>FO.slice(ai+1).map(b=>{
               var played=revDuels.some(d=>(d.familyA===a&&d.familyB===b)||(d.familyA===b&&d.familyB===a));
-              return(<button key={a+b} style={{...btnS(played?"secondary":"warning",false),fontSize:13,opacity:played?0.5:1}} onClick={()=>{if(!played)revNewDuel(a,b);}} disabled={played} title={played?"Już rozegrano":""}>{FM[a].nom} vs {FM[b].nom}{played?" ✓":""}</button>);
+              return(<button key={a+b} style={{...btnS(played?"secondary":"warning",false),fontSize:13,opacity:played?0.5:1}} onClick={()=>{if(!played)revNewDuel(a,b);}} disabled={played} title={played?"Ju\u017c rozegrano":""}>{FM[a].nom} vs {FM[b].nom}{played?" \u2713":""}</button>);
             }))}
           </div>
         </div>}
         {revMode==="arena"&&revCurrent&&revCurrent.status==="betting"&&<div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:12,marginBottom:8}}>
           <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:8}} className="wt">{FM[revCurrent.familyA].nom} vs {FM[revCurrent.familyB].nom}</div>
-          <div style={{fontSize:13,color:"#5C4A3A",marginBottom:6}}>Ustalcie stawkę (max {revMaxBet} $):</div>
+          <div style={{fontSize:13,color:"#5C4A3A",marginBottom:6}}>Ustalcie stawk\u0119 (max {revMaxBet} $):</div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
             <input type="number" id="revBetInput" min={1} max={revMaxBet} step={1} defaultValue={Math.min(30,revMaxBet)} style={{width:80,padding:4,borderRadius:4,border:"1px solid #842504",fontSize:13}}/>
-            <button style={btnS("success")} onClick={()=>{var v=parseInt(document.getElementById("revBetInput").value)||0;if(v<1||v>revMaxBet){showMsg("Stawka musi wynosić od 1 do "+revMaxBet+" $");return;}revSetBet(v);}}>Zatwierdź stawkę</button>
+            <button style={btnS("success")} onClick={()=>{var v=parseInt(document.getElementById("revBetInput").value)||0;if(v<1||v>revMaxBet){showMsg("Stawka musi wynosi\u0107 od 1 do "+revMaxBet+" $");return;}revSetBet(v);}}>Zatwierd\u017a stawk\u0119</button>
             <button style={btnS("danger")} onClick={()=>setRevActive(prev=>prev.filter((_,i)=>i!==0))}>Anuluj</button>
           </div>
         </div>}
-
-        {/* === TOURNAMENT MODE — pair selection === */}
         {revMode==="tournament"&&revActive.length===0&&(()=>{
           var allPairs=[];FO.forEach((a,ai)=>FO.slice(ai+1).forEach(b=>{var played=revDuels.some(d=>(d.familyA===a&&d.familyB===b)||(d.familyA===b&&d.familyB===a));allPairs.push({a,b,played});}));
-          // auto-generate valid 2-pair combos (each family in exactly one pair)
           var combos=[];
-          for(var i=0;i<allPairs.length;i++){
-            for(var j=i+1;j<allPairs.length;j++){
-              var p1=allPairs[i],p2=allPairs[j];
-              var fams=new Set([p1.a,p1.b,p2.a,p2.b]);
-              if(fams.size===4&&!p1.played&&!p2.played)combos.push([p1,p2]);
-            }
-          }
+          for(var i=0;i<allPairs.length;i++){for(var j=i+1;j<allPairs.length;j++){var p1=allPairs[i],p2=allPairs[j];var fams=new Set([p1.a,p1.b,p2.a,p2.b]);if(fams.size===4&&!p1.played&&!p2.played)combos.push([p1,p2]);}}
           return(<div>
             <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:6}}>Wybierz sparowanie turnieju (2 pary, 4 rodziny):</div>
-            {combos.length===0&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak dostępnych sparowań — wszystkie możliwe pary zostały już rozegrane.</div>}
+            {combos.length===0&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak dost\u0119pnych sparowa\u0144 \u2014 wszystkie mo\u017cliwe pary zosta\u0142y ju\u017c rozegrane.</div>}
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
-              {combos.map((combo,ci2)=>{
-                var [p1,p2]=combo;
-                return(<div key={ci2} style={{display:"flex",gap:8,alignItems:"center",background:"#fff",border:"1px solid #D4C4A8",borderRadius:6,padding:"8px 12px"}}>
-                  <div style={{flex:1,fontSize:13}}><b style={{color:FM[p1.a].col}}>{FM[p1.a].nom}</b> vs <b style={{color:FM[p1.b].col}}>{FM[p1.b].nom}</b></div>
-                  <div style={{fontSize:13,color:"#8B7355"}}>+</div>
-                  <div style={{flex:1,fontSize:13}}><b style={{color:FM[p2.a].col}}>{FM[p2.a].nom}</b> vs <b style={{color:FM[p2.b].col}}>{FM[p2.b].nom}</b></div>
-                  <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                    <input type="number" id={"tBet"+ci2} min={1} max={revMaxBet} step={1} defaultValue={Math.min(30,revMaxBet)} style={{width:70,padding:4,borderRadius:4,border:"1px solid #842504",fontSize:13}}/>
-                    <span style={{fontSize:11,color:"#8B7355"}}>$</span>
-                    <button style={btnS("success")} onClick={()=>{var v=parseInt(document.getElementById("tBet"+ci2).value)||0;if(v<1||v>revMaxBet){showMsg("Stawka od 1 do "+revMaxBet+" $");return;}revStartTournament([p1.a,p1.b],[p2.a,p2.b],v);}}>Startuj turniej</button>
-                  </div>
-                </div>);
-              })}
+              {combos.map((combo,ci2)=>{var [p1,p2]=combo;return(<div key={ci2} style={{display:"flex",gap:8,alignItems:"center",background:"#fff",border:"1px solid #D4C4A8",borderRadius:6,padding:"8px 12px"}}>
+                <div style={{flex:1,fontSize:13}}><b style={{color:FM[p1.a].col}}>{FM[p1.a].nom}</b> vs <b style={{color:FM[p1.b].col}}>{FM[p1.b].nom}</b></div>
+                <div style={{fontSize:13,color:"#8B7355"}}>+</div>
+                <div style={{flex:1,fontSize:13}}><b style={{color:FM[p2.a].col}}>{FM[p2.a].nom}</b> vs <b style={{color:FM[p2.b].col}}>{FM[p2.b].nom}</b></div>
+                <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                  <input type="number" id={"tBet"+ci2} min={1} max={revMaxBet} step={1} defaultValue={Math.min(30,revMaxBet)} style={{width:70,padding:4,borderRadius:4,border:"1px solid #842504",fontSize:13}}/>
+                  <span style={{fontSize:11,color:"#8B7355"}}>$</span>
+                  <button style={btnS("success")} onClick={()=>{var v=parseInt(document.getElementById("tBet"+ci2).value)||0;if(v<1||v>revMaxBet){showMsg("Stawka od 1 do "+revMaxBet+" $");return;}revStartTournament([p1.a,p1.b],[p2.a,p2.b],v);}}>Startuj turniej</button>
+                </div>
+              </div>);})}
             </div>
           </div>);
         })()}
-
-        {/* === ACTIVE DUELS DISPLAY (both modes) === */}
         {revActive.filter(d=>d.status!=="betting").length>0&&<div style={{display:"grid",gridTemplateColumns:revActive.filter(d=>d.status!=="betting").length>1?"1fr 1fr":"1fr",gap:12,marginTop:8}}>
           {revActive.filter(d=>d.status!=="betting").map(duel=>{
             var dt=getRevTimer(duel.id);
             return(<div key={duel.id} style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:12}}>
-              <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:4}} className="wt">{FM[duel.familyA].nom} vs {FM[duel.familyB].nom} — stawka: {duel.bet} $</div>
+              <div style={{fontSize:13,fontWeight:700,color:"#8B2500",marginBottom:4}} className="wt">{FM[duel.familyA].nom} vs {FM[duel.familyB].nom} {"\u2014"} stawka: {duel.bet} $</div>
               {duel.status==="playing"&&<div>
                 <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-                  <div style={{fontSize:13,color:FM[duel.familyA].col}}><b>{FM[duel.familyA].nom}</b>: {duel.ammoA} szt. {duel.shotsA!==null?"(✓ gotowy)":"(czeka...)"}</div>
-                  <div style={{fontSize:13,color:FM[duel.familyB].col}}><b>{FM[duel.familyB].nom}</b>: {duel.ammoB} szt. {duel.shotsB!==null?"(✓ gotowy)":"(czeka...)"}</div>
+                  <div style={{fontSize:13,color:FM[duel.familyA].col}}><b>{FM[duel.familyA].nom}</b>: {duel.ammoA} szt. {duel.shotsA!==null?"(\u2713 gotowy)":"(czeka...)"}</div>
+                  <div style={{fontSize:13,color:FM[duel.familyB].col}}><b>{FM[duel.familyB].nom}</b>: {duel.ammoB} szt. {duel.shotsB!==null?"(\u2713 gotowy)":"(czeka...)"}</div>
                 </div>
-                {/* PLANSZA MINI */}
                 <div style={{display:"flex",gap:2,marginBottom:8,alignItems:"stretch"}}>
                   {["WYGRANA","DOMINACJA","PRZEWAGA","POJEDYNEK","PRZEWAGA","DOMINACJA","WYGRANA"].map((label,idx)=>{
                     var pos=idx-3,isBullet=duel.bulletPos===pos;
@@ -3378,12 +3389,11 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
                       {img&&<img src={img} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt={label}/>}
                       {!img&&<div style={{padding:"8px 4px"}}><div style={{fontSize:13,fontWeight:700,color:"#8B7355",textTransform:"uppercase"}}>{label}</div></div>}
                       {isBullet&&<div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,50%)"}}>
-                        {getRevImg("NABOJ_ZNACZNIK")?<img src={getRevImg("NABOJ_ZNACZNIK")} style={{height:28,filter:"drop-shadow(0 2px 3px rgba(0,0,0,0.5))"}} alt="nabój"/>:<div style={{fontSize:18}}>●</div>}
+                        {getRevImg("NABOJ_ZNACZNIK")?<img src={getRevImg("NABOJ_ZNACZNIK")} style={{height:28,filter:"drop-shadow(0 2px 3px rgba(0,0,0,0.5))"}} alt="nab\u00f3j"/>:<div style={{fontSize:18}}>{"\u25CF"}</div>}
                       </div>}
                     </div>);
                   })}
                 </div>
-                {/* AMUNICJA */}
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:6}}>
                   {[["A",duel.familyA,duel.ammoA],["B",duel.familyB,duel.ammoB]].map(([side,fam,ammo])=>{
                     var col=FM[fam].col;var ammoImg=getRevImg("NABOJ_AMMO");var rows=[];
@@ -3392,11 +3402,11 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
                   })}
                 </div>
                 {(duel.rounds||[]).length>0&&<div style={{fontSize:12,color:"#8B7355",marginBottom:4}}>
-                  {(duel.rounds||[]).map((r,i)=><span key={i} style={{marginRight:6}}>R{i+1}: {r.shotsA} vs {r.shotsB} → {r.winner==="A"?"←":r.winner==="B"?"→":"="}</span>)}
+                  {(duel.rounds||[]).map((r,i)=><span key={i} style={{marginRight:6}}>R{i+1}: {r.shotsA} vs {r.shotsB} {"\u2192"} {r.winner==="A"?"\u2190":r.winner==="B"?"\u2192":"="}</span>)}
                 </div>}
-                {duel.shotsA!==null&&duel.shotsB!==null&&<button style={{...btnS("warning"),fontSize:12}} onClick={()=>revRevealDuel(duel.id)}>Odsłoń strzały</button>}
+                {duel.shotsA!==null&&duel.shotsB!==null&&<button style={{...btnS("warning"),fontSize:12}} onClick={()=>revRevealDuel(duel.id)}>Ods\u0142o\u0144 strza\u0142y</button>}
                 {duel.timerPhase&&dt>0&&<div style={{fontSize:14,fontWeight:700,color:dt<=5?"#8B2500":"#842504",textAlign:"center",padding:"4px 0",fontFamily:"monospace"}}>
-                  {duel.timerPhase==="declaration"?"Deklaracja: ":"Odsłonięcie: "}{dt}s
+                  {duel.timerPhase==="declaration"?"Deklaracja: ":"Ods\u0142oni\u0119cie: "}{dt}s
                 </div>}
               </div>}
               {duel.status==="finished"&&<div style={{background:"#FFF0EC",border:"1px solid #8B2500",borderRadius:4,padding:10,marginTop:4}}>
@@ -3408,43 +3418,78 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
             </div>);
           })}
         </div>}
-        {/* Rozlicz oba — tournament shortcut */}
         {revMode==="tournament"&&revActive.length>0&&revActive.every(d=>d.status==="finished")&&<div style={{textAlign:"center",marginTop:10}}>
           <button style={btnS("success")} onClick={()=>{revActive.forEach(d=>revSettleDuel(d.id));}}>Rozlicz oba pojedynki</button>
         </div>}
-
-        {/* HISTORIA */}
         {(revDuels||[]).length>0&&<div style={{marginTop:12}}>
-          <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:4}}>Historia pojedynków:</div>
+          <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:4}}>Historia pojedynk\u00f3w:</div>
           {revDuels.map(d=>{var wN=d.winner?FM[d.winner].nom:"Remis";return(
-            <div key={d.id} style={{fontSize:13,color:"#5C4A3A",padding:"3px 0",borderBottom:"1px dotted #D4C4A8"}}>{FM[d.familyA].nom} vs {FM[d.familyB].nom} — <b>{wN}</b> ({d.winField}, {d.rounds.length} rund, stawka {d.bet} $)</div>
+            <div key={d.id} style={{fontSize:13,color:"#5C4A3A",padding:"3px 0",borderBottom:"1px dotted #D4C4A8"}}>{FM[d.familyA].nom} vs {FM[d.familyB].nom} {"\u2014"} <b>{wN}</b> ({d.winField}, {d.rounds.length} rund, stawka {d.bet} $)</div>
           );})}
         </div>}
-      </div>}
-    </div>
-    {/* === 8. BUDOWANIE RELACJI === */}
-    <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:20}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-        <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Budowanie relacji</div>
-        {!readOnly&&!relationsUnlocked&&<button style={btnS("success",false)} onClick={()=>setRelationsUnlocked(true)}>Odblokuj BUDOWANIE RELACJI</button>}
-        {!readOnly&&relationsUnlocked&&<button style={btnS("danger",false)} onClick={()=>{if(window.confirm("Na pewno zablokować zakładkę BUDOWANIE RELACJI dla wszystkich graczy?"))setRelationsUnlocked(false);}}>Zablokuj BUDOWANIE RELACJI</button>}
-      </div>
-      {relationsUnlocked&&<div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
+      </div>:<div style={{padding:20,textAlign:"center",color:"#A89070",fontSize:14,fontStyle:"italic"}}>Rewolwerowiec jest zablokowany</div>)}
+
+      {/* Tab content: Relacje */}
+      {mechTab==="rel"&&(relationsUnlocked?<div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
         {FO.map(fId=>{var f=FM[fId];var relS=calcRelationScore(fId,relations);
           return (<div key={fId} style={{background:"#fff",border:"1px solid "+f.col,borderRadius:5,padding:8}}>
             <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:4}} className="wt">{f.nom}</div>
             <div style={{fontSize:13,color:"#5C4A3A"}}>Otrzymane: <b>{relS} pkt</b></div>
             {FO.filter(r=>r!==fId).map(rater=>{var r=relations[rater]&&relations[rater][fId];
-              return (<div key={rater} style={{fontSize:13,color:"#8B7355",marginTop:2}}>od {FM[rater].gen}: {r?(r.partnership||0)+"+"+(r.rules||0)+"+"+(r.communication||0)+"="+(((r.partnership||0)+(r.rules||0)+(r.communication||0)))+"★":"—"}</div>);
+              return (<div key={rater} style={{fontSize:13,color:"#8B7355",marginTop:2}}>od {FM[rater].gen}: {r?(r.partnership||0)+"+"+(r.rules||0)+"+"+(r.communication||0)+"="+(((r.partnership||0)+(r.rules||0)+(r.communication||0)))+"\u2605":"\u2014"}</div>);
             })}
           </div>);
         })}
-      </div>}
+      </div>:<div style={{padding:20,textAlign:"center",color:"#A89070",fontSize:14,fontStyle:"italic"}}>Budowanie relacji jest zablokowane</div>)}
+
+      {/* Tab content: BnB */}
+      {mechTab==="bnb"&&(bnbEnabled?<div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+          <span style={{fontSize:13,fontWeight:700,color:bnbSettled?"#2E5B3C":"#8B7714",padding:"3px 10px",background:bnbSettled?"#E8F5E8":"#FFF8E7",borderRadius:4,border:"1px solid "+(bnbSettled?"#90C090":"#D4C870")}}>{bnbSettled?"Rozliczono":"Aktywny"}</span>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
+          {FO.map(fId=>{
+            var f=FM[fId],p=BNB_PRODUCTS[fId];
+            var ownCards=fd[fId].items.filter(i=>i.cat===C_BNB&&i.bnbOrigin===fId);
+            var soldCount=p.qty-ownCards.length;
+            var soldAll=ownCards.length===0;
+            var boughtCards=fd[fId].items.filter(i=>i.cat===C_BNB&&i.bnbOrigin!==fId);
+            var boughtGrouped={};boughtCards.forEach(i=>{if(!boughtGrouped[i.bnbOrigin])boughtGrouped[i.bnbOrigin]=0;boughtGrouped[i.bnbOrigin]++;});
+            return(<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
+              <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
+              <div style={{fontSize:13,color:"#5C4A3A",marginBottom:6}}><b>Sprzedaje:</b> {p.name}</div>
+              <div style={{display:"flex",gap:12,marginBottom:6}}>
+                <div style={{fontSize:13,color:"#5C4A3A"}}>
+                  Stan: <b style={{color:soldAll?"#2E5B3C":"#8B7355"}}>{ownCards.length}/{p.qty}</b>
+                  <span style={{marginLeft:4,fontSize:13,color:"#A89070"}}>(sprzedano {soldCount})</span>
+                </div>
+              </div>
+              {soldAll&&<div style={{fontSize:13,color:"#2E5B3C",fontWeight:600,marginBottom:4}}>Sprzedano wszystko {"\u2014"} bonifikata 100 $</div>}
+              {boughtCards.length>0&&<div style={{borderTop:"1px solid #E0D8E8",paddingTop:4,marginTop:4}}>
+                <div style={{fontSize:13,fontWeight:700,color:"#A89070",marginBottom:2}}>Zakupione od innych:</div>
+                {Object.keys(boughtGrouped).map(o=><div key={o} style={{fontSize:13,color:"#5C4A3A"}}>{BNB_PRODUCTS[o].shortName} {"\u00d7"}{boughtGrouped[o]} <span style={{color:"#A89070"}}>(od {FM[o].gen})</span></div>)}
+              </div>}
+            </div>);
+          })}
+        </div>
+        {bnbSettled&&<div style={{marginTop:10,padding:8,background:"#E8F5E8",border:"1px solid #90C090",borderRadius:4,fontSize:13,color:"#2E5B3C",textAlign:"center",fontWeight:600}}>Rozliczenie ko\u0144cowe przeprowadzone {"\u2014"} prowizje pobrane</div>}
+      </div>:<div style={{padding:20,textAlign:"center",color:"#A89070",fontSize:14,fontStyle:"italic"}}>Biznes na boku nie jest aktywny</div>)}
     </div>
-    {/* === 9. KSIĘGOWOŚĆ (PER FAMILY) === */}
+
+    {/* === 6. KSIĘGOWOŚĆ === */}
     <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14}}>
-      <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:12}} className="wt">Księgowość</div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+        <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Ksi\u0119gowo\u015b\u0107</div>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          {!readOnly&&allTx.length>0&&!undoConfirm&&<button style={btnS("danger")} onClick={()=>setUndoConfirm(true)}>Cofnij ostatni\u0105 transakcj\u0119</button>}
+          {!readOnly&&undoConfirm&&<div style={{display:"flex",gap:4,alignItems:"center",background:"#FEE",padding:"4px 8px",borderRadius:4,border:"1px solid #C88"}}>
+            <span style={{fontSize:13,color:"#8B2500"}}>Cofn\u0105\u0107: {allTx[0]&&(FM[allTx[0].from].nom+"\u2192"+FM[allTx[0].to].nom)}?</span>
+            <button style={{...btnS("danger"),fontSize:13,padding:"3px 8px"}} onClick={undoLastTx}>Tak</button>
+            <button style={{...btnS("primary"),fontSize:13,padding:"3px 8px"}} onClick={()=>setUndoConfirm(false)}>Nie</button>
+          </div>}
+        </div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
       {FO.map(fId=>{
         var f=FM[fId];
         var fTx=allTx.filter(t=>t.from===fId||t.to===fId);
@@ -3456,20 +3501,22 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
         var hasAny=fTx.length>0||fPen.length>0||fFate.length>0||fMap.length>0||fBnb.length>0||fRev.length>0;
         return(<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
           <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
-          {!hasAny&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak wpisów</div>}
+          <div style={{maxHeight:220,overflowY:"auto"}}>
+          {!hasAny&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak wpis\u00f3w</div>}
           {fTx.map(tx=>{
             var isFrom=tx.from===fId,other=FM[isFrom?tx.to:tx.from];
             return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#5C4A3A"}}>
-              <b style={{color:tx.type==="sale"?"#8B7355":"#4A3B6B"}}>{tx.type==="sale"?(isFrom?"Sprzedaż":"Zakup"):"Barter"}</b> {isFrom?"\u2192":"\u2190"} {other.nom}
+              <b style={{color:tx.type==="sale"?"#8B7355":"#4A3B6B"}}>{tx.type==="sale"?(isFrom?"Sprzeda\u017c":"Zakup"):"Barter"}</b> {isFrom?"\u2192":"\u2190"} {other.nom}
               {tx.type==="sale"&&<span>: {fmtItems(tx.offeredItems)} za {tx.price} $</span>}
-              {tx.type==="barter"&&<span>: {fmtItems(tx.offeredItems)} \u2194 {fmtItems(tx.responseItems)}</span>}
+              {tx.type==="barter"&&<span>: {fmtItems(tx.offeredItems)} {"\u2194"} {fmtItems(tx.responseItems)}</span>}
             </div>);
           })}
-          {fFate.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#2E5B3C"}}><b>Ślepy los:</b> {tx.description}</div>))}
-          {fMap.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B7714"}}><b>Mapa:</b> {tx.from===fId?"Bonus 300 $ (kompletna mapa)":"Opłata 100 $ (mapa "+FM[tx.from].gen+")"}</div>))}
+          {fFate.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#2E5B3C"}}><b>{"\u015Alepy los:"}</b> {tx.description}</div>))}
+          {fMap.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B7714"}}><b>Mapa:</b> {tx.from===fId?"Bonus 300 $ (kompletna mapa)":"Op\u0142ata 100 $ (mapa "+FM[tx.from].gen+")"}</div>))}
           {fBnb.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B7714"}}><b>BnB:</b> {tx.description}</div>))}
           {fRev.map(tx=>{var isWin=tx.to===fId;return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B2500"}}><b>Rewolwerowiec:</b> {isWin?"Wygrana":"Przegrana"} {tx.amount} $ ({tx.field}) {isWin?"\u2190 "+FM[tx.from].nom:"\u2192 "+FM[tx.to].nom}</div>);})}
-          {fPen.map(tx=>(<div key={tx.id} style={{padding:"4px 0",fontSize:13,color:"#8B2500"}}><b>Działka:</b> {tx.description}</div>))}
+          {fPen.map(tx=>(<div key={tx.id} style={{padding:"4px 0",fontSize:13,color:"#8B2500"}}><b>Dzia\u0142ka:</b> {tx.description}</div>))}
+          </div>
         </div>);
       })}
       </div>
@@ -4291,7 +4338,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.22.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.23.0</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -4621,7 +4668,7 @@ function App({roomCode,role,playerId,playerName}) {
             })}
           </div>}
           {(pMode==="sale"||pMode==="barter")&&pStep===2&&<div>
-            <div style={{fontSize:13,fontWeight:700,color:"#D7B56D",textTransform:"uppercase",letterSpacing:"1px",marginBottom:8}}>{pMode==="sale"?"Wybierz towar":"Wybierz co oferujesz"}</div>
+            <div style={{fontSize:15,fontWeight:700,color:"#fff",textTransform:"uppercase",letterSpacing:"1px",marginBottom:8}}>{pMode==="sale"?"Wybierz towar":"Wybierz co oferujesz"}</div>
             <div style={{maxHeight:380,overflowY:"auto"}}>{(()=>{
               // Zbierz ID kart zaangażowanych w transakcje (pending, awaiting, accepted)
               var committedIds=new Set();
@@ -4639,7 +4686,7 @@ function App({roomCode,role,playerId,playerName}) {
                 {cat:C_PLOT,  label:"Działka",                       col:"#A08050",bg:"#FDFAF4"},
                 {cat:C_MAP,   label:"Fragment mapy",                 col:"#A09020",bg:"#FFFDF0"},
               ];
-              var hdrS={fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",marginBottom:6,marginTop:10};
+              var hdrS={fontSize:15,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",marginBottom:6,marginTop:10};
               return cats.map(({cat,label,col,bg})=>{
                 var group=items.filter(i=>i.cat===cat);
                 // Ukryj oryginał mapy — 1 kopia własnego fragmentu jest niezbywalna
@@ -4650,7 +4697,7 @@ function App({roomCode,role,playerId,playerName}) {
                 }
                 if(!group.length)return null;
                 return (<div key={cat}>
-                  <div style={{...hdrS,color:col}}>{label}</div>
+                  <div style={{...hdrS,color:"#fff"}}>{label}</div>
                   {group.map(item=>{var sel=!!selItems.find(i=>i.id===item.id);return <div key={item.id} style={{marginBottom:4}}>
                     {cat===C_RES&&<ResourceCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
                     {cat===C_COMP&&<CompCard item={item} selected={sel} compact textOnly onClick={()=>toggleItem(item)} isSheriff={false}/>}
@@ -4667,7 +4714,7 @@ function App({roomCode,role,playerId,playerName}) {
               var grouped={};bnbItems.forEach(i=>{if(!grouped[i.bnbOrigin])grouped[i.bnbOrigin]=[];grouped[i.bnbOrigin].push(i);});
               if(Object.keys(grouped).length===0)return null;
               return(<div style={{marginTop:8,borderTop:"1px solid #D7B56D",paddingTop:8}}>
-                <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#D7B56D",marginBottom:6}}>Biznes na boku</div>
+                <div style={{fontSize:15,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#fff",marginBottom:6}}>Biznes na boku</div>
                 {Object.keys(grouped).map(origin=>{
                   var cards=grouped[origin],prod=BNB_PRODUCTS[origin];
                   var selCount=selItems.filter(i=>i.cat===C_BNB&&i.bnbOrigin===origin).length;
@@ -4698,13 +4745,13 @@ function App({roomCode,role,playerId,playerName}) {
             })()}
             </div>
             {pMode==="barter"&&<div style={{marginTop:10}}>
-              <div style={{fontSize:13,fontWeight:700,color:"#D7B56D",marginBottom:4}}>Dopłata ($)</div>
+              <div style={{fontSize:15,fontWeight:700,color:"#fff",marginBottom:4}}>Dopłata ($)</div>
               <input type="number" min="0" max={my.cash} value={eCash} onChange={e=>setECash(Math.min(Number(e.target.value),my.cash))} style={{width:100,padding:"6px 10px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:14,fontWeight:700,fontFamily:"inherit"}}/>
             </div>}
           </div>}
           {pMode==="sale"&&pStep===3&&<div>
             <div style={{background:"#F0EBE0",padding:12,borderRadius:5,marginBottom:14,fontSize:13,lineHeight:1.5}}><b>Sprzedajesz rodzinie {FM[tFam].gen}:</b><br/>{fmtItems(selItems)}</div>
-            <div style={{fontSize:13,fontWeight:700,color:"#D7B56D",marginBottom:6}}>Cena ($)</div>
+            <div style={{fontSize:15,fontWeight:700,color:"#fff",marginBottom:6}}>Cena ($)</div>
             <input type="number" min="1" value={price} onChange={e=>setPrice(Number(e.target.value))} style={{width:120,padding:"8px 12px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:20,fontWeight:700,fontFamily:"inherit"}}/>
           </div>}
           {pMode==="barter"&&pStep===3&&<div style={{background:"#F0EBE0",padding:12,borderRadius:5,fontSize:13,lineHeight:1.6}}>
@@ -4712,7 +4759,7 @@ function App({roomCode,role,playerId,playerName}) {
           </div>}
           {pMode==="barter_response"&&(()=>{var tx=txs.find(t=>t.id===rTx);if(!tx)return null;return <div>
             <div style={{background:"#F0EBE0",padding:10,borderRadius:5,marginBottom:12,fontSize:13,lineHeight:1.5}}><b>Rodzina {FM[tx.from].gen} oferuje:</b> {fmtItems(tx.offeredItems)}{tx.offeredCash>0?" + "+tx.offeredCash+" $":""}</div>
-            <div style={{fontSize:13,fontWeight:700,color:"#D7B56D",marginBottom:8}}>Co oferujesz w zamian?</div>
+            <div style={{fontSize:15,fontWeight:700,color:"#fff",marginBottom:8}}>Co oferujesz w zamian?</div>
             <div style={{maxHeight:300,overflowY:"auto"}}>{(()=>{
               var committedIds2=new Set();
               txs.forEach(function(t){
@@ -4744,7 +4791,7 @@ function App({roomCode,role,playerId,playerName}) {
               var grouped={};bnbItems.forEach(i=>{if(!grouped[i.bnbOrigin])grouped[i.bnbOrigin]=[];grouped[i.bnbOrigin].push(i);});
               if(Object.keys(grouped).length===0)return null;
               return(<div style={{marginTop:8,borderTop:"1px solid #D7B56D",paddingTop:8}}>
-                <div style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#D7B56D",marginBottom:6}}>Biznes na boku</div>
+                <div style={{fontSize:15,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",color:"#fff",marginBottom:6}}>Biznes na boku</div>
                 {Object.keys(grouped).map(origin=>{
                   var cards=grouped[origin],prod=BNB_PRODUCTS[origin];
                   var selCount=selItems.filter(i=>i.cat===C_BNB&&i.bnbOrigin===origin).length;
@@ -4774,7 +4821,7 @@ function App({roomCode,role,playerId,playerName}) {
               </div>);
             })()}
             </div>
-            <div style={{marginTop:10}}><div style={{fontSize:13,fontWeight:700,color:"#D7B56D",marginBottom:4}}>Dopłata ($)</div>
+            <div style={{marginTop:10}}><div style={{fontSize:15,fontWeight:700,color:"#fff",marginBottom:4}}>Dopłata ($)</div>
             <input type="number" min="0" max={my.cash} value={eCash} onChange={e=>setECash(Math.min(Number(e.target.value),my.cash))} style={{width:100,padding:"6px 10px",border:"1px solid #D4C4A8",borderRadius:4,fontSize:14,fontWeight:700,fontFamily:"inherit"}}/></div>
           </div>;})()}
         </div>
