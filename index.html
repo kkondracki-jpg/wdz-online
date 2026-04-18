@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.23.0</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.24.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -18,7 +18,7 @@
       font-weight: 400; font-style: normal;
     }
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Alegreya Sans',sans-serif;background-color:#F5F0E8;color:#2C1810;font-size:14px;background-repeat:no-repeat,repeat;background-size:100% auto,auto;background-position:top center,top left}
+    body{font-family:'Alegreya Sans',sans-serif;background-color:#F5F0E8;color:#2C1810;font-size:14px;background-repeat:no-repeat,repeat;background-size:100% auto,auto;background-position:top center,top left;overflow-x:hidden}
     #root{min-height:100vh}
     ::-webkit-scrollbar{width:6px}
     ::-webkit-scrollbar-track{background:#F0EBE0}
@@ -454,7 +454,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.23.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.24.0</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1531,6 +1531,25 @@ function TxDisplay({tx,cf,onAccept,onReject,onRespond}) {
     var isWin=tx.to===cf;
     return (<div style={{padding:12,borderRadius:5,border:"1px solid #C08060",background:"#FFF5F0",marginBottom:8}}>
       <div style={{fontSize:13,color:"#8B2500"}}><b>REWOLWEROWIEC</b> — {isWin?"Wygrana":"Przegrana"}: {tx.amount} $ (pole: {tx.field}) {isWin?("od "+FM[tx.from].gen):("dla "+FM[tx.to].gen)}</div>
+    </div>);
+  }
+
+  // Cancelled
+  if(tx.status==="cancelled") {
+    var dirL2=tx.type==="sale"?(isFrom?"SPRZEDAŻ":"ZAKUP"):"BARTER";
+    return (<div style={{padding:12,borderRadius:5,border:"1px solid #C09090",background:"#FFF0F0",marginBottom:8}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+        <span style={{fontSize:14,fontWeight:700,color:"#8B2500"}}>
+          <span style={{textTransform:"uppercase",letterSpacing:"1px",marginRight:6}}>{dirL2}</span>
+          {isFrom?"→ ":"← "}{other}
+        </span>
+        <span style={{fontSize:13,fontWeight:700,textTransform:"uppercase",letterSpacing:"1px",padding:"2px 6px",borderRadius:3,background:"#8B2500",color:"#fff"}}>Anulowana</span>
+      </div>
+      <div style={{fontSize:13,color:"#8B2500",lineHeight:1.5}}>
+        {tx.type==="sale"&&<div><b>Towar:</b> {fmtItems(tx.offeredItems)} — <b>Cena:</b> {tx.price} $</div>}
+        {tx.type==="barter"&&<div><b>Oferta:</b> {fmtItems(tx.offeredItems)}{tx.offeredCash>0?" + "+tx.offeredCash+" $":""}</div>}
+        {tx.cancelReason&&<div style={{fontSize:12,color:"#A06040",fontStyle:"italic",marginTop:2}}>{tx.cancelReason}</div>}
+      </div>
     </div>);
   }
 
@@ -2911,7 +2930,7 @@ function SheriffPlanningTab({readOnly,roomCode,lobbyPlayers,gameStarted,setGameS
     </div>
     <div style={{marginTop:16}}>
       {!gameStarted&&<button onClick={()=>{if(!readOnly){
-        db.ref("rooms/"+roomCode+"/meta/status").set("playing");setGameStarted(true);showMsg("Rozgrywka rozpoczęta!");
+        db.ref("rooms/"+roomCode+"/meta/status").set("playing");setGameStarted(true);showMsg("Gracze wpuszczeni! Rozgrywkę rozpocznij przyciskiem Start w zakładce Rozgrywka.");
       }}} disabled={!canStart} style={{width:"100%",padding:"12px 20px",fontSize:15,fontFamily:"inherit",fontWeight:700,background:canStart?"#2E5B3C":"#C4B090",color:"#fff",border:"none",cursor:canStart?"pointer":"not-allowed",opacity:canStart?1:0.6}}>
         {readOnly?"Tryb tylko do podglądu":connFam.length===4?"Wpuść graczy (wszyscy gotowi)":"Wpuść graczy ("+connFam.length+"/4 rodzin)"}
       </button>}
@@ -3498,7 +3517,8 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
         var fMap=txs.filter(t=>t.type==="map_bonus"&&t.status==="accepted"&&(t.from===fId||(t.to==="all"&&t.from!==fId)));
         var fBnb=txs.filter(t=>t.type==="bnb_settle"&&t.from===fId&&t.status==="accepted");
         var fRev=txs.filter(t=>t.type==="revolver"&&(t.from===fId||t.to===fId)&&t.status==="accepted");
-        var hasAny=fTx.length>0||fPen.length>0||fFate.length>0||fMap.length>0||fBnb.length>0||fRev.length>0;
+        var fCancelled=txs.filter(t=>t.status==="cancelled"&&(t.type==="sale"||t.type==="barter")&&(t.from===fId||t.to===fId));
+        var hasAny=fTx.length>0||fPen.length>0||fFate.length>0||fMap.length>0||fBnb.length>0||fRev.length>0||fCancelled.length>0;
         return(<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
           <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
           <div style={{maxHeight:220,overflowY:"auto"}}>
@@ -3516,6 +3536,11 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
           {fBnb.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B7714"}}><b>BnB:</b> {tx.description}</div>))}
           {fRev.map(tx=>{var isWin=tx.to===fId;return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B2500"}}><b>Rewolwerowiec:</b> {isWin?"Wygrana":"Przegrana"} {tx.amount} $ ({tx.field}) {isWin?"← "+FM[tx.from].nom:"→ "+FM[tx.to].nom}</div>);})}
           {fPen.map(tx=>(<div key={tx.id} style={{padding:"4px 0",fontSize:13,color:"#8B2500"}}><b>Działka:</b> {tx.description}</div>))}
+          {fCancelled.map(tx=>{var isFrom=tx.from===fId,other=FM[isFrom?tx.to:tx.from];return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B2500",fontStyle:"italic"}}>
+            <b>ANULOWANA:</b> {tx.type==="sale"?(isFrom?"Sprzedaż":"Zakup"):"Barter"} {isFrom?"→":"←"} {other.nom}
+            {tx.type==="sale"&&<span>: {fmtItems(tx.offeredItems)} za {tx.price} $</span>}
+            {tx.cancelReason&&<span> ({tx.cancelReason})</span>}
+          </div>);})}
           </div>
         </div>);
       })}
@@ -4068,6 +4093,17 @@ function App({roomCode,role,playerId,playerName}) {
 
   function startStage(idx){
     if(idx<0||idx>=STAGES.length)return;
+    // Reset przy starcie rozgrywki — przywróć stan początkowy
+    if(idx===0){
+      var d={};FO.forEach(f=>{d[f]={cash:600,items:START[f].cards.slice()};});
+      setFd(d);setTxs([]);
+      setConsultations({});setConsultNotes({adams:"",bennet:"",clinton:"",dexter:""});
+      setBlindFate({});setPlotPenalties({});setRelations({});
+      setMapBonusClaimed({});setMapLayout({adams:[0,0,0,0],bennet:[0,0,0,0],clinton:[0,0,0,0],dexter:[0,0,0,0]});
+      setSheriffCalls([]);
+    }
+    // Auto-cancel pending txs z poprzedniego etapu
+    setTxs(prev=>{var changed=false;var n=prev.map(t=>{if(t.status==="pending"||t.status==="awaiting_response"){changed=true;return{...t,status:"cancelled",cancelReason:"Koniec tury"};}return t;});return changed?n:prev;});
     setStageIdx(idx);setGameStarted(true);
     var dur=stageDurations[STAGES[idx].id]*60;
     var now=Date.now()+serverTimeOffset; // S3: czas serwerowy
@@ -4097,7 +4133,14 @@ function App({roomCode,role,playerId,playerName}) {
     showMsg("Wznowiono");
   }
   function advanceStage(){if(timerRef.current)clearInterval(timerRef.current);setTimerRunning(false);
+    resetP(); // zamknij otwarty formularz
     if(stageIdx<STAGES.length-1)startStage(stageIdx+1);else{if(bnbEnabled&&!bnbSettled)settleBnb();showMsg("Rozgrywka zakończona!");}}
+
+  // Trade partner & phase helpers
+  var gameActive=stageIdx>=0;
+  var curStage=gameActive?STAGES[stageIdx]:null;
+  var isTradePhase=!gameActive||!!(curStage&&curStage.type==="turn"&&curStage.pairingIdx!==null);
+  var tradePartner=gameActive&&curStage&&curStage.type==="turn"&&curStage.pairingIdx!==null?getMeetingPartner(cf,curStage.pairingIdx):null;
 
   function resetP(keepLock){
     setShowP(false);setPMode(null);setPStep(1);setTFam(null);setSelItems([]);setPrice(0);setECash(0);setRTx(null);setSending(false);
@@ -4105,15 +4148,23 @@ function App({roomCode,role,playerId,playerName}) {
     if(!keepLock&&db&&cf)db.ref("rooms/"+roomCode+"/txLock/"+cf).transaction(function(v){return v===sessionId.current?null:v;});
   }
   // T5 — otwieranie formularza TX z blokadą per rodzina
-  function openTxForm(pMode,extra){
-    if(!db){resetP();setShowP(true);setPMode(pMode);if(extra)extra();return;}
+  function openTxForm(mode,extra){
+    // Blokada handlu poza turami (po starcie gry)
+    if(gameActive&&!isTradePhase){showMsg("Handel jest możliwy tylko w trakcie tur handlowych!");return;}
+    if(!db){resetP();setShowP(true);setPMode(mode);
+      // Auto-assign partner w turze
+      if(gameActive&&tradePartner&&mode!=="barter_response"){setTFam(tradePartner);setPStep(2);}
+      if(extra)extra();return;}
     db.ref("rooms/"+roomCode+"/txLock/"+cf).transaction(function(v){
       if(v&&v!==sessionId.current)return; // abort — inny gracz tej rodziny ma formularz
       return sessionId.current;
     },function(err,committed){
       if(!committed){showMsg("Formularz transakcji jest już otwarty przez innego uczestnika tej rodziny!");return;}
       db.ref("rooms/"+roomCode+"/txLock/"+cf).onDisconnect().remove();
-      resetP(true);setShowP(true);setPMode(pMode);if(extra)extra();
+      resetP(true);setShowP(true);setPMode(mode);
+      // Auto-assign partner w turze
+      if(gameActive&&tradePartner&&mode!=="barter_response"){setTFam(tradePartner);setPStep(2);}
+      if(extra)extra();
     });
   }
   function toggleItem(item){
@@ -4338,7 +4389,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.23.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.24.0</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -4622,9 +4673,13 @@ function App({roomCode,role,playerId,playerName}) {
         </div>
         {(activeTab==="inv"||activeTab==="tutorial")&&<div style={{position:"sticky",top:12,alignSelf:"start"}}>
           {/* Przyciski transakcji */}
-          {!viewSheriff&&<div style={{display:"flex",gap:6,marginBottom:12}}>
+          {!viewSheriff&&isTradePhase&&<div style={{display:"flex",gap:6,marginBottom:12}}>
             <img src={IMG_BASE+"przycisk_sprzedaz.png"} style={{width:177,height:50,cursor:"pointer",display:"block"}} alt="Sprzedaż" onClick={()=>openTxForm("sale")}/>
             <img src={IMG_BASE+"przycisk_barter.png"} style={{width:177,height:50,cursor:"pointer",display:"block"}} alt="Barter" onClick={()=>openTxForm("barter")}/>
+          </div>}
+          {!viewSheriff&&gameActive&&!isTradePhase&&<div style={{display:"flex",gap:6,marginBottom:12,opacity:0.35,pointerEvents:"none"}}>
+            <img src={IMG_BASE+"przycisk_sprzedaz.png"} style={{width:177,height:50,display:"block",filter:"grayscale(1)"}} alt="Sprzedaż"/>
+            <img src={IMG_BASE+"przycisk_barter.png"} style={{width:177,height:50,display:"block",filter:"grayscale(1)"}} alt="Barter"/>
           </div>}
           {!viewSheriff&&<div style={{marginBottom:16}}>
             {(()=>{var myWaiting=sheriffCalls.filter(c=>c.fId===cf&&c.status==="waiting");var hasWaiting=myWaiting.length>0;
@@ -4655,13 +4710,17 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{position:"fixed",top:0,right:0,width:420,height:"100vh",backgroundImage:"url("+IMG_BASE+"sprzedaz_tlo.png)",backgroundSize:"cover",backgroundPosition:"center bottom",backgroundRepeat:"no-repeat",backgroundColor:"#2C1810",boxShadow:"-4px 0 20px rgba(0,0,0,0.15)",zIndex:100,display:"flex",flexDirection:"column"}}>
         <div style={{background:"#D7B56D",color:"#fff",padding:"14px 18px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:"1px solid #D7B56D"}}>
           <div style={{fontSize:15,fontWeight:700}}>
-            {pMode==="sale"&&["Sprzedaż — 1/3: Komu?","Sprzedaż — 2/3: Co?","Sprzedaż — 3/3: Cena"][pStep-1]}
-            {pMode==="barter"&&["Barter — 1/3: Komu?","Barter — 2/3: Co oferujesz?","Barter — 3/3: Podsumowanie"][pStep-1]}
+            {pMode==="sale"&&(pStep===1?"Sprzedaż: Komu?":pStep===2?"Sprzedaż: Co?":"Sprzedaż: Cena")}
+            {pMode==="barter"&&(pStep===1?"Barter: Komu?":pStep===2?"Barter: Co oferujesz?":"Barter: Podsumowanie")}
             {pMode==="barter_response"&&"Kontr-oferta barterowa"}
           </div>
           <button style={{background:"none",border:"none",color:"#fff",fontSize:18,cursor:"pointer"}} onClick={resetP}>X</button>
         </div>
         <div style={{padding:16,flex:1,overflowY:"auto"}}>
+          {/* Auto-partner info */}
+          {gameActive&&tradePartner&&tFam&&pMode!=="barter_response"&&<div style={{background:"rgba(255,255,255,0.85)",border:"2px solid "+FM[tFam].col,borderRadius:5,padding:"10px 14px",marginBottom:12,fontSize:14,fontWeight:700,color:FM[tFam].col}}>
+            Kontrahent: {FM[tFam].nom} ({FM[tFam].biz})
+          </div>}
           {(pMode==="sale"||pMode==="barter")&&pStep===1&&<div style={{display:"flex",flexDirection:"column",gap:6}}>
             {FO.filter(f=>f!==cf).map(fId=>{var sel=tFam===fId,col=FM[fId].col;
               return <div key={fId} onClick={()=>setTFam(fId)} style={{padding:"10px 14px",border:sel?"2px solid "+col:"1px solid #D4C4A8",borderRadius:5,background:sel?"rgba(255,255,255,0.85)":"rgba(255,255,255,0.7)",cursor:"pointer",fontWeight:sel?700:400,fontSize:14}}>{FM[fId].nom} ({FM[fId].biz})</div>;
@@ -4673,7 +4732,7 @@ function App({roomCode,role,playerId,playerName}) {
               // Zbierz ID kart zaangażowanych w transakcje (pending, awaiting, accepted)
               var committedIds=new Set();
               txs.forEach(function(t){
-                if(t.status==="rejected")return;
+                if(t.status==="rejected"||t.status==="cancelled")return;
                 if(t.from===cf&&t.offeredItems)t.offeredItems.forEach(function(i){committedIds.add(i.id);});
                 if(t.to===cf&&t.responseItems)t.responseItems.forEach(function(i){committedIds.add(i.id);});
               });
@@ -4763,7 +4822,7 @@ function App({roomCode,role,playerId,playerName}) {
             <div style={{maxHeight:300,overflowY:"auto"}}>{(()=>{
               var committedIds2=new Set();
               txs.forEach(function(t){
-                if(t.status==="rejected")return;
+                if(t.status==="rejected"||t.status==="cancelled")return;
                 if(t.from===cf&&t.offeredItems)t.offeredItems.forEach(function(i){committedIds2.add(i.id);});
                 if(t.to===cf&&t.responseItems)t.responseItems.forEach(function(i){committedIds2.add(i.id);});
               });
@@ -4826,7 +4885,7 @@ function App({roomCode,role,playerId,playerName}) {
           </div>;})()}
         </div>
         <div style={{padding:"14px 18px",borderTop:"1px solid #D7B56D",display:"flex",gap:8,justifyContent:"flex-end"}}>
-          {(pMode==="sale"||pMode==="barter")&&pStep>1&&<button style={btnS("default")} onClick={()=>setPStep(s=>s-1)}>Wstecz</button>}
+          {(pMode==="sale"||pMode==="barter")&&pStep>1&&!(gameActive&&tradePartner&&pStep===2)&&<button style={btnS("default")} onClick={()=>setPStep(s=>s-1)}>Wstecz</button>}
           <div style={{flex:1}}/>
           {(pMode==="sale"||pMode==="barter")&&pStep<3&&<button style={btnS("primary",(pStep===1&&!tFam)||(pStep===2&&!selItems.length))} onClick={()=>{var fs=formStateRef.current;if(fs.pStep===1&&!fs.tFam)return;if(fs.pStep===2&&!selItems.length)return;setPStep(s=>s+1);}}>Dalej</button>}
           {pMode==="sale"&&pStep===3&&<button style={btnS("success",price<=0||sending)} onClick={submitSale}>{sending?"Wysyłanie…":"Wyślij ofertę"}</button>}
@@ -4839,6 +4898,17 @@ function App({roomCode,role,playerId,playerName}) {
   </div>);
 }
 /* ========== GAME WRAPPER — LOBBY → GAME ========== */
+function ScaleWrapper({children}){
+  const [zoom,setZoom]=useState(1);
+  const BASE=1280;
+  React.useEffect(()=>{
+    function upd(){setZoom(window.innerWidth<BASE?window.innerWidth/BASE:1);}
+    upd();window.addEventListener("resize",upd);
+    return()=>window.removeEventListener("resize",upd);
+  },[]);
+  return <div style={{zoom}}>{children}</div>;
+}
+
 function GameWrapper(){
   const [gameInfo,setGameInfo]=useState(null); // {roomCode, role, playerId, playerName}
 
@@ -4852,9 +4922,9 @@ function GameWrapper(){
   }
 
   if(gameInfo){
-    return <App roomCode={gameInfo.roomCode} role={gameInfo.role} playerId={gameInfo.playerId} playerName={gameInfo.playerName}/>;
+    return <ScaleWrapper><App roomCode={gameInfo.roomCode} role={gameInfo.role} playerId={gameInfo.playerId} playerName={gameInfo.playerName}/></ScaleWrapper>;
   }
-  return <Lobby onJoin={handleJoin}/>;
+  return <ScaleWrapper><Lobby onJoin={handleJoin}/></ScaleWrapper>;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<GameWrapper/>);
