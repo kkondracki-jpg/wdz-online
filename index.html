@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.24.0</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.25.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -454,7 +454,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.24.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.25.0</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1477,7 +1477,7 @@ function GenericCard({item, selected, onClick}) {
   var bgCol=selected?"#FFF8E7":"#FDFAF4";
   if(isPlot&&imgOk){
     return (<div onClick={onClick} className={"cw"+(selected?" sel":"")} style={{cursor:onClick?"pointer":"default"}}>
-      <img src={IMG_BASE+"dzialka_"+item.plotNr+".jpg"} className="ci" alt={"Działka "+item.plotNr} onError={()=>setImgOk(false)}/>
+      <img src={IMG_BASE+"dzialka_"+item.plotNr+".png"} className="ci" alt={"Działka "+item.plotNr} onError={()=>setImgOk(false)}/>
       {selected&&<div style={{position:"absolute",top:4,right:6,fontSize:14,color:"#D4A853",fontWeight:700,textShadow:"0 0 3px #fff"}}>V</div>}
     </div>);
   }
@@ -1485,6 +1485,46 @@ function GenericCard({item, selected, onClick}) {
     {selected&&<span style={{position:"absolute",top:4,right:6,fontSize:13,color:"#D4A853",fontWeight:700}}>V</span>}
     <div style={{fontSize:13,fontWeight:600}}>{item.name}</div>
     <div style={{fontSize:13,textTransform:"uppercase",letterSpacing:"1px",fontWeight:700,color:"#A08050",marginTop:2}}>DZIAŁKA</div>
+  </div>);
+}
+
+/* ========== PLOT DISPLAY (nowy układ działek) ========== */
+function PlotDisplay({plots, familyId, plotOk}) {
+  var f=FM[familyId];
+  const [displayedPlotNr,setDisplayedPlotNr]=useState(null);
+  const prevPlotNrsRef=useRef(new Set());
+  useEffect(function(){
+    var currentNrs=new Set(plots.map(function(p){return p.plotNr;}));
+    var prevNrs=prevPlotNrsRef.current;
+    var newNrs=Array.from(currentNrs).filter(function(nr){return !prevNrs.has(nr);});
+    if(newNrs.length>0){setDisplayedPlotNr(newNrs[newNrs.length-1]);}
+    else if(displayedPlotNr!==null&&!currentNrs.has(displayedPlotNr)&&plots.length>0){setDisplayedPlotNr(plots[0].plotNr);}
+    else if(displayedPlotNr===null&&plots.length>0){setDisplayedPlotNr(plots[0].plotNr);}
+    prevPlotNrsRef.current=currentNrs;
+  },[plots]);
+  if(plots.length===0||displayedPlotNr===null) return null;
+  var hasPlot=function(nr){return plots.some(function(p){return p.plotNr===nr;});};
+  var SEAL_Y={1:116,4:209.5,6:302.5,20:396};
+  var bottomText=plotOk
+    ?"Pozyskali\u015Bcie dzia\u0142k\u0119 nr "+f.tPlot+", kt\u00F3ra najlepiej nadaje si\u0119 do prowadzenia Waszego biznesu."
+    :"UWAGA! Pozostaj\u0105c na niew\u0142a\u015Bciwej dzia\u0142ce ponosicie na koniec gry dodatkowy koszt w wysoko\u015Bci 50 $.";
+  return (<div style={{position:"relative",width:1200,height:580,marginBottom:12}}>
+    <img src={IMG_BASE+"dzialka_tlo-1.png"} style={{position:"absolute",left:0,top:0,width:795,height:495}} alt=""/>
+    <img src={IMG_BASE+"dzialka_"+displayedPlotNr+".png"} style={{position:"absolute",left:0,top:0,width:795,height:495}} alt={"Dzia\u0142ka "+displayedPlotNr}/>
+    <div style={{position:"absolute",left:365,bottom:219,fontFamily:"'Aka Posse',sans-serif",fontSize:"26.51px",color:"#925C24"}}>{"rodziny "+f.gen.toUpperCase()}</div>
+    <img src={IMG_BASE+"dzialka_tlo-2.png"} style={{position:"absolute",left:800,top:0,width:400,height:495}} alt=""/>
+    {[1,4,6,20].map(function(nr){
+      if(!hasPlot(nr)) return null;
+      var isActive=nr!==displayedPlotNr;
+      return (<img key={nr} src={IMG_BASE+"dzialka_pieczec_"+(isActive?"aktywna":"nieaktywna")+".png"}
+        style={{position:"absolute",left:1000,top:SEAL_Y[nr],width:57,height:54,transform:"translate(-50%,-50%)",cursor:isActive?"pointer":"default"}}
+        onClick={isActive?function(){setDisplayedPlotNr(nr);}:undefined}
+        alt={(isActive?"Poka\u017C":"Wy\u015Bwietlana")+" dzia\u0142ka nr "+nr}/>);
+    })}
+    <img src={IMG_BASE+"dzialka_tlo-3.png"} style={{position:"absolute",left:0,top:500,width:1200,height:80}} alt=""/>
+    <div style={{position:"absolute",left:0,top:500,width:1200,height:80,display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <span style={{fontFamily:"'Alegreya Sans',sans-serif",fontWeight:500,fontSize:"22.63px",color:"#51211B",whiteSpace:"nowrap"}}>{bottomText}</span>
+    </div>
   </div>);
 }
 
@@ -2528,7 +2568,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
         <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>3. Pozyskanie działki pod przedsiębiorstwo</div>
         <div style={{display:"flex",alignItems:"flex-start",gap:16}}>
           <div style={{width:120,opacity:hasCorrectPlot?1:0.4,filter:hasCorrectPlot?"none":"grayscale(100%)"}}>
-            <img src={IMG_BASE+"dzialka_"+FM[fId].tPlot+".jpg"} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:"2px solid #D4C4A8"}} alt={"Działka "+FM[fId].tPlot}/>
+            <img src={IMG_BASE+"dzialka_"+FM[fId].tPlot+".png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:"2px solid #D4C4A8"}} alt={"Działka "+FM[fId].tPlot}/>
           </div>
           <div style={{fontSize:14}}>
             <div style={{marginBottom:6}}>Wymagana działka: <b>nr {FM[fId].tPlot}</b></div>
@@ -4243,45 +4283,58 @@ function App({roomCode,role,playerId,playerName}) {
     if(dup2){showMsg("Taka propozycja barteru już oczekuje na odpowiedź!");return;}
     setTxs(p=>[{id:txId(),type:"barter",from:cf,to:tFam,offeredItems:selItems.slice(),offeredCash:Number(eCash)||0,responseItems:null,responseCash:0,status:"awaiting_response"},...p]);setSending(true);resetP();showMsg("Propozycja barteru wysłana");}
   function submitResponse(){if(!rTx||!selItems.length)return;setSending(true);setTxs(p=>p.map(t=>t.id!==rTx?t:{...t,responseItems:selItems.slice(),responseCash:Number(eCash)||0,status:"pending"}));resetP();showMsg("Kontr-oferta wysłana!");}
-  // P1-3: Ref do komunikacji błędu walidacji z wnętrza setFd
-  const txValidationError=useRef(null);
+  // P1-3: Czysta funkcja walidacji i transferu transakcji (refaktor v1.24.1)
+  // Zwraca {ok:true, newFd} lub {ok:false, error:"..."}
+  function validateAndApplyTx(currentFd, tx) {
+    var seller=currentFd[tx.from],buyer=currentFd[tx.to];
+    if(tx.type==="sale"){
+      var missing=tx.offeredItems.filter(oi=>!seller.items.find(si=>si.id===oi.id));
+      if(missing.length)return{ok:false,error:"Błąd: sprzedawca nie posiada już tych kart!"};
+      if(buyer.cash<tx.price)return{ok:false,error:"Błąd: kupujący nie ma wystarczającej gotówki ("+buyer.cash+" $ < "+tx.price+" $)!"};
+    }
+    if(tx.type==="barter"){
+      var missingFrom=tx.offeredItems.filter(oi=>!seller.items.find(si=>si.id===oi.id));
+      var missingTo=tx.responseItems?tx.responseItems.filter(ri=>!buyer.items.find(bi=>bi.id===ri.id)):[];
+      if(missingFrom.length||missingTo.length)return{ok:false,error:"Błąd: jedna ze stron nie posiada już oferowanych kart!"};
+      if(tx.offeredCash>0&&seller.cash<tx.offeredCash)return{ok:false,error:"Błąd: brak gotówki na dopłatę!"};
+      if(tx.responseCash>0&&buyer.cash<tx.responseCash)return{ok:false,error:"Błąd: brak gotówki na dopłatę!"};
+    }
+    // MAP DUPLICATE CHECK
+    if(tx.type==="sale"&&!validateMapDuplicate(tx.to,tx.offeredItems,currentFd))return{ok:false,error:"Błąd: kupujący już posiada ten fragment mapy!"};
+    if(tx.type==="barter"){
+      if(!validateMapDuplicate(tx.to,tx.offeredItems,currentFd))return{ok:false,error:"Błąd: jedna ze stron już posiada oferowany fragment mapy!"};
+      if(tx.responseItems&&!validateMapDuplicate(tx.from,tx.responseItems,currentFd))return{ok:false,error:"Błąd: jedna ze stron już posiada oferowany fragment mapy!"};
+    }
+    // Walidacja OK — oblicz transfer na niemutowalnym snapshotcie
+    var n={...currentFd};
+    var f={...n[tx.from],items:n[tx.from].items.slice(),cash:n[tx.from].cash};
+    var t={...n[tx.to],items:n[tx.to].items.slice(),cash:n[tx.to].cash};
+    if(tx.type==="sale"){
+      f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);f.cash+=tx.price;t.cash-=tx.price;
+    }else{
+      f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);
+      t.items=t.items.filter(i=>!tx.responseItems.find(r=>r.id===i.id));f.items=f.items.concat(tx.responseItems);
+      if(tx.offeredCash>0){f.cash-=tx.offeredCash;t.cash+=tx.offeredCash;}
+      if(tx.responseCash>0){t.cash-=tx.responseCash;f.cash+=tx.responseCash;}
+    }
+    n[tx.from]=f;n[tx.to]=t;
+    return{ok:true,newFd:n};
+  }
   function acceptTx(txId){
-    txValidationError.current=null;
-    setTxs(p=>p.map(tx=>{if(tx.id!==txId)return tx;
-    // S2 — guard: nie akceptuj już zaakceptowanej TX
-    if(tx.status==="accepted")return tx;
-    // P1-3: Walidacja przeniesiona do setFd — tutaj tylko wstępny check
-    setFd(fd2=>{
-      var seller=fd2[tx.from],buyer=fd2[tx.to];
-      // === WALIDACJA NA AKTUALNYM STANIE (P1-3) ===
-      if(tx.type==="sale"){
-        var missing=tx.offeredItems.filter(oi=>!seller.items.find(si=>si.id===oi.id));
-        if(missing.length){txValidationError.current="Błąd: sprzedawca nie posiada już tych kart!";return fd2;}
-        if(buyer.cash<tx.price){txValidationError.current="Błąd: kupujący nie ma wystarczającej gotówki ("+buyer.cash+" $ < "+tx.price+" $)!";return fd2;}
-      }
-      if(tx.type==="barter"){
-        var missingFrom=tx.offeredItems.filter(oi=>!seller.items.find(si=>si.id===oi.id));
-        var missingTo=tx.responseItems?tx.responseItems.filter(ri=>!buyer.items.find(bi=>bi.id===ri.id)):[];
-        if(missingFrom.length||missingTo.length){txValidationError.current="Błąd: jedna ze stron nie posiada już oferowanych kart!";return fd2;}
-        if(tx.offeredCash>0&&seller.cash<tx.offeredCash){txValidationError.current="Błąd: brak gotówki na dopłatę!";return fd2;}
-        if(tx.responseCash>0&&buyer.cash<tx.responseCash){txValidationError.current="Błąd: brak gotówki na dopłatę!";return fd2;}
-      }
-      // MAP DUPLICATE CHECK — re-validate at accept time
-      if(tx.type==="sale"&&!validateMapDuplicate(tx.to,tx.offeredItems,fd2)){txValidationError.current="Błąd: kupujący już posiada ten fragment mapy!";return fd2;}
-      if(tx.type==="barter"){
-        if(!validateMapDuplicate(tx.to,tx.offeredItems,fd2)){txValidationError.current="Błąd: jedna ze stron już posiada oferowany fragment mapy!";return fd2;}
-        if(tx.responseItems&&!validateMapDuplicate(tx.from,tx.responseItems,fd2)){txValidationError.current="Błąd: jedna ze stron już posiada oferowany fragment mapy!";return fd2;}
-      }
-      // Walidacja OK — wykonaj transfer
-      var n={...fd2};var f={...n[tx.from],items:n[tx.from].items.slice(),cash:n[tx.from].cash};var t={...n[tx.to],items:n[tx.to].items.slice(),cash:n[tx.to].cash};
-      if(tx.type==="sale"){f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);f.cash+=tx.price;t.cash-=tx.price;}
-      else{f.items=f.items.filter(i=>!tx.offeredItems.find(o=>o.id===i.id));t.items=t.items.concat(tx.offeredItems);t.items=t.items.filter(i=>!tx.responseItems.find(r=>r.id===i.id));f.items=f.items.concat(tx.responseItems);if(tx.offeredCash>0){f.cash-=tx.offeredCash;t.cash+=tx.offeredCash;}if(tx.responseCash>0){t.cash-=tx.responseCash;f.cash+=tx.responseCash;}}
-      n[tx.from]=f;n[tx.to]=t;return n;
-    });
-    // P1-3: Sprawdź błąd walidacji po setFd
-    if(txValidationError.current){showMsg(txValidationError.current);return{...tx,status:"rejected"};}
-    return{...tx,status:"accepted",phase:getPhaseIndex(stageIdx)};}));
-    if(!txValidationError.current)showMsg("Operacja zrealizowana!");
+    // Odczyt aktualnego stanu z stateRef (aktualizowany po każdym renderze)
+    var currentFd=stateRef.current.fd;
+    var currentTxs=stateRef.current.txs||[];
+    var tx=currentTxs.find(function(t){return t.id===txId;});
+    if(!tx||tx.status==="accepted")return;
+    var result=validateAndApplyTx(currentFd,tx);
+    if(!result.ok){
+      setTxs(function(p){return p.map(function(t){return t.id===txId?{...t,status:"rejected"}:t;});});
+      showMsg(result.error);return;
+    }
+    // Walidacja OK — dwa jawne kroki: aktualizacja rodzin + status transakcji
+    setFd(result.newFd);
+    setTxs(function(p){return p.map(function(t){return t.id===txId?{...t,status:"accepted",phase:getPhaseIndex(stageIdx)}:t;});});
+    showMsg("Operacja zrealizowana!");
   }
   function rejectTx(txId){setTxs(p=>p.map(t=>t.id===txId?{...t,status:"rejected"}:t));showMsg("Operacja odrzucona.");}
 
@@ -4389,7 +4442,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.24.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.25.0</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -4573,15 +4626,11 @@ function App({roomCode,role,playerId,playerName}) {
               <div style={{flex:1,display:"flex",gap:16,justifyContent:"center"}}>
                 <span>Punkty: <b>{plotOk?10:0}</b> <span style={{color:"#6B5A4A"}}>(max 10)</span></span>
               </div>
-              <InfoPopup icon="ikona_mapa" wide>
-                <img src={IMG_BASE+"kairoscity_mapa.png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Mapa miasta"/>
-              </InfoPopup>
               <InfoPopup title="Zadanie 3: Działka" wide>
                 <img src={IMG_BASE+"instrukcja_dzialka-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — działka"/>
               </InfoPopup>
             </div>
-            {!plotOk&&<div style={{marginTop:0,marginBottom:8,padding:"6px 10px",background:"#FFF0F0",border:"1px solid #C09090",borderRadius:4,fontSize:13,color:"#8B2500",fontWeight:600,textAlign:"center"}}>UWAGA! Pozostając na niewłaściwej działce ponosicie na koniec gry dodatkowy koszt w wysokości 50 $.</div>}
-            <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:12}}>{familyView.plots.map(p=><GenericCard key={p.id} item={p}/>)}</div>
+            <PlotDisplay plots={familyView.plots} familyId={familyId} plotOk={plotOk}/>
             {/* --- GOTÓWKA --- */}
             <TaskHeader imgName="naglowek_gotowka" fallbackText="Pomnożenie gotówki"/>
             <div style={{display:"flex",alignItems:"center",marginBottom:8,fontSize:18,color:"#51211B"}}>
