@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.25.0</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.26.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -84,6 +84,8 @@
     .blind-fate-board{position:relative;width:100%;aspect-ratio:1/1}
     .blind-fate-card{width:285px;flex-shrink:0}
     .blind-fate-col3{width:285px;display:flex;flex-direction:column;gap:15px;flex-shrink:0}
+    /* --- Ochrona obrazów --- */
+    img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;pointer-events:auto}
   </style>
 </head>
 <body>
@@ -112,6 +114,10 @@ if(window.location.protocol==="file:"){
 </script>
 <script type="text/babel">
 const {useState,useCallback,useMemo,useEffect,useRef} = React;
+
+/* ========== OCHRONA OBRAZÓW ========== */
+document.addEventListener("contextmenu",function(e){if(e.target.tagName==="IMG")e.preventDefault();});
+document.addEventListener("dragstart",function(e){if(e.target.tagName==="IMG")e.preventDefault();});
 
 /* ========== FIREBASE CONFIG ========== */
 const IS_LOCAL = window.location.protocol === "file:";
@@ -454,7 +460,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.25.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.26.0</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1522,7 +1528,7 @@ function PlotDisplay({plots, familyId, plotOk}) {
       <div style={{position:"relative",width:"66.25%",paddingBottom:"41.25%"}}>
         <img src={IMG_BASE+"dzialka_tlo-1.png"} style={{position:"absolute",left:0,top:0,width:"100%",height:"100%"}} alt=""/>
         <img src={IMG_BASE+"dzialka_"+displayedPlotNr+".png"} style={{position:"absolute",left:0,top:0,width:"100%",height:"100%"}} alt={"Dzia\u0142ka "+displayedPlotNr}/>
-        <div style={{position:"absolute",left:"45.91%",bottom:"32.59%",fontFamily:"'Aka Posse',sans-serif",fontSize:26.51*sc,color:"#925C24"}}>{"rodziny "+f.gen.toUpperCase()}</div>
+        <div style={{position:"absolute",left:"45.91%",bottom:"12.39%",fontFamily:"'Aka Posse',sans-serif",fontSize:26.51*sc,color:"#925C24"}}>{"rodziny "+f.gen.toUpperCase()}</div>
       </div>
       <div style={{position:"relative",width:"33.33%",paddingBottom:"41.25%"}}>
         <img src={IMG_BASE+"dzialka_tlo-2.png"} style={{position:"absolute",left:0,top:0,width:"100%",height:"100%"}} alt=""/>
@@ -4459,7 +4465,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.25.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.26.0</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
