@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.29.0</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.29.1</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -460,7 +460,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.29.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.29.1</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1574,7 +1574,7 @@ function BnbTab({familyId, sold, total, familyData}) {
   var slots=BNB_SLOT_ORDER[familyId];
   return(<div style={{position:"relative",width:1200,margin:"0 -16px"}}>
     <img src={IMG_BASE+"bnb_tlo-"+familyId+".png"} style={{width:"100%",height:"auto",display:"block"}} alt="Biznes na boku"/>
-    <div style={{position:"absolute",left:"83.67%",bottom:"17.25%",transform:"translate(-50%,50%)",fontFamily:"'Alegreya Sans',sans-serif",fontWeight:600,fontSize:26.17,color:"#5B7674"}}>{sold+"/"+total}</div>
+    <div style={{position:"absolute",left:"16.33%",bottom:"17.25%",transform:"translate(-50%,50%)",fontFamily:"'Alegreya Sans',sans-serif",fontWeight:600,fontSize:26.17,color:"#5B7674"}}>{sold+"/"+total}</div>
     {slots.map(function(origin,idx){
       var count=bought[origin]||0;
       return(<div key={origin} style={{position:"absolute",left:BNB_SLOT_X[idx],bottom:"1.88%",fontSize:21.56,color:"#842504",whiteSpace:"nowrap"}}>
@@ -4491,7 +4491,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.29.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.29.1</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -4593,7 +4593,7 @@ function App({roomCode,role,playerId,playerName}) {
         <img src={IMG_BASE+"belka_menu.png"} style={{width:"100%",display:"block"}} alt=""/>
         {/* Menu wyśrodkowane: belka 1200x127.86, obramowanie 22px, więc środek w około 50% */}
         <div style={{position:"absolute",top:"50%",left:24,transform:"translateY(-50%)",display:"flex",alignItems:"center"}}>
-          {[["tutorial","Witajcie w Kairoscity"],["inv","Majątek"],["map","Złotodajna Żyła"],["bnb","Biznes na boku"],["fate","Ślepy los"],["rev","Rewolwerowiec"],["rel","Budowanie relacji"],["results","Wyniki"]].map((t,idx,arr)=>{
+          {[["tutorial","Witajcie w Kairoscity"],["inv","Majątek"],["bnb","Biznes na boku"],["map","Złotodajna Żyła"],["fate","Ślepy los"],["rev","Rewolwerowiec"],["rel","Budowanie relacji"],["results","Wyniki"]].map((t,idx,arr)=>{
             var act=activeTab===t[0];
             var hidden=(t[0]==="rev"&&!revEnabled)||(t[0]==="fate"&&!fateEnabled)||(t[0]==="map"&&!mapEnabled)||(t[0]==="bnb"&&!bnbEnabled);
             if(hidden) return null;
