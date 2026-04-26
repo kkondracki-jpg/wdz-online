@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.26.0</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.28.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -460,7 +460,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.26.0</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.28.0</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1040,7 +1040,11 @@ function calcScore(fId, fd, plotPenalties, biznesNaBoku, bnbEnabled, blindFate) 
   // Resources
   var resItems=items.filter(i=>i.cat===C_RES&&!i.blind&&i.forBiz===f.biz);
   var resPct=resItems.reduce((s,i)=>s+i.weight,0);
-  if(bnbEnabled) resPct=Math.min(100, resPct + bnbKurier*4);
+  var bnbKurierBonus=0;
+  if(bnbEnabled){
+    if(resPct>=100){bnbKurierBonus=bnbKurier;}
+    else{resPct=Math.min(100, resPct + bnbKurier*4);}
+  }
   // loss_resources — kara za zdarzenie Ślepego Losu (rekwizycja zasobów)
   if(blindFate&&blindFate[fId]&&blindFate[fId].rolls){
     blindFate[fId].rolls.forEach(function(roll){
@@ -1054,7 +1058,11 @@ function calcScore(fId, fd, plotPenalties, biznesNaBoku, bnbEnabled, blindFate) 
   // Competencies
   var compItems=items.filter(i=>i.cat===C_COMP&&!i.blind&&i.forBiz===f.biz);
   var compPct=compItems.reduce((s,i)=>s+i.weight,0);
-  if(bnbEnabled) compPct=Math.min(100, compPct + bnbMikstura*4);
+  var bnbMiksturaBonus=0;
+  if(bnbEnabled){
+    if(compPct>=100){bnbMiksturaBonus=bnbMikstura;}
+    else{compPct=Math.min(100, compPct + bnbMikstura*4);}
+  }
   var compScore=(compPct/100)*25;
   // Plot
   var plotItem=items.find(i=>i.cat===C_PLOT);
@@ -1067,8 +1075,8 @@ function calcScore(fId, fd, plotPenalties, biznesNaBoku, bnbEnabled, blindFate) 
   // Map
   var uniqueFrags=[...new Set(items.filter(i=>i.cat===C_MAP).map(m=>m.fragNr))];
   var mapScore=uniqueFrags.length*2; if(uniqueFrags.length>=4)mapScore=10;
-  // BnB points: kwatera bonus if enabled, else manual input
-  var bnb=bnbEnabled?bnbKwatera:((biznesNaBoku&&biznesNaBoku[fId])||0);
+  // BnB points: kwatera bonus if enabled + konwersja voucher/mikstura przy 100%, else manual input
+  var bnb=bnbEnabled?(bnbKwatera+bnbKurierBonus+bnbMiksturaBonus):((biznesNaBoku&&biznesNaBoku[fId])||0);
   var bizTotal=resScore+compScore+plotScore+cashScore+mapScore+bnb;
   return {resPct,resScore:Math.round(resScore),compPct,compScore:Math.round(compScore),plotOk,plotScore,cash:d.cash,cashForScore:Math.round(cashForScore),cashScore:Math.round(cashScore),mapScore,bnb,bnbKurier,bnbMikstura,bnbObligacje,bnbKwatera,bizTotal:Math.round(resScore+compScore+plotScore+cashScore+mapScore+bnb)};
 }
@@ -1466,7 +1474,7 @@ function BnbCard({prod, count, subtitle}) {
   const [imgOk,setImgOk]=useState(true);
   return (<div style={{background:"#FDFAF4",border:"2px solid "+prod.color,borderRadius:6,overflow:"hidden",position:"relative",minWidth:120,maxWidth:160}}>
     <div style={{position:"absolute",top:-6,right:-6,background:prod.color,color:"#fff",fontSize:13,fontWeight:700,borderRadius:"50%",width:24,height:24,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 1px 3px rgba(0,0,0,0.3)",zIndex:1}}>×{count}</div>
-    {imgOk&&<img src={IMG_BASE+prod.imgSlug+".jpg"} style={{width:"100%",height:"auto",display:"block"}} alt={prod.name} onError={()=>setImgOk(false)}/>}
+    {imgOk&&<img src={IMG_BASE+prod.imgSlug+".png"} style={{width:"100%",height:"auto",display:"block"}} alt={prod.name} onError={()=>setImgOk(false)}/>}
     <div style={{padding:"8px 10px"}}>
       {!imgOk&&<div style={{fontSize:13,fontWeight:700,color:prod.color,lineHeight:1.3,marginBottom:4}}>{prod.name}</div>}
       {!imgOk&&<div style={{fontSize:13,color:"#8B7355",lineHeight:1.4}}>{prod.effectDesc}</div>}
@@ -1528,7 +1536,7 @@ function PlotDisplay({plots, familyId, plotOk}) {
       <div style={{position:"relative",width:"66.25%",paddingBottom:"41.25%"}}>
         <img src={IMG_BASE+"dzialka_tlo-1.png"} style={{position:"absolute",left:0,top:0,width:"100%",height:"100%"}} alt=""/>
         <img src={IMG_BASE+"dzialka_"+displayedPlotNr+".png"} style={{position:"absolute",left:0,top:0,width:"100%",height:"100%"}} alt={"Dzia\u0142ka "+displayedPlotNr}/>
-        <div style={{position:"absolute",left:"45.91%",bottom:"12.39%",fontFamily:"'Aka Posse',sans-serif",fontSize:26.51*sc,color:"#925C24"}}>{"rodziny "+f.gen.toUpperCase()}</div>
+        <div style={{position:"absolute",left:"45.91%",bottom:"18.5%",fontFamily:"'Aka Posse',sans-serif",fontSize:26.51*sc,color:"#925C24"}}>{"rodziny "+f.gen.toUpperCase()}</div>
       </div>
       <div style={{position:"relative",width:"33.33%",paddingBottom:"41.25%"}}>
         <img src={IMG_BASE+"dzialka_tlo-2.png"} style={{position:"absolute",left:0,top:0,width:"100%",height:"100%"}} alt=""/>
@@ -1548,6 +1556,41 @@ function PlotDisplay({plots, familyId, plotOk}) {
         <span style={{fontFamily:"'Alegreya Sans',sans-serif",fontWeight:500,fontSize:22.63*sc,color:"#51211B",whiteSpace:"nowrap"}}>{bottomText}</span>
       </div>
     </div>
+  </div>);
+}
+
+/* ========== BNB TAB (nowa zakładka Biznes na boku) ========== */
+var BNB_SLOT_ORDER={
+  adams:["bennet","clinton","dexter"],
+  bennet:["adams","clinton","dexter"],
+  clinton:["adams","bennet","dexter"],
+  dexter:["adams","bennet","clinton"]
+};
+var BNB_PLURAL={adams:"flakon\u00F3w",bennet:"kwater",clinton:"obligacji",dexter:"voucher\u00F3w"};
+var BNB_SLOT_X=["8.08%","40.31%","72.58%"];
+function BnbTab({familyId, sold, total, familyData}) {
+  const containerRef=useRef(null);
+  const [cw,setCw]=useState(800);
+  useEffect(function(){
+    function measure(){if(containerRef.current){setCw(containerRef.current.offsetWidth);}}
+    measure();
+    window.addEventListener("resize",measure);
+    return function(){window.removeEventListener("resize",measure);};
+  },[]);
+  var sc=cw/1200;
+  var allBnb=familyData.items.filter(function(i){return i.cat===C_BNB;});
+  var bought={};allBnb.filter(function(i){return i.bnbOrigin!==familyId;}).forEach(function(i){bought[i.bnbOrigin]=(bought[i.bnbOrigin]||0)+1;});
+  var slots=BNB_SLOT_ORDER[familyId];
+  return(<div ref={containerRef} style={{position:"relative",width:"100%"}}>
+    <img src={IMG_BASE+"bnb_tlo-"+familyId+".png"} style={{width:"100%",height:"auto",display:"block"}} alt="Biznes na boku"/>
+    <div style={{position:"absolute",right:"16.33%",bottom:"17.25%",fontFamily:"'Alegreya Sans',sans-serif",fontWeight:600,fontSize:26.17*sc,color:"#5B7674"}}>{sold+"/"+total}</div>
+    {slots.map(function(origin,idx){
+      var count=bought[origin]||0;
+      return(<div key={origin} style={{position:"absolute",left:BNB_SLOT_X[idx],bottom:"3.11%",fontSize:21.56*sc,color:"#842504",whiteSpace:"nowrap"}}>
+        <span style={{fontFamily:"'Alegreya Sans',sans-serif",fontWeight:600}}>{"W posiadaniu: "}</span>
+        <span style={{fontFamily:"'Alegreya Sans',sans-serif",fontWeight:400}}>{count+" "+BNB_PLURAL[origin]}</span>
+      </div>);
+    })}
   </div>);
 }
 
@@ -3858,6 +3901,11 @@ function App({roomCode,role,playerId,playerName}) {
     if(!relationsUnlocked && activeTab==="rel") setActiveTab("inv");
   },[relationsUnlocked]);
 
+  // BnB — gdy BnB zostanie wyłączony, przełącz aktywną zakładkę
+  useEffect(()=>{
+    if(!bnbEnabled && activeTab==="bnb") setActiveTab("inv");
+  },[bnbEnabled]);
+
   // T1 — synchronizuj formOpen z showP (formularz transakcji otwarty)
   useEffect(()=>{
     formOpen.current=showP;
@@ -4465,7 +4513,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.26.0</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.28.0</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -4567,13 +4615,13 @@ function App({roomCode,role,playerId,playerName}) {
         <img src={IMG_BASE+"belka_menu.png"} style={{width:"100%",display:"block"}} alt=""/>
         {/* Menu wyśrodkowane: belka 1200x127.86, obramowanie 22px, więc środek w około 50% */}
         <div style={{position:"absolute",top:"50%",left:24,transform:"translateY(-50%)",display:"flex",alignItems:"center"}}>
-          {[["tutorial","Witajcie w Kairoscity"],["inv","Majątek"],["map","Złotodajna Żyła"],["fate","Ślepy los"],["rev","Rewolwerowiec"],["rel","Budowanie relacji"],["results","Wyniki"]].map((t,idx,arr)=>{
+          {[["tutorial","Witajcie w Kairoscity"],["inv","Majątek"],["map","Złotodajna Żyła"],["bnb","Biznes na boku"],["fate","Ślepy los"],["rev","Rewolwerowiec"],["rel","Budowanie relacji"],["results","Wyniki"]].map((t,idx,arr)=>{
             var act=activeTab===t[0];
-            var hidden=(t[0]==="rev"&&!revEnabled)||(t[0]==="fate"&&!fateEnabled)||(t[0]==="map"&&!mapEnabled);
+            var hidden=(t[0]==="rev"&&!revEnabled)||(t[0]==="fate"&&!fateEnabled)||(t[0]==="map"&&!mapEnabled)||(t[0]==="bnb"&&!bnbEnabled);
             if(hidden) return null;
             var locked=(t[0]==="rel"&&!relationsUnlocked)||(t[0]==="results"&&!debriefUnlocked);
             if(locked) return null;
-            var visibleItems=arr.filter(x=>!((x[0]==="rev"&&!revEnabled)||(x[0]==="fate"&&!fateEnabled)||(x[0]==="map"&&!mapEnabled)||(x[0]==="rel"&&!relationsUnlocked)||(x[0]==="results"&&!debriefUnlocked)));
+            var visibleItems=arr.filter(x=>!((x[0]==="rev"&&!revEnabled)||(x[0]==="fate"&&!fateEnabled)||(x[0]==="map"&&!mapEnabled)||(x[0]==="bnb"&&!bnbEnabled)||(x[0]==="rel"&&!relationsUnlocked)||(x[0]==="results"&&!debriefUnlocked)));
             var isLast=visibleItems[visibleItems.length-1][0]===t[0];
             return <div key={t[0]} onClick={()=>setActiveTab(t[0])} style={{padding:"7px 12px",fontFamily:"'Aka Posse',Georgia,serif",fontSize:15,fontWeight:act?700:400,background:act?"rgba(212,168,83,0.25)":"transparent",color:act?"#F5ECD0":"#D4A853",cursor:"pointer",borderRight:isLast?"none":"1px solid rgba(212,168,83,0.4)"}}>{t[1]}</div>;
           })}
@@ -4666,47 +4714,16 @@ function App({roomCode,role,playerId,playerName}) {
               </InfoPopup>
             </div>
             <img src={IMG_BASE+"kasa_punkty.png"} style={{width:"100%",height:"auto",display:"block",marginBottom:8}} alt="Kasa — punkty"/>
-            {bnbEnabled&&(()=>{
-              var allBnb=familyData.items.filter(i=>i.cat===C_BNB);
-              var forSale=allBnb.filter(i=>i.bnbOrigin===familyId);
-              var bought=allBnb.filter(i=>i.bnbOrigin!==familyId);
-              // Group bought by origin
-              var boughtGrouped={};bought.forEach(i=>{if(!boughtGrouped[i.bnbOrigin])boughtGrouped[i.bnbOrigin]=[];boughtGrouped[i.bnbOrigin].push(i);});
-              var myProduct=BNB_PRODUCTS[familyId];
-              var cardStyle=function(col){return{background:"#FDFAF4",border:"2px solid "+col,borderRadius:6,overflow:"hidden",position:"relative",minWidth:120,maxWidth:160}};
-              return(<div style={{marginTop:8}}>
-                <TaskHeader imgName="naglowek_bnb" fallbackText="Biznes na boku"/>
-                <div style={{display:"flex",justifyContent:"flex-end",marginBottom:8,gap:4}}>
-                  <InfoPopup title="Opis produktu" wide icon="ikona_instrukcje">
-                    <img src={IMG_BASE+"bnb_"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt={"Biznes na boku — "+familyId}/>
-                  </InfoPopup>
-                  <InfoPopup title="Reklama" wide icon="ikona_instrukcje">
-                    <img src={IMG_BASE+"reklama_"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt={"Reklama — "+familyId}/>
-                  </InfoPopup>
-                  <InfoPopup title="Biznes na boku — warunki" wide>
-                    <img src={IMG_BASE+"bnb_waronki-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Warunki — Biznes na boku"/>
-                  </InfoPopup>
-                </div>
-                {/* Twój produkt */}
-                <div style={{marginBottom:12}}>
-                  <img src={IMG_BASE+myProduct.imgSlug+".jpg"} style={{width:160,height:"auto",display:"block",marginBottom:6}} alt={myProduct.name}/>
-                  <div style={{fontSize:15,fontWeight:700,color:"#4C130F"}}>{myProduct.name}</div>
-                  <div style={{fontSize:14,color:"#5C4A3A"}}>Do sprzedania: <b>{forSale.length}/{myProduct.qty}</b></div>
-                </div>
-                {/* Zakupione produkty */}
-                {Object.keys(boughtGrouped).length>0&&<div style={{marginBottom:16}}>
-                  {Object.keys(boughtGrouped).map(origin=>{var cards=boughtGrouped[origin];var prod=BNB_PRODUCTS[origin];return(
-                    <div key={origin} style={{marginBottom:12}}>
-                      <img src={IMG_BASE+prod.imgSlug+".jpg"} style={{width:160,height:"auto",display:"block",marginBottom:6}} alt={prod.name}/>
-                      <div style={{fontSize:14,color:"#4C130F"}}>{prod.name} <b>x {cards.length}</b></div>
-                    </div>
-                  );})}
-                </div>}
-              </div>);
-            })()}
           </div>);
           })()}
           {activeTab==="map"&&<MapTracker items={familyData.items} mapBonusClaimed={mapBonusClaimed} fId={familyId} mapLayout={mapLayout} setMapLayout={setMapLayout} onClaim={claimMapBonus} readonly={!!(viewSheriff&&sheriffViewFamily)}/>}
+          {activeTab==="bnb"&&bnbEnabled&&(()=>{
+            var allBnb=familyData.items.filter(i=>i.cat===C_BNB);
+            var forSale=allBnb.filter(i=>i.bnbOrigin===familyId);
+            var myProduct=BNB_PRODUCTS[familyId];
+            var sold=myProduct.qty-forSale.length;
+            return(<BnbTab familyId={familyId} sold={sold} total={myProduct.qty} familyData={familyData}/>);
+          })()}
           {activeTab==="fate"&&<BlindFateFamily fId={familyId} blindFate={blindFate}/>}
           {activeTab==="rel"&&relationsUnlocked&&(()=>{
             var CATS=[
