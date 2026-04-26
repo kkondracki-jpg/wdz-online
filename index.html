@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.28.1</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.29.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -460,7 +460,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.28.1</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.29.0</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1574,7 +1574,7 @@ function BnbTab({familyId, sold, total, familyData}) {
   var slots=BNB_SLOT_ORDER[familyId];
   return(<div style={{position:"relative",width:1200,margin:"0 -16px"}}>
     <img src={IMG_BASE+"bnb_tlo-"+familyId+".png"} style={{width:"100%",height:"auto",display:"block"}} alt="Biznes na boku"/>
-    <div style={{position:"absolute",left:"16.33%",bottom:"17.25%",fontFamily:"'Alegreya Sans',sans-serif",fontWeight:600,fontSize:26.17,color:"#5B7674"}}>{sold+"/"+total}</div>
+    <div style={{position:"absolute",left:"83.67%",bottom:"17.25%",transform:"translate(-50%,50%)",fontFamily:"'Alegreya Sans',sans-serif",fontWeight:600,fontSize:26.17,color:"#5B7674"}}>{sold+"/"+total}</div>
     {slots.map(function(origin,idx){
       var count=bought[origin]||0;
       return(<div key={origin} style={{position:"absolute",left:BNB_SLOT_X[idx],bottom:"1.88%",fontSize:21.56,color:"#842504",whiteSpace:"nowrap"}}>
@@ -3235,21 +3235,6 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
             </div>);
           })}
         </div>
-        {nextPairs&&(()=>{
-          var phName="Faza "+(nextPairs.phase===1?"I":nextPairs.phase===2?"II":"III")+", Tura "+nextPairs.turn;
-          return(<div style={{marginTop:12,background:"#4C130F",borderRadius:6,padding:"12px 16px"}}>
-            <div style={{fontSize:12,color:"#D4A853",fontWeight:700,letterSpacing:"0.08em",marginBottom:6,textTransform:"uppercase"}}>Następna tura — {phName}</div>
-            <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
-              {nextPairs.pairs.map((p,i)=>(
-                <div key={i} style={{fontSize:18,fontWeight:700,color:"#F5F0E8",fontFamily:"'Aka Posse','Alegreya Sans',serif"}}>
-                  <span style={{color:FM[p[0]].col!=="transparent"?FM[p[0]].col:"#D4A853"}}>{FM[p[0]].nom}</span>
-                  <span style={{color:"#D4A853",margin:"0 8px"}}>{"↔"}</span>
-                  <span style={{color:FM[p[1]].col!=="transparent"?FM[p[1]].col:"#D4A853"}}>{FM[p[1]].nom}</span>
-                </div>
-              ))}
-            </div>
-          </div>);
-        })()}
       </div>)}
     </div>
 
@@ -3269,9 +3254,9 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
             </div>)}
           </div>
         </div>
-        {/* Right: Pary handlowe */}
+        {/* Right: Adwersarze */}
         <div style={{flex:1,minWidth:0}}>
-          <div style={{fontSize:13,fontWeight:700,color:"#5C4A3A",marginBottom:6}}>Pary handlowe</div>
+          <div style={{fontSize:13,fontWeight:700,color:"#5C4A3A",marginBottom:6}}>Adwersarze</div>
           <div style={{border:"1px solid #E8E0D0",borderRadius:4,padding:8,background:"#FDFAF4"}}>
             {curPairs?(<div>
               <div style={{fontSize:12,color:"#A89070",fontWeight:600,marginBottom:4,textTransform:"uppercase",letterSpacing:"0.05em"}}>Aktualna tura</div>
@@ -3371,7 +3356,59 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
       </div>
     </div>
 
-    {/* === 5. MECHANIKI === */}
+    {/* === 5. KSIĘGOWOŚĆ === */}
+    <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:16}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+        <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Księgowość</div>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          {!readOnly&&allTx.length>0&&!undoConfirm&&<button style={btnS("danger")} onClick={()=>setUndoConfirm(true)}>Cofnij ostatnią transakcję</button>}
+          {!readOnly&&undoConfirm&&<div style={{display:"flex",gap:4,alignItems:"center",background:"#FEE",padding:"4px 8px",borderRadius:4,border:"1px solid #C88"}}>
+            <span style={{fontSize:13,color:"#8B2500"}}>Cofnąć: {allTx[0]&&(FM[allTx[0].from].nom+"→"+FM[allTx[0].to].nom)}?</span>
+            <button style={{...btnS("danger"),fontSize:13,padding:"3px 8px"}} onClick={undoLastTx}>Tak</button>
+            <button style={{...btnS("primary"),fontSize:13,padding:"3px 8px"}} onClick={()=>setUndoConfirm(false)}>Nie</button>
+          </div>}
+        </div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+      {FO.map(fId=>{
+        var f=FM[fId];
+        var fTx=allTx.filter(t=>t.from===fId||t.to===fId);
+        var fPen=penaltyTx.filter(t=>t.from===fId);
+        var fFate=txs.filter(t=>t.type==="fate"&&t.from===fId&&t.status==="accepted");
+        var fMap=txs.filter(t=>t.type==="map_bonus"&&t.status==="accepted"&&(t.from===fId||(t.to==="all"&&t.from!==fId)));
+        var fBnb=txs.filter(t=>t.type==="bnb_settle"&&t.from===fId&&t.status==="accepted");
+        var fRev=txs.filter(t=>t.type==="revolver"&&(t.from===fId||t.to===fId)&&t.status==="accepted");
+        var fCancelled=txs.filter(t=>t.status==="cancelled"&&(t.type==="sale"||t.type==="barter")&&(t.from===fId||t.to===fId));
+        var hasAny=fTx.length>0||fPen.length>0||fFate.length>0||fMap.length>0||fBnb.length>0||fRev.length>0||fCancelled.length>0;
+        return(<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
+          <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
+          <div style={{maxHeight:660,overflowY:"auto"}}>
+          {!hasAny&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak wpisów</div>}
+          {fTx.map(tx=>{
+            var isFrom=tx.from===fId,other=FM[isFrom?tx.to:tx.from];
+            return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#5C4A3A"}}>
+              <b style={{color:tx.type==="sale"?"#8B7355":"#4A3B6B"}}>{tx.type==="sale"?(isFrom?"Sprzedaż":"Zakup"):"Barter"}</b> {isFrom?"→":"←"} {other.nom}
+              {tx.type==="sale"&&<span>: {fmtItems(tx.offeredItems)} za {tx.price} $</span>}
+              {tx.type==="barter"&&<span>: {fmtItems(tx.offeredItems)} {"↔"} {fmtItems(tx.responseItems)}</span>}
+            </div>);
+          })}
+          {fFate.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#2E5B3C"}}><b>{"Ślepy los:"}</b> {tx.description}</div>))}
+          {fMap.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B7714"}}><b>Mapa:</b> {tx.from===fId?"Bonus 300 $ (kompletna mapa)":"Opłata 100 $ (mapa "+FM[tx.from].gen+")"}</div>))}
+          {fBnb.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B7714"}}><b>BnB:</b> {tx.description}</div>))}
+          {fRev.map(tx=>{var isWin=tx.to===fId;return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B2500"}}><b>Rewolwerowiec:</b> {isWin?"Wygrana":"Przegrana"} {tx.amount} $ ({tx.field}) {isWin?"← "+FM[tx.from].nom:"→ "+FM[tx.to].nom}</div>);})}
+          {fPen.map(tx=>(<div key={tx.id} style={{padding:"4px 0",fontSize:13,color:"#8B2500"}}><b>Działka:</b> {tx.description}</div>))}
+          {fCancelled.map(tx=>{var isFrom=tx.from===fId,other=FM[isFrom?tx.to:tx.from];return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B2500",fontStyle:"italic"}}>
+            <b>ANULOWANA:</b> {tx.type==="sale"?(isFrom?"Sprzedaż":"Zakup"):"Barter"} {isFrom?"→":"←"} {other.nom}
+            {tx.type==="sale"&&<span>: {fmtItems(tx.offeredItems)} za {tx.price} $</span>}
+            {tx.cancelReason&&<span> ({tx.cancelReason})</span>}
+          </div>);})}
+          </div>
+        </div>);
+      })}
+      </div>
+    </div>
+
+    {/* === 6. MECHANIKI === */}
     <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:16}}>
       {/* Unlock/lock buttons row */}
       {!readOnly&&<div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
@@ -3418,7 +3455,7 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
         </div>
         <div>
           <div style={{fontSize:16,fontWeight:700,color:"#842504",marginBottom:8}} className="wt">{"Ślepy los — historia zbiorcza"}</div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
           {FO.map(fId=>{var f=FM[fId],bf=blindFate[fId]||{},pol=bf.policies||{p50:null,p100:null},rolls=(bf.rolls||[]).filter(r=>r.resolved);
             return (<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
               <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
@@ -3563,7 +3600,7 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
           <span style={{fontSize:13,fontWeight:700,color:bnbSettled?"#2E5B3C":"#8B7714",padding:"3px 10px",background:bnbSettled?"#E8F5E8":"#FFF8E7",borderRadius:4,border:"1px solid "+(bnbSettled?"#90C090":"#D4C870")}}>{bnbSettled?"Rozliczono":"Aktywny"}</span>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
           {FO.map(fId=>{
             var f=FM[fId],p=BNB_PRODUCTS[fId];
             var ownCards=fd[fId].items.filter(i=>i.cat===C_BNB&&i.bnbOrigin===fId);
@@ -3571,9 +3608,10 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
             var soldAll=ownCards.length===0;
             var boughtCards=fd[fId].items.filter(i=>i.cat===C_BNB&&i.bnbOrigin!==fId);
             var boughtGrouped={};boughtCards.forEach(i=>{if(!boughtGrouped[i.bnbOrigin])boughtGrouped[i.bnbOrigin]=0;boughtGrouped[i.bnbOrigin]++;});
+            var SHERIFF_PLURAL={adams:"butelek",bennet:"kwater",clinton:"polis",dexter:"voucher\u00F3w"};
             return(<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
               <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
-              <div style={{fontSize:13,color:"#5C4A3A",marginBottom:6}}><b>Sprzedaje:</b> {p.name}</div>
+              <div style={{fontSize:13,color:"#5C4A3A",marginBottom:6}}><b>Produkt na sprzeda\u017C:</b> {p.name}</div>
               <div style={{display:"flex",gap:12,marginBottom:6}}>
                 <div style={{fontSize:13,color:"#5C4A3A"}}>
                   Stan: <b style={{color:soldAll?"#2E5B3C":"#8B7355"}}>{ownCards.length}/{p.qty}</b>
@@ -3581,9 +3619,9 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
                 </div>
               </div>
               {soldAll&&<div style={{fontSize:13,color:"#2E5B3C",fontWeight:600,marginBottom:4}}>Sprzedano wszystko {"—"} bonifikata 100 $</div>}
-              {boughtCards.length>0&&<div style={{borderTop:"1px solid #E0D8E8",paddingTop:4,marginTop:4}}>
-                <div style={{fontSize:13,fontWeight:700,color:"#A89070",marginBottom:2}}>Zakupione od innych:</div>
-                {Object.keys(boughtGrouped).map(o=><div key={o} style={{fontSize:13,color:"#5C4A3A"}}>{BNB_PRODUCTS[o].shortName} {"×"}{boughtGrouped[o]} <span style={{color:"#A89070"}}>(od {FM[o].gen})</span></div>)}
+              {<div style={{borderTop:"1px solid #E0D8E8",paddingTop:4,marginTop:4}}>
+                <div style={{fontSize:13,fontWeight:700,color:"#A89070",marginBottom:2}}>Zakupione produkty:</div>
+                {FO.filter(o=>o!==fId).map(o=><div key={o} style={{fontSize:13,color:"#5C4A3A"}}>{BNB_PRODUCTS[o].shortName}: {boughtGrouped[o]||0} {SHERIFF_PLURAL[o]}</div>)}
               </div>}
             </div>);
           })}
@@ -3592,57 +3630,6 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
       </div>:<div style={{padding:20,textAlign:"center",color:"#A89070",fontSize:14,fontStyle:"italic"}}>Biznes na boku nie jest aktywny</div>)}
     </div>
 
-    {/* === 6. KSIĘGOWOŚĆ === */}
-    <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-        <div style={{fontSize:18,fontWeight:700,color:"#842504"}} className="wt">Księgowość</div>
-        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-          {!readOnly&&allTx.length>0&&!undoConfirm&&<button style={btnS("danger")} onClick={()=>setUndoConfirm(true)}>Cofnij ostatnią transakcję</button>}
-          {!readOnly&&undoConfirm&&<div style={{display:"flex",gap:4,alignItems:"center",background:"#FEE",padding:"4px 8px",borderRadius:4,border:"1px solid #C88"}}>
-            <span style={{fontSize:13,color:"#8B2500"}}>Cofnąć: {allTx[0]&&(FM[allTx[0].from].nom+"→"+FM[allTx[0].to].nom)}?</span>
-            <button style={{...btnS("danger"),fontSize:13,padding:"3px 8px"}} onClick={undoLastTx}>Tak</button>
-            <button style={{...btnS("primary"),fontSize:13,padding:"3px 8px"}} onClick={()=>setUndoConfirm(false)}>Nie</button>
-          </div>}
-        </div>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
-      {FO.map(fId=>{
-        var f=FM[fId];
-        var fTx=allTx.filter(t=>t.from===fId||t.to===fId);
-        var fPen=penaltyTx.filter(t=>t.from===fId);
-        var fFate=txs.filter(t=>t.type==="fate"&&t.from===fId&&t.status==="accepted");
-        var fMap=txs.filter(t=>t.type==="map_bonus"&&t.status==="accepted"&&(t.from===fId||(t.to==="all"&&t.from!==fId)));
-        var fBnb=txs.filter(t=>t.type==="bnb_settle"&&t.from===fId&&t.status==="accepted");
-        var fRev=txs.filter(t=>t.type==="revolver"&&(t.from===fId||t.to===fId)&&t.status==="accepted");
-        var fCancelled=txs.filter(t=>t.status==="cancelled"&&(t.type==="sale"||t.type==="barter")&&(t.from===fId||t.to===fId));
-        var hasAny=fTx.length>0||fPen.length>0||fFate.length>0||fMap.length>0||fBnb.length>0||fRev.length>0||fCancelled.length>0;
-        return(<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
-          <div style={{fontSize:13,fontWeight:700,color:f.col,marginBottom:6}} className="wt">{f.nom}</div>
-          <div style={{maxHeight:220,overflowY:"auto"}}>
-          {!hasAny&&<div style={{fontSize:13,color:"#A89070",fontStyle:"italic"}}>Brak wpisów</div>}
-          {fTx.map(tx=>{
-            var isFrom=tx.from===fId,other=FM[isFrom?tx.to:tx.from];
-            return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#5C4A3A"}}>
-              <b style={{color:tx.type==="sale"?"#8B7355":"#4A3B6B"}}>{tx.type==="sale"?(isFrom?"Sprzedaż":"Zakup"):"Barter"}</b> {isFrom?"→":"←"} {other.nom}
-              {tx.type==="sale"&&<span>: {fmtItems(tx.offeredItems)} za {tx.price} $</span>}
-              {tx.type==="barter"&&<span>: {fmtItems(tx.offeredItems)} {"↔"} {fmtItems(tx.responseItems)}</span>}
-            </div>);
-          })}
-          {fFate.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#2E5B3C"}}><b>{"Ślepy los:"}</b> {tx.description}</div>))}
-          {fMap.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B7714"}}><b>Mapa:</b> {tx.from===fId?"Bonus 300 $ (kompletna mapa)":"Opłata 100 $ (mapa "+FM[tx.from].gen+")"}</div>))}
-          {fBnb.map(tx=>(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B7714"}}><b>BnB:</b> {tx.description}</div>))}
-          {fRev.map(tx=>{var isWin=tx.to===fId;return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B2500"}}><b>Rewolwerowiec:</b> {isWin?"Wygrana":"Przegrana"} {tx.amount} $ ({tx.field}) {isWin?"← "+FM[tx.from].nom:"→ "+FM[tx.to].nom}</div>);})}
-          {fPen.map(tx=>(<div key={tx.id} style={{padding:"4px 0",fontSize:13,color:"#8B2500"}}><b>Działka:</b> {tx.description}</div>))}
-          {fCancelled.map(tx=>{var isFrom=tx.from===fId,other=FM[isFrom?tx.to:tx.from];return(<div key={tx.id} style={{padding:"4px 0",borderBottom:"1px solid #F0EBE0",fontSize:13,color:"#8B2500",fontStyle:"italic"}}>
-            <b>ANULOWANA:</b> {tx.type==="sale"?(isFrom?"Sprzedaż":"Zakup"):"Barter"} {isFrom?"→":"←"} {other.nom}
-            {tx.type==="sale"&&<span>: {fmtItems(tx.offeredItems)} za {tx.price} $</span>}
-            {tx.cancelReason&&<span> ({tx.cancelReason})</span>}
-          </div>);})}
-          </div>
-        </div>);
-      })}
-      </div>
-    </div>
   </div>);
 }
 
@@ -4504,7 +4491,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.28.1</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.29.0</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
