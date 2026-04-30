@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.29.4</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.29.6</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -460,7 +460,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.29.4</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.29.6</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1170,6 +1170,7 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
   const [roles, setRoles] = useState({head:'',rep:'',acc:'',nestor:'',heart:''});
   const [roleSaving, setRoleSaving] = useState(false);
   const [tradeTab, setTradeTab] = useState("sale");
+  const [interfejsZoom, setInterfejsZoom] = useState(false);
   const [slide3, setSlide3] = useState(0);
   const d = INSTRUCTION_DATA[familyId];
 
@@ -1287,29 +1288,25 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
     </div>);
     case 6: return (<div>
       {hdr("Interfejs gry",false)}
-      <img src={IMG_BASE+"interfejs_"+familyId+".png"} alt="Interfejs gry" style={{width:"100%",height:"auto",display:"block",borderRadius:6}}/>
+      <img src={IMG_BASE+"interfejs_"+familyId+".png"} alt="Interfejs gry" style={{width:"100%",height:"auto",display:"block",borderRadius:6,cursor:"pointer"}} onClick={()=>setInterfejsZoom(true)}/>
+      {interfejsZoom&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.75)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={()=>setInterfejsZoom(false)}>
+        <div style={{position:"relative",maxWidth:"95vw",maxHeight:"95vh"}} onClick={e=>e.stopPropagation()}>
+          <div onClick={()=>setInterfejsZoom(false)} style={{position:"absolute",top:-12,right:-12,width:28,height:28,borderRadius:"50%",background:"#4C130F",color:"#F5F0E8",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:16,fontWeight:700,lineHeight:1,boxShadow:"0 2px 8px rgba(0,0,0,0.4)",zIndex:1}}>✕</div>
+          <img src={IMG_BASE+"interfejs_"+familyId+".png"} alt="Interfejs gry" style={{maxWidth:"95vw",maxHeight:"95vh",display:"block",borderRadius:6}}/>
+        </div>
+      </div>}
     </div>);
     case 7: return (<div>
       {hdr("Jak handlować",false)}
       <div style={{display:"flex",gap:6,marginBottom:12}}>
-        <div onClick={()=>setTradeTab("sale")}
-          style={{padding:"7px 20px",borderRadius:"4px 4px 0 0",fontSize:14,
-            fontWeight:tradeTab==="sale"?700:400,
-            background:tradeTab==="sale"?"#842504":"#F3CA82",
-            color:tradeTab==="sale"?"#fff":"#4C130F",
-            cursor:"pointer",
-            borderBottom:tradeTab==="sale"?"2px solid #842504":"2px solid transparent"}}>
-          Sprzedaż
-        </div>
-        <div onClick={()=>setTradeTab("barter")}
-          style={{padding:"7px 20px",borderRadius:"4px 4px 0 0",fontSize:14,
-            fontWeight:tradeTab==="barter"?700:400,
-            background:tradeTab==="barter"?"#5E5971":"#F3CA82",
-            color:tradeTab==="barter"?"#fff":"#4C130F",
-            cursor:"pointer",
-            borderBottom:tradeTab==="barter"?"2px solid #5E5971":"2px solid transparent"}}>
-          Barter
-        </div>
+        <img src={IMG_BASE+"przycisk_sprzedaz.png"} alt="Sprzedaż" onClick={()=>setTradeTab("sale")}
+          style={{height:35,width:"auto",cursor:"pointer",display:"block",borderRadius:"4px 4px 0 0",
+            opacity:tradeTab==="sale"?1:0.5,
+            borderBottom:tradeTab==="sale"?"2px solid #842504":"2px solid transparent"}}/>
+        <img src={IMG_BASE+"przycisk_barter.png"} alt="Barter" onClick={()=>setTradeTab("barter")}
+          style={{height:35,width:"auto",cursor:"pointer",display:"block",borderRadius:"4px 4px 0 0",
+            opacity:tradeTab==="barter"?1:0.5,
+            borderBottom:tradeTab==="barter"?"2px solid #5E5971":"2px solid transparent"}}/>
       </div>
       {tradeTab==="sale"&&instrImg("instrukcja_sprzedaz")}
       {tradeTab==="barter"&&instrImg("instrukcja_barter")}
@@ -2575,7 +2572,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
     
     function renderCard(id,cat,has,pct){
       var ext=".png";
-      return(<div key={id} style={{width:80,opacity:has?1:0.4,filter:has?"none":"grayscale(100%)"}}>
+      return(<div key={id} style={{opacity:has?1:0.4,filter:has?"none":"grayscale(100%)"}}>
         <img src={IMG_BASE+cat+"_"+id+ext} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:"2px solid #D4C4A8"}} alt={id}/>
         <div style={{fontSize:10,textAlign:"center",marginTop:2}}>{pct}%</div>
       </div>);
@@ -2592,7 +2589,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
           <span>Poziom realizacji: <b>{resPct}%</b></span>
           <span>Liczba punktów: <b>{resPts} pkt</b></span>
         </div>
-        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:8}}>
           {task.zasoby.map(z=>renderCard(z.id,"res",myResIds.includes(z.id),z.pct))}
         </div>
       </div>
@@ -2603,7 +2600,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
           <span>Poziom realizacji: <b>{compPct}%</b></span>
           <span>Liczba punktów: <b>{compPts} pkt</b></span>
         </div>
-        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
           {task.kompetencje.map(k=>renderCard(k.id,"comp",myCompIds.includes(k.id),k.pct))}
         </div>
       </div>
@@ -2611,7 +2608,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
       <div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
         <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>3. Pozyskanie działki pod przedsiębiorstwo</div>
         <div style={{display:"flex",alignItems:"flex-start",gap:16}}>
-          <div style={{width:120,opacity:hasCorrectPlot?1:0.4,filter:hasCorrectPlot?"none":"grayscale(100%)"}}>
+          <div style={{width:240,opacity:hasCorrectPlot?1:0.4,filter:hasCorrectPlot?"none":"grayscale(100%)"}}>
             <img src={IMG_BASE+"dzialka_"+FM[fId].tPlot+".png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:"2px solid #D4C4A8"}} alt={"Działka "+FM[fId].tPlot}/>
           </div>
           <div style={{fontSize:14}}>
@@ -2636,8 +2633,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
         <div style={{display:"flex",gap:20,marginBottom:10,fontSize:14,flexWrap:"wrap"}}>
           <span>Zebrane fragmenty: <b>{myMaps.length}/5</b></span>
           <span>Liczba punktów: <b>{mapPts} pkt</b></span>
-          {gotMapBonus&&<span style={{color:"#2E5B3C",fontWeight:700}}>Bonus: 300 $</span>}
-          {lostToWinner&&<span style={{color:"#C00"}}>Strata: - 100 $ na rzecz {FN[lostToWinner]}</span>}
+          <span>Rozliczenie: <b style={{color:gotMapBonus?"#2E5B3C":lostToWinner?"#C00":"#5C4A3A"}}>{gotMapBonus?"+300 $":lostToWinner?"\u2212100 $":"0 $"}</b></span>
         </div>
         <div style={{display:"flex",gap:0}}>
           {[5,4,3,2,1].map(fragNr=>{
@@ -2668,6 +2664,45 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
           <div>Liczba punktów: <b>{relPts} pkt</b></div>
         </div>
       </div>
+      
+      {(()=>{
+        var hasBnb=F.some(f=>(fd[f]&&fd[f].items||[]).some(i=>i.cat===C_BNB));
+        if(!hasBnb) return null;
+        var p=BNB_PRODUCTS[fId];
+        var ownCards=items.filter(i=>i.cat===C_BNB&&i.bnbOrigin===fId);
+        var soldCount=p.qty-ownCards.length;
+        var soldAll=ownCards.length===0;
+        var boughtCards=items.filter(i=>i.cat===C_BNB&&i.bnbOrigin!==fId);
+        var boughtGrouped={};boughtCards.forEach(i=>{if(!boughtGrouped[i.bnbOrigin])boughtGrouped[i.bnbOrigin]=0;boughtGrouped[i.bnbOrigin]++;});
+        var bnbKurier=boughtCards.filter(i=>i.effect==="res4").length;
+        var bnbMikstura=boughtCards.filter(i=>i.effect==="comp4").length;
+        var bnbObligacje=boughtCards.filter(i=>i.effect==="cash20").length;
+        var bnbKwatera=boughtCards.filter(i=>i.effect==="point1").length;
+        return(<div style={{marginTop:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
+          <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>8. Biznes na boku</div>
+          <div style={{fontSize:14,marginBottom:10}}>
+            <div style={{marginBottom:6}}>Produkt: <b>{p.name}</b></div>
+            <div style={{marginBottom:6}}>Sprzedano: <b>{soldCount}/{p.qty}</b>{soldAll&&<span style={{color:"#2E5B3C",fontWeight:700,marginLeft:8}}>Wszystko sprzedane — bonifikata 100 $</span>}</div>
+          </div>
+          <div style={{borderTop:"1px solid #D4C4A8",paddingTop:8,marginBottom:8}}>
+            <div style={{fontSize:14,fontWeight:700,color:"#5C4A3A",marginBottom:6}}>Zakupione produkty:</div>
+            {Object.keys(boughtGrouped).length===0&&<div style={{fontSize:13,color:"#888",fontStyle:"italic"}}>Brak zakupionych produktów</div>}
+            {Object.keys(boughtGrouped).map(o=>(<div key={o} style={{fontSize:13,color:"#5C4A3A",marginBottom:2}}>
+              {BNB_PRODUCTS[o].name}: <b>{boughtGrouped[o]} szt.</b> — {BNB_PRODUCTS[o].effectDesc}
+            </div>))}
+          </div>
+          <div style={{borderTop:"1px solid #D4C4A8",paddingTop:8}}>
+            <div style={{fontSize:14,fontWeight:700,color:"#5C4A3A",marginBottom:6}}>Rozliczenie z dostawą:</div>
+            <div style={{fontSize:13,color:"#5C4A3A"}}>
+              {bnbKurier>0&&<div style={{marginBottom:2}}>Voucher Kuriera: {bnbKurier} szt. → +{bnbKurier*4}% zasobów</div>}
+              {bnbMikstura>0&&<div style={{marginBottom:2}}>Mikstura Doktora Geista: {bnbMikstura} szt. → +{bnbMikstura*4}% kompetencji</div>}
+              {bnbObligacje>0&&<div style={{marginBottom:2}}>Obligacje Limon Sisters: {bnbObligacje} szt. → +{bnbObligacje*20}% gotówki</div>}
+              {bnbKwatera>0&&<div style={{marginBottom:2}}>Kwatera dla Obywatela: {bnbKwatera} szt. → +{bnbKwatera} pkt do wyniku</div>}
+              {boughtCards.length===0&&<div style={{fontStyle:"italic",color:"#888"}}>Brak efektów</div>}
+            </div>
+          </div>
+        </div>);
+      })()}
     </div>);
   }
   
@@ -4478,7 +4513,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.29.4</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.29.6</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -4662,6 +4697,9 @@ function App({roomCode,role,playerId,playerName}) {
               <div style={{flex:1,display:"flex",gap:16,justifyContent:"center"}}>
                 <span>Punkty: <b>{plotOk?10:0}</b> <span style={{color:"#6B5A4A"}}>(max 10)</span></span>
               </div>
+              <InfoPopup title="Mapa miasteczka" wide icon="ikona_mapa">
+                <img src={IMG_BASE+"mapa_miasteczka.png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Mapa miasteczka"/>
+              </InfoPopup>
               <InfoPopup title="Zadanie 3: Działka" wide>
                 <img src={IMG_BASE+"instrukcja_dzialka-"+familyId+".png"} style={{maxWidth:"90vw",maxHeight:"80vh",display:"block",borderRadius:4}} alt="Instrukcja — działka"/>
               </InfoPopup>
