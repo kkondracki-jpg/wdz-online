@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.29.2</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.29.4</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -460,7 +460,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.29.2</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.29.4</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1235,8 +1235,8 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
     case 3: return (<div>
       {instrImg("ekran_3-role")}
       <div style={{margin:"14px 0"}}>
-        {ROLE_DEFS.map(r=>(<div key={r.key} style={{marginBottom:12,display:"flex",gap:10,alignItems:"stretch",minHeight:120}}>
-          <img src={IMG_BASE+r.img+".png"} style={{width:90,height:"auto",display:"block",objectFit:"contain",alignSelf:"stretch",flexShrink:0}} alt=""/>
+        {ROLE_DEFS.map(r=>(<div key={r.key} style={{marginBottom:12,display:"flex",gap:10,alignItems:"stretch"}}>
+          <img src={IMG_BASE+r.img+".png"} style={{width:140,display:"block",objectFit:"cover",alignSelf:"stretch",flexShrink:0,borderRadius:6}} alt=""/>
           <div style={{flex:1,padding:"10px 14px",background:"#F6E4C8",borderRadius:6,display:"flex",flexDirection:"column",justifyContent:"center"}}>
             <div style={{fontWeight:700,fontSize:20,color:"#4C130F",marginBottom:4,lineHeight:1.2}} className="wt">{r.label}</div>
             <div style={{fontSize:15,color:"#6B5B3E",marginBottom:8,lineHeight:1.5,fontWeight:500}}>{r.desc}</div>
@@ -1286,21 +1286,8 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
       <img src={IMG_BASE+"przebieg_rozgrywki-"+familyId+".png"} alt="Przebieg rozgrywki" style={{width:"100%",display:"block",borderRadius:4}}/>
     </div>);
     case 6: return (<div>
-      {hdr("Wasz panel — przegląd",true)}
-      {para("Oto elementy, z których będziecie korzystać:")}
-      <div style={{margin:"10px 0"}}>
-        {[
-          ["① Gotówka","Duży wyświetlacz u góry. Zawsze widoczny."],
-          ["② Przyciski transakcji","\u201ESprzedaż\u201D i \u201EBarter\u201D. Tu rozpoczynacie każdą wymianę."],
-          ["③ Zakładki","Po lewej: Witajcie w Kairoscity (ta instrukcja), Majątek, Złotodajna Żyła. Kolejne pojawią się w trakcie gry."],
-          ["④ Przebieg rozgrywki","Po prawej. Timer z odliczaniem i lista etapów."],
-          ["⑤ Księgowość","Po prawej, poniżej timera. Historia transakcji i operacji finansowych."],
-          ["⑥ Wezwij Szeryfa","Przycisk w prawej kolumnie. 15 $, 3 pytania."]
-        ].map(([t,desc],i)=>(<div key={i} style={{padding:"8px 12px",marginBottom:4,background:"#FDF8EE",borderRadius:4,display:"flex",gap:10}}>
-          <div style={{fontWeight:700,fontSize:14,color:"#842504",minWidth:180}}>{t}</div>
-          <div style={{fontSize:13,color:"#4C130F"}}>{desc}</div>
-        </div>))}
-      </div>
+      {hdr("Interfejs gry",false)}
+      <img src={IMG_BASE+"interfejs_"+familyId+".png"} alt="Interfejs gry" style={{width:"100%",height:"auto",display:"block",borderRadius:6}}/>
     </div>);
     case 7: return (<div>
       {hdr("Jak handlować",false)}
@@ -1328,7 +1315,7 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
       {tradeTab==="barter"&&instrImg("instrukcja_barter")}
     </div>);
     case 8: return (<div>
-      {instrImg("ekran_8")}
+      {instrImg("wdz_vintage")}
     </div>);
     default: return null;
     }
@@ -1536,7 +1523,7 @@ function PlotDisplay({plots, familyId, plotOk}) {
       <div style={{position:"relative",width:"66.25%",paddingBottom:"41.25%"}}>
         <img src={IMG_BASE+"dzialka_tlo-1.png"} style={{position:"absolute",left:0,top:0,width:"100%",height:"100%"}} alt=""/>
         <img src={IMG_BASE+"dzialka_"+displayedPlotNr+".png"} style={{position:"absolute",left:0,top:0,width:"100%",height:"100%"}} alt={"Dzia\u0142ka "+displayedPlotNr}/>
-        <div style={{position:"absolute",left:"45.91%",bottom:"18.5%",fontFamily:"'Aka Posse',sans-serif",fontSize:26.51*sc,color:"#925C24"}}>{"rodziny "+f.gen.toUpperCase()}</div>
+        <div style={{position:"absolute",left:"45.91%",bottom:"23%",fontFamily:"'Aka Posse',sans-serif",fontSize:26.51*sc,color:"#925C24"}}>{"rodziny "+f.gen.toUpperCase()}</div>
       </div>
       <div style={{position:"relative",width:"33.33%",paddingBottom:"41.25%"}}>
         <img src={IMG_BASE+"dzialka_tlo-2.png"} style={{position:"absolute",left:0,top:0,width:"100%",height:"100%"}} alt=""/>
@@ -4491,7 +4478,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.29.2</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.29.4</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
