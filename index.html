@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.29.6</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.29.7</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -460,7 +460,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.29.6</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.29.7</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1255,14 +1255,14 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
     </div>);
     case 4: {
       const SLIDES_3=[
-        {key:"ekran_3-cel",         label:"Cel"},
-        {key:"ekran_3-zasoby",      label:"Zasoby"},
-        {key:"ekran_3-kompetencje", label:"Kompetencje"},
-        {key:"ekran_3-dzialka",     label:"Działka"},
-        {key:"ekran_3-gotowka",     label:"Gotówka"},
-        ...(bnbEnabled?[{key:"ekran_3-bnb",label:"Biznes na boku"}]:[]),
-        {key:"ekran_3-zyla",        label:"Złotodajna żyła"},
-        {key:"ekran_3-los",         label:"Ślepy los"},
+        {key:"ekran_5-cel",         label:"Cel"},
+        {key:"ekran_5-zasoby",      label:"Zasoby"},
+        {key:"ekran_5-kompetencje", label:"Kompetencje"},
+        {key:"ekran_5-dzialka",     label:"Działka"},
+        {key:"ekran_5-gotowka",     label:"Gotówka"},
+        ...(bnbEnabled?[{key:"ekran_5-bnb",label:"Biznes na boku"}]:[]),
+        {key:"ekran_5-zyla",        label:"Złotodajna żyła"},
+        {key:"ekran_5-los",         label:"Ślepy los"},
       ];
       const safeIdx=Math.min(slide3,SLIDES_3.length-1);
       const btnLbl=(active)=>({background:active?"#D4A853":"#F5EDD8",color:active?"#2C1810":"#8B7355",padding:"3px 8px",fontSize:12,fontWeight:active?700:400,border:active?"none":"1px solid #D4C4A8",cursor:"pointer",fontFamily:"inherit"});
@@ -2572,9 +2572,21 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
     
     function renderCard(id,cat,has,pct){
       var ext=".png";
-      return(<div key={id} style={{opacity:has?1:0.4,filter:has?"none":"grayscale(100%)"}}>
-        <img src={IMG_BASE+cat+"_"+id+ext} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:"2px solid #D4C4A8"}} alt={id}/>
-        <div style={{fontSize:10,textAlign:"center",marginTop:2}}>{pct}%</div>
+      var bizName=FM[fId].biz;
+      return(<div key={id} style={{position:"relative",opacity:has?1:0.55}}>
+        <img src={IMG_BASE+cat+"_"+id+ext} style={{width:"100%",height:"auto",display:"block"}} alt={id}/>
+        {has&&<div className="sticky-note">
+          <svg className="sticky-pin" viewBox="0 0 24 24" width="18" height="18">
+            <circle cx="12" cy="8" r="6" fill="#8B4513"/>
+            <circle cx="12" cy="8" r="4.5" fill="#CD853F"/>
+            <circle cx="12" cy="6.5" r="2" fill="#DEB887"/>
+            <ellipse cx="12" cy="10" rx="3" ry="1" fill="rgba(0,0,0,0.15)"/>
+          </svg>
+          <div className="sticky-body">
+            <img src={IMG_BASE+"biz_"+toSlug(bizName)+".png"} className="sticky-biz" alt={bizName}/>
+            <div className="sticky-pct wt">{pct}%</div>
+          </div>
+        </div>}
       </div>);
     }
     
@@ -2589,7 +2601,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
           <span>Poziom realizacji: <b>{resPct}%</b></span>
           <span>Liczba punktów: <b>{resPts} pkt</b></span>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:8}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
           {task.zasoby.map(z=>renderCard(z.id,"res",myResIds.includes(z.id),z.pct))}
         </div>
       </div>
@@ -2600,7 +2612,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
           <span>Poziom realizacji: <b>{compPct}%</b></span>
           <span>Liczba punktów: <b>{compPts} pkt</b></span>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
           {task.kompetencje.map(k=>renderCard(k.id,"comp",myCompIds.includes(k.id),k.pct))}
         </div>
       </div>
@@ -2635,10 +2647,10 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
           <span>Liczba punktów: <b>{mapPts} pkt</b></span>
           <span>Rozliczenie: <b style={{color:gotMapBonus?"#2E5B3C":lostToWinner?"#C00":"#5C4A3A"}}>{gotMapBonus?"+300 $":lostToWinner?"\u2212100 $":"0 $"}</b></span>
         </div>
-        <div style={{display:"flex",gap:0}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
           {[5,4,3,2,1].map(fragNr=>{
             var hasIt=myMaps.some(m=>m.fragNr===fragNr);
-            return(<div key={fragNr} style={{flex:"1 1 0",opacity:hasIt?1:0.4,filter:hasIt?"none":"grayscale(100%)"}}>
+            return(<div key={fragNr} style={{opacity:hasIt?1:0.55}}>
               <img src={IMG_BASE+"map_fragment-"+fragNr+".png"} style={{width:"100%",height:"auto",display:"block"}} alt={"Fragment "+fragNr}/>
             </div>);
           })}
@@ -2692,7 +2704,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
             </div>))}
           </div>
           <div style={{borderTop:"1px solid #D4C4A8",paddingTop:8}}>
-            <div style={{fontSize:14,fontWeight:700,color:"#5C4A3A",marginBottom:6}}>Rozliczenie z dostawą:</div>
+            <div style={{fontSize:14,fontWeight:700,color:"#5C4A3A",marginBottom:6}}>Rozliczenie z dostawcą:</div>
             <div style={{fontSize:13,color:"#5C4A3A"}}>
               {bnbKurier>0&&<div style={{marginBottom:2}}>Voucher Kuriera: {bnbKurier} szt. → +{bnbKurier*4}% zasobów</div>}
               {bnbMikstura>0&&<div style={{marginBottom:2}}>Mikstura Doktora Geista: {bnbMikstura} szt. → +{bnbMikstura*4}% kompetencji</div>}
@@ -2717,11 +2729,11 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
         <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:12}}>Niesprzedane karty startowe</div>
         <div style={{marginBottom:12}}>
           <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:8}}>Zasoby:</div>
-          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
             {STARTING_RES[fId].filter(sid=>myResIds.includes(sid)&&!task.zasoby.some(z=>z.id===sid)).map(sid=>{
               var isZmylka=ZMYLKI_RES.includes(sid);
-              return(<div key={sid} style={{width:100}}>
-                <img src={IMG_BASE+"res_"+sid+".png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:isZmylka?"3px solid #C00":"2px solid #D4C4A8"}} alt={sid}/>
+              return(<div key={sid}>
+                <img src={IMG_BASE+"res_"+sid+".png"} style={{width:"100%",height:"auto",display:"block",border:isZmylka?"3px solid #C00":"none"}} alt={sid}/>
               </div>);
             })}
             {STARTING_RES[fId].filter(sid=>myResIds.includes(sid)&&!task.zasoby.some(z=>z.id===sid)).length===0&&<span style={{fontSize:13,color:"#888",fontStyle:"italic"}}>Brak</span>}
@@ -2729,11 +2741,11 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
         </div>
         <div>
           <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:8}}>Kompetencje:</div>
-          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
             {STARTING_COMP[fId].filter(cid=>myCompIds.includes(cid)&&!task.kompetencje.some(k=>k.id===cid)).map(cid=>{
               var isZmylka=ZMYLKI_COMP.includes(cid);
-              return(<div key={cid} style={{width:100}}>
-                <img src={IMG_BASE+"comp_"+cid+".png"} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:isZmylka?"3px solid #C00":"2px solid #D4C4A8"}} alt={cid}/>
+              return(<div key={cid}>
+                <img src={IMG_BASE+"comp_"+cid+".png"} style={{width:"100%",height:"auto",display:"block",border:isZmylka?"3px solid #C00":"none"}} alt={cid}/>
               </div>);
             })}
             {STARTING_COMP[fId].filter(cid=>myCompIds.includes(cid)&&!task.kompetencje.some(k=>k.id===cid)).length===0&&<span style={{fontSize:13,color:"#888",fontStyle:"italic"}}>Brak</span>}
@@ -2742,7 +2754,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
       </div>
       <div>
         <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:12}}>Zakupione karty bez wartości dla biznesu</div>
-        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
           {items.filter(i=>(i.cat==="res"||i.cat==="comp")&&!STARTING_RES[fId].includes(toSlug(i.name))&&!STARTING_COMP[fId].includes(toSlug(i.name))).filter(i=>{
             var slug=toSlug(i.name);
             var isNeeded=i.cat==="res"?task.zasoby.some(z=>z.id===slug):task.kompetencje.some(k=>k.id===slug);
@@ -2751,8 +2763,8 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
             var slug=toSlug(i.name);
             var isZmylka=(i.cat==="res"&&ZMYLKI_RES.includes(slug))||(i.cat==="comp"&&ZMYLKI_COMP.includes(slug));
             var ext=".png";
-            return(<div key={idx} style={{width:100}}>
-              <img src={IMG_BASE+i.cat+"_"+slug+ext} style={{width:"100%",height:"auto",display:"block",borderRadius:4,border:isZmylka?"3px solid #C00":"2px solid #D4C4A8"}} alt={i.name}/>
+            return(<div key={idx}>
+              <img src={IMG_BASE+i.cat+"_"+slug+ext} style={{width:"100%",height:"auto",display:"block",border:isZmylka?"3px solid #C00":"none"}} alt={i.name}/>
             </div>);
           })}
           {items.filter(i=>(i.cat==="res"||i.cat==="comp")&&!STARTING_RES[fId].includes(toSlug(i.name))&&!STARTING_COMP[fId].includes(toSlug(i.name))).filter(i=>{
@@ -4513,7 +4525,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.29.6</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.29.7</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
