@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.30.1</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.30.2</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -460,7 +460,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.30.1</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.30.2</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1239,19 +1239,20 @@ function InstructionSlides({familyId, roomCode, bnbEnabled, mapEnabled}) {
         {ROLE_DEFS.map(r=>(<div key={r.key} style={{marginBottom:12,display:"flex",gap:10,alignItems:"stretch"}}>
           <img src={IMG_BASE+r.img+".png"} style={{width:140,display:"block",objectFit:"cover",alignSelf:"stretch",flexShrink:0,borderRadius:6}} alt=""/>
           <div style={{flex:1,padding:"10px 14px",background:"#F6E4C8",borderRadius:6,display:"flex",flexDirection:"column",justifyContent:"center"}}>
-            <div style={{fontWeight:700,fontSize:20,color:"#4C130F",marginBottom:4,lineHeight:1.2}} className="wt">{r.label}</div>
+            <div style={{fontWeight:700,fontSize:20,color:"#4C130F",marginBottom:4,lineHeight:1.2}} className="wt">{r.label}{r.required&&<sup style={{fontSize:11,color:"#C00",marginLeft:2}}>*</sup>}</div>
             <div style={{fontSize:15,color:"#6B5B3E",marginBottom:8,lineHeight:1.5,fontWeight:500}}>{r.desc}</div>
             <input type="text" value={roles[r.key]} onChange={e=>{var v=e.target.value;setRoles(p=>({...p,[r.key]:v}));}} disabled={rolesSubmitted}
               placeholder="Imię uczestnika" style={{width:"100%",boxSizing:"border-box",padding:"6px 10px",border:"1px solid #C4B090",borderRadius:4,fontSize:14,fontFamily:"inherit",background:rolesSubmitted?"#E8E0D0":"#fff"}}/>
           </div>
         </div>))}
       </div>
-      {!rolesSubmitted?<button onClick={submitRoles} disabled={!requiredFilled||roleSaving}
-        style={{...btnS(requiredFilled?"primary":"default",!requiredFilled||roleSaving),width:"100%",fontSize:15,padding:"12px 0"}}>
-        {roleSaving?"Zapisuję...":"Zatwierdź role"}
-      </button>
-      :<div style={{background:"#5B7674",color:"#fff",textAlign:"center",padding:"10px 0",borderRadius:4,fontWeight:700,fontSize:14}}>✓ Role zatwierdzone</div>}
-      {!rolesSubmitted&&<div style={{fontSize:12,color:"#8B7355",marginTop:6,textAlign:"center"}}>* Pola wymagane: Głowa, Reprezentant, Księgowy</div>}
+      <div style={{textAlign:"center",marginTop:8}}>
+        <div onClick={()=>{if(!rolesSubmitted&&requiredFilled&&!roleSaving)submitRoles();}} style={{position:"relative",display:"inline-block",width:340,height:60,cursor:(!rolesSubmitted&&requiredFilled&&!roleSaving)?"pointer":"default",opacity:(!rolesSubmitted&&!requiredFilled)?0.5:1}}>
+          <img src={IMG_BASE+"przycisk_role.png"} style={{width:"100%",height:"100%",display:"block",objectFit:"fill"}} alt=""/>
+          <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:15,fontWeight:700,fontFamily:"'Aka Posse',Georgia,serif",letterSpacing:"0.5px"}}>{rolesSubmitted?"\u2713 Role zatwierdzone":roleSaving?"Zapisuję...":"Zatwierdź role"}</div>
+        </div>
+      </div>
+      {!rolesSubmitted&&<div style={{fontSize:12,color:"#8B7355",marginTop:6,textAlign:"center"}}><sup>*</sup>Role wymagane: Głowa Rodziny, Przedstawiciel, Księgowy</div>}
     </div>);
     case 4: {
       const SLIDES_3=[
@@ -4531,7 +4532,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.30.1</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.30.2</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
