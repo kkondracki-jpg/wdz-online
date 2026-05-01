@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.29.9</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.29.10</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -460,7 +461,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.29.9</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.29.10</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1265,19 +1266,23 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
         {key:"ekran_5-los",         label:"Ślepy los"},
       ];
       const safeIdx=Math.min(slide3,SLIDES_3.length-1);
-      const btnLbl=(active)=>({background:active?"#D4A853":"#F5EDD8",color:active?"#2C1810":"#8B7355",padding:"3px 8px",fontSize:12,fontWeight:active?700:400,border:active?"none":"1px solid #D4C4A8",cursor:"pointer",fontFamily:"inherit"});
-      const btnNav=(disabled)=>({background:"#E8D9B8",color:"#4C130F",padding:"4px 12px",fontSize:12,fontWeight:600,border:"1px solid #C4B090",cursor:disabled?"default":"pointer",fontFamily:"inherit",opacity:disabled?0.4:1});
+      const menuFont={fontFamily:"'Aka Posse',Georgia,serif",color:"#D4A853",cursor:"pointer",whiteSpace:"nowrap"};
+      const menuFontSize=bnbEnabled?12:13;
       return (<div>
         {hdr("Wasze zadania",false)}
-        <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:6}}>
-          {SLIDES_3.map((s,i)=>(
-            <button key={s.key} onClick={()=>setSlide3(i)} style={btnLbl(i===safeIdx)}>{s.label}</button>
-          ))}
-        </div>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
-          <button onClick={()=>setSlide3(Math.max(0,safeIdx-1))} disabled={safeIdx===0} style={btnNav(safeIdx===0)}>← Wstecz</button>
-          <span style={{fontSize:12,color:"#8B7355"}}>{safeIdx+1} / {SLIDES_3.length}</span>
-          <button onClick={()=>setSlide3(Math.min(SLIDES_3.length-1,safeIdx+1))} disabled={safeIdx===SLIDES_3.length-1} style={btnNav(safeIdx===SLIDES_3.length-1)}>Dalej →</button>
+        <div style={{position:"relative",width:"100%",marginBottom:8}}>
+          <img src={IMG_BASE+"menu_zadania.png"} style={{width:"100%",display:"block"}} alt=""/>
+          <div style={{position:"absolute",top:"50%",left:0,right:0,transform:"translateY(-50%)",display:"flex",alignItems:"center",padding:"0 30px"}}>
+            <div onClick={()=>{if(safeIdx>0)setSlide3(safeIdx-1);}} style={{...menuFont,fontSize:menuFontSize,opacity:safeIdx===0?0.4:1,cursor:safeIdx===0?"default":"pointer",marginRight:8}}>{"← Wstecz"}</div>
+            <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center"}}>
+              {SLIDES_3.map((s,i)=>{
+                var act=i===safeIdx;
+                var isLast=i===SLIDES_3.length-1;
+                return <div key={s.key} onClick={()=>setSlide3(i)} style={{...menuFont,fontSize:menuFontSize,padding:"4px 8px",fontWeight:act?700:400,color:act?"#F5ECD0":"#D4A853",background:act?"rgba(212,168,83,0.25)":"transparent",borderRight:isLast?"none":"1px solid rgba(212,168,83,0.4)"}}>{s.label}</div>;
+              })}
+            </div>
+            <div onClick={()=>{if(safeIdx<SLIDES_3.length-1)setSlide3(safeIdx+1);}} style={{...menuFont,fontSize:menuFontSize,opacity:safeIdx===SLIDES_3.length-1?0.4:1,cursor:safeIdx===SLIDES_3.length-1?"default":"pointer",marginLeft:8}}>{"Dalej →"}</div>
+          </div>
         </div>
         <img src={IMG_BASE+SLIDES_3[safeIdx].key+".png"} alt={SLIDES_3[safeIdx].label} style={{width:"100%",height:"auto",display:"block"}}/>
       </div>);
@@ -4535,7 +4540,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.29.9</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.29.10</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
