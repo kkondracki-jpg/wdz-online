@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.29.10</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.30.1</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -461,7 +460,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.29.10</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.30.1</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1030,7 +1029,7 @@ function buildView(items, targetBiz) {
 }
 
 /* ========== SCORE ========== */
-function calcScore(fId, fd, plotPenalties, biznesNaBoku, bnbEnabled, blindFate) {
+function calcScore(fId, fd, plotPenalties, biznesNaBoku, bnbEnabled, blindFate, mapEnabled) {
   var f=FM[fId], d=fd[fId], items=d.items;
   // BnB cards owned (bought from other families)
   var bnbCards=items.filter(i=>i.cat===C_BNB);
@@ -1075,7 +1074,7 @@ function calcScore(fId, fd, plotPenalties, biznesNaBoku, bnbEnabled, blindFate) 
   var cashScore=((cashForScore-600)/600)*25;
   // Map
   var uniqueFrags=[...new Set(items.filter(i=>i.cat===C_MAP).map(m=>m.fragNr))];
-  var mapScore=uniqueFrags.length*2; if(uniqueFrags.length>=4)mapScore=10;
+  var mapScore=mapEnabled?(uniqueFrags.length*2):0; if(mapEnabled&&uniqueFrags.length>=4)mapScore=10;
   // BnB points: kwatera bonus if enabled + konwersja voucher/mikstura przy 100%, else manual input
   var bnb=bnbEnabled?(bnbKwatera+bnbKurierBonus+bnbMiksturaBonus):((biznesNaBoku&&biznesNaBoku[fId])||0);
   var bizTotal=resScore+compScore+plotScore+cashScore+mapScore+bnb;
@@ -1163,7 +1162,7 @@ function TaskHeader({imgName, fallbackText}) {
 }
 
 /* ========== INSTRUCTION SLIDES ========== */
-function InstructionSlides({familyId, roomCode, bnbEnabled}) {
+function InstructionSlides({familyId, roomCode, bnbEnabled, mapEnabled}) {
   const [page, setPage] = useState(0);
   const [maxVisited, setMaxVisited] = useState(0);
   const [allCompleted, setAllCompleted] = useState(false);
@@ -1262,7 +1261,7 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
         {key:"ekran_5-dzialka",     label:"Działka"},
         {key:"ekran_5-gotowka",     label:"Gotówka"},
         ...(bnbEnabled?[{key:"ekran_5-bnb",label:"Biznes na boku"}]:[]),
-        {key:"ekran_5-zyla",        label:"Złotodajna żyła"},
+        ...(mapEnabled?[{key:"ekran_5-zyla",label:"Złotodajna żyła"}]:[]),
         {key:"ekran_5-los",         label:"Ślepy los"},
       ];
       const safeIdx=Math.min(slide3,SLIDES_3.length-1);
@@ -2421,7 +2420,7 @@ function RewolwerowiecNew({rc,familyId,duelTimer,revSubmitShots,revDuels,getRevT
 }
 
 /* ========== UNIFIED DEBRIEFING PANEL ========== */
-function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,debriefFullAccess,debriefTab,setDebriefTab,readOnly,debriefNotes,setDebriefNotes,debriefUnlocked,setDebriefUnlocked,setDebriefFullAccess,showMsg}){
+function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,debriefFullAccess,debriefTab,setDebriefTab,readOnly,debriefNotes,setDebriefNotes,debriefUnlocked,setDebriefUnlocked,setDebriefFullAccess,showMsg,mapEnabled}){
   const [publicView,setPublicView]=useState(false);
   const [selectedFamily,setSelectedFamily]=useState("adams");
   const barChartRef=useRef(null);
@@ -2436,7 +2435,8 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
   const F=["adams","bennet","clinton","dexter"];
   const FN={adams:"Adamsowie",bennet:"Bennetowie",clinton:"Clintonowie",dexter:"Dexterowie"};
   const FC={adams:"#A75F4A",bennet:"#726072",clinton:"#5E5971",dexter:"#5B7674"};
-  const CATS=["zasoby","kompetencje","gotowka","dzialka","mapa","relacje"];
+  const ALL_CATS=["zasoby","kompetencje","gotowka","dzialka","mapa","relacje"];
+  const CATS=mapEnabled?ALL_CATS:ALL_CATS.filter(c=>c!=="mapa");
   const CATS_LABEL={zasoby:"Zasoby",kompetencje:"Kompetencje",gotowka:"Gotówka",dzialka:"Działka",mapa:"Mapa",relacje:"Relacje"};
   const CATS_MAX={zasoby:30,kompetencje:25,gotowka:25,dzialka:10,mapa:10,relacje:20};
   const PAIRS=["adams-bennet","adams-clinton","adams-dexter","bennet-clinton","bennet-dexter","clinton-dexter"];
@@ -2479,7 +2479,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
       var plotPts=plotOk?10:0;
       // P1-1: Unikalne fragmenty mapy (spójne z calcScore)
       var uniqueMapFrags=[...new Set(items.filter(i=>i.cat==="map").map(m=>m.fragNr))];
-      var mapPts=uniqueMapFrags.length>=4?10:uniqueMapFrags.length*2;
+      var mapPts=mapEnabled?(uniqueMapFrags.length>=4?10:uniqueMapFrags.length*2):0;
       var relPts=Math.round(calcRelationScore(f, relations));
       scores[f]={zasoby:resPts,kompetencje:compPts,gotowka:cashPts,dzialka:plotPts,mapa:mapPts,relacje:relPts};
     });
@@ -2559,14 +2559,16 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
     var compPts=Math.round((compPct/100)*25);
     var cashPts=Math.max(0,Math.min(25,Math.round(((cash-600)/600)*25)));
     var plotPts=hasCorrectPlot?10:0;
-    var mapPts=Math.min(10,myMaps.length*2);
+    var mapPts=mapEnabled?Math.min(10,myMaps.length*2):0;
     var relPts=Math.round(calcRelationScore(fId, relations));
     var totalPts=resPts+compPts+cashPts+plotPts+mapPts+relPts;
     
     var mapWinner=null;var maxFrags=0;
-    F.forEach(f=>{var frags=(fd[f]&&fd[f].items||[]).filter(i=>i.cat==="map").length;if(frags>maxFrags){maxFrags=frags;mapWinner=f;}else if(frags===maxFrags&&maxFrags>0){mapWinner=null;}});
-    var gotMapBonus=mapWinner===fId;
-    var lostToWinner=mapWinner&&mapWinner!==fId?mapWinner:null;
+    if(mapEnabled){
+      F.forEach(f=>{var frags=(fd[f]&&fd[f].items||[]).filter(i=>i.cat==="map").length;if(frags>maxFrags){maxFrags=frags;mapWinner=f;}else if(frags===maxFrags&&maxFrags>0){mapWinner=null;}});
+    }
+    var gotMapBonus=mapEnabled&&mapWinner===fId;
+    var lostToWinner=mapEnabled&&mapWinner&&mapWinner!==fId?mapWinner:null;
     
     var myFate=blindFate[fId]||{};
     var fateResults=[];
@@ -2577,21 +2579,9 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
     
     function renderCard(id,cat,has,pct){
       var ext=".png";
-      var bizName=FM[fId].biz;
-      return(<div key={id} style={{position:"relative",opacity:has?1:0.55}}>
+      return(<div key={id} style={{width:167,opacity:has?1:0.55}}>
         <img src={IMG_BASE+cat+"_"+id+ext} style={{width:"100%",height:"auto",display:"block"}} alt={id}/>
-        {has&&<div className="sticky-note">
-          <svg className="sticky-pin" viewBox="0 0 24 24" width="18" height="18">
-            <circle cx="12" cy="8" r="6" fill="#8B4513"/>
-            <circle cx="12" cy="8" r="4.5" fill="#CD853F"/>
-            <circle cx="12" cy="6.5" r="2" fill="#DEB887"/>
-            <ellipse cx="12" cy="10" rx="3" ry="1" fill="rgba(0,0,0,0.15)"/>
-          </svg>
-          <div className="sticky-body">
-            <img src={IMG_BASE+"biz_"+toSlug(bizName)+".png"} className="sticky-biz" alt={bizName}/>
-            <div className="sticky-pct wt">{pct}%</div>
-          </div>
-        </div>}
+        <div style={{fontSize:12,textAlign:"center",marginTop:2,color:"#5C4A3A",fontWeight:600}}>Waga: {pct}%</div>
       </div>);
     }
     
@@ -2606,7 +2596,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
           <span>Poziom realizacji: <b>{resPct}%</b></span>
           <span>Liczba punktów: <b>{resPts} pkt</b></span>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,167px)",gap:8}}>
           {task.zasoby.map(z=>renderCard(z.id,"res",myResIds.includes(z.id),z.pct))}
         </div>
       </div>
@@ -2617,7 +2607,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
           <span>Poziom realizacji: <b>{compPct}%</b></span>
           <span>Liczba punktów: <b>{compPts} pkt</b></span>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,167px)",gap:8}}>
           {task.kompetencje.map(k=>renderCard(k.id,"comp",myCompIds.includes(k.id),k.pct))}
         </div>
       </div>
@@ -2645,22 +2635,22 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
         </div>
       </div>
       
-      <div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
+      {mapEnabled&&<div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
         <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>5. Złotodajna Żyła</div>
         <div style={{display:"flex",gap:20,marginBottom:10,fontSize:14,flexWrap:"wrap"}}>
           <span>Zebrane fragmenty: <b>{myMaps.length}/5</b></span>
           <span>Liczba punktów: <b>{mapPts} pkt</b></span>
           <span>Rozliczenie: <b style={{color:gotMapBonus?"#2E5B3C":lostToWinner?"#C00":"#5C4A3A"}}>{gotMapBonus?"+300 $":lostToWinner?"\u2212100 $":"0 $"}</b></span>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,167px)",gap:8}}>
           {[5,4,3,2,1].map(fragNr=>{
             var hasIt=myMaps.some(m=>m.fragNr===fragNr);
-            return(<div key={fragNr} style={{opacity:hasIt?1:0.55}}>
+            return(<div key={fragNr} style={{width:167,opacity:hasIt?1:0.55}}>
               <img src={IMG_BASE+"map_fragment-"+fragNr+".png"} style={{width:"100%",height:"auto",display:"block"}} alt={"Fragment "+fragNr}/>
             </div>);
           })}
         </div>
-      </div>
+      </div>}
       
       <div style={{marginBottom:20,padding:12,background:"#FDFAF4",border:"1px solid #D4C4A8",borderRadius:6}}>
         <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:8}}>6. Efekty Ślepego Losu</div>
@@ -2734,10 +2724,10 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
         <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:12}}>Niesprzedane karty startowe</div>
         <div style={{marginBottom:12}}>
           <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:8}}>Zasoby:</div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,167px)",gap:8}}>
             {STARTING_RES[fId].filter(sid=>myResIds.includes(sid)&&!task.zasoby.some(z=>z.id===sid)).map(sid=>{
               var isZmylka=ZMYLKI_RES.includes(sid);
-              return(<div key={sid}>
+              return(<div key={sid} style={{width:167}}>
                 <img src={IMG_BASE+"res_"+sid+".png"} style={{width:"100%",height:"auto",display:"block",border:isZmylka?"3px solid #C00":"none"}} alt={sid}/>
               </div>);
             })}
@@ -2746,10 +2736,10 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
         </div>
         <div>
           <div style={{fontSize:13,fontWeight:600,color:"#5C4A3A",marginBottom:8}}>Kompetencje:</div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,167px)",gap:8}}>
             {STARTING_COMP[fId].filter(cid=>myCompIds.includes(cid)&&!task.kompetencje.some(k=>k.id===cid)).map(cid=>{
               var isZmylka=ZMYLKI_COMP.includes(cid);
-              return(<div key={cid}>
+              return(<div key={cid} style={{width:167}}>
                 <img src={IMG_BASE+"comp_"+cid+".png"} style={{width:"100%",height:"auto",display:"block",border:isZmylka?"3px solid #C00":"none"}} alt={cid}/>
               </div>);
             })}
@@ -2759,7 +2749,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
       </div>
       <div>
         <div style={{fontSize:15,fontWeight:700,color:"#842504",marginBottom:12}}>Zakupione karty bez wartości dla biznesu</div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,167px)",gap:8}}>
           {items.filter(i=>(i.cat==="res"||i.cat==="comp")&&!STARTING_RES[fId].includes(toSlug(i.name))&&!STARTING_COMP[fId].includes(toSlug(i.name))).filter(i=>{
             var slug=toSlug(i.name);
             var isNeeded=i.cat==="res"?task.zasoby.some(z=>z.id===slug):task.kompetencje.some(k=>k.id===slug);
@@ -2768,7 +2758,7 @@ function DebriefingPanel({viewMode,familyId,fd,txs,blindFate,relations,revDuels,
             var slug=toSlug(i.name);
             var isZmylka=(i.cat==="res"&&ZMYLKI_RES.includes(slug))||(i.cat==="comp"&&ZMYLKI_COMP.includes(slug));
             var ext=".png";
-            return(<div key={idx}>
+            return(<div key={idx} style={{width:167}}>
               <img src={IMG_BASE+i.cat+"_"+slug+ext} style={{width:"100%",height:"auto",display:"block",border:isZmylka?"3px solid #C00":"none"}} alt={i.name}/>
             </div>);
           })}
@@ -3376,7 +3366,7 @@ function SheriffPanel({readOnly,fd,txs,consultations,setConsultations,consultNot
     <div style={{background:"#fff",border:"1px solid #842504",borderRadius:6,padding:14,marginBottom:16}}>
       <div style={{fontSize:18,fontWeight:700,color:"#842504",marginBottom:10}} className="wt">Statystyki rodzin</div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
-        {FO.map(fId=>{var f=FM[fId],d=fd[fId],sc=calcScore(fId,fd,plotPenalties,biznesNaBoku,bnbEnabled,blindFate);
+        {FO.map(fId=>{var f=FM[fId],d=fd[fId],sc=calcScore(fId,fd,plotPenalties,biznesNaBoku,bnbEnabled,blindFate,mapEnabled);
           var plotI=d.items.find(i=>i.cat===C_PLOT),plotOk=plotI&&plotI.plotNr===f.tPlot;
           return (<div key={fId} style={{background:"#fff",border:"2px solid "+f.col,borderRadius:6,padding:10}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
@@ -4155,6 +4145,7 @@ function App({roomCode,role,playerId,playerName}) {
   // claimMapBonus — wywoływana ręcznie przez gracza (przycisk Zatwierdź)
   // P0-3: Atomowy claim przez Firebase transaction — first-write-wins
   function claimMapBonus(fId){
+    if(!mapEnabled) return;
     if(mapBonusClaimed[fId]) return;
     // Sprawdź czy ktoś już wygrał (lokalnie)
     var anyWinner=Object.values(mapBonusClaimed).some(v=>v);
@@ -4540,7 +4531,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.29.10</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.30.1</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -4628,7 +4619,7 @@ function App({roomCode,role,playerId,playerName}) {
       </div>
       {sheriffTab==="planning"&&<SheriffPlanningTab readOnly={isSheriff2} roomCode={roomCode} lobbyPlayers={lobbyPlayers} gameStarted={gameStarted} setGameStarted={setGameStarted} showMsg={showMsg} db={db} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} activateBnb={activateBnb}/>}
       {sheriffTab==="game"&&<SheriffPanel readOnly={isSheriff2} fd={fd} txs={txs} consultations={consultations} setConsultations={setConsultations} consultNotes={consultNotes} setConsultNotes={setConsultNotes} setFd={setFd} showMsg={showMsg} blindFate={blindFate} setBlindFate={setBlindFate} showResults={showResults} setShowResults={setShowResults} onViewFamily={fId=>setSheriffViewFamily(fId)} plotPenalties={plotPenalties} setPlotPenalties={setPlotPenalties} setTxs={setTxs} biznesNaBoku={biznesNaBoku} setBiznesNaBoku={setBiznesNaBoku} relations={relations} relationsUnlocked={relationsUnlocked} setRelationsUnlocked={setRelationsUnlocked} gameStarted={gameStarted} stageIdx={stageIdx} stageDurations={stageDurations} setStageDurations={setStageDurations} startStage={startStage} pauseTimer={pauseTimer} resumeTimer={resumeTimer} advanceStage={advanceStage} timerRunning={timerRunning} timerPaused={timerPaused} secondsLeft={secondsLeft} manualMode={manualMode} setManualMode={setManualMode} sheriffCalls={sheriffCalls} setSheriffCalls={setSheriffCalls} bnbEnabled={bnbEnabled} setBnbEnabled={setBnbEnabled} bnbSettled={bnbSettled} activateBnb={activateBnb} settleBnb={settleBnb} fateEnabled={fateEnabled} setFateEnabled={setFateEnabled} mapEnabled={mapEnabled} setMapEnabled={setMapEnabled} revEnabled={revEnabled} setRevEnabled={setRevEnabled} revMaxBet={revMaxBet} setRevMaxBet={setRevMaxBet} revDuels={revDuels} revCurrent={revCurrent} revNewDuel={revNewDuel} revSetBet={revSetBet} revReveal={revReveal} revSettle={revSettle} revMode={revMode} setRevMode={setRevMode} revActive={revActive} setRevActive={setRevActive} revStartTournament={revStartTournament} getRevTimer={getRevTimer} revRevealDuel={revRevealDuel} revSettleDuel={revSettleDuel}/>}
-      {sheriffTab==="results"&&<DebriefingPanel viewMode="sheriff" familyId={null} fd={fd} txs={txs} blindFate={blindFate} relations={relations} revDuels={revDuels} debriefFullAccess={debriefFullAccess} debriefTab={sheriffDebriefTab} setDebriefTab={setSheriffDebriefTab} readOnly={isSheriff2} debriefNotes={debriefNotes} setDebriefNotes={setDebriefNotes} debriefUnlocked={debriefUnlocked} setDebriefUnlocked={setDebriefUnlocked} setDebriefFullAccess={setDebriefFullAccess} showMsg={showMsg}/>}
+      {sheriffTab==="results"&&<DebriefingPanel viewMode="sheriff" familyId={null} fd={fd} txs={txs} blindFate={blindFate} relations={relations} revDuels={revDuels} debriefFullAccess={debriefFullAccess} debriefTab={sheriffDebriefTab} setDebriefTab={setSheriffDebriefTab} readOnly={isSheriff2} debriefNotes={debriefNotes} setDebriefNotes={setDebriefNotes} debriefUnlocked={debriefUnlocked} setDebriefUnlocked={setDebriefUnlocked} setDebriefFullAccess={setDebriefFullAccess} showMsg={showMsg} mapEnabled={mapEnabled}/>}
     </div>}
 
     {(!viewSheriff||sheriffViewFamily)&&(<div style={{maxWidth:1200,margin:"0 auto",padding:"16px 0"}}>
@@ -4656,7 +4647,7 @@ function App({roomCode,role,playerId,playerName}) {
       </div>
       <div style={{display:"grid",gridTemplateColumns:(activeTab==="inv"||activeTab==="tutorial")?"1fr 360px":"1fr",gap:20,alignItems:"start",marginTop:12,padding:"0 16px"}}>
         <div>
-          {activeTab==="tutorial"&&<InstructionSlides key={familyId} familyId={familyId} roomCode={roomCode} bnbEnabled={bnbEnabled}/>}
+          {activeTab==="tutorial"&&<InstructionSlides key={familyId} familyId={familyId} roomCode={roomCode} bnbEnabled={bnbEnabled} mapEnabled={mapEnabled}/>}
           {activeTab==="inv"&&(()=>{
             var f=FM[familyId];
             // Resources for own biz
@@ -4783,7 +4774,7 @@ function App({roomCode,role,playerId,playerName}) {
               </div>);})}
             </div>);
           })()}
-          {activeTab==="results"&&debriefUnlocked&&<DebriefingPanel viewMode="player" familyId={familyId} fd={fd} txs={txs} blindFate={blindFate} relations={relations} revDuels={revDuels} debriefFullAccess={debriefFullAccess} debriefTab={playerDebriefTab} setDebriefTab={setPlayerDebriefTab} readOnly={true} debriefNotes={{}} setDebriefNotes={null} debriefUnlocked={debriefUnlocked} setDebriefUnlocked={null} setDebriefFullAccess={null} showMsg={null}/>}
+          {activeTab==="results"&&debriefUnlocked&&<DebriefingPanel viewMode="player" familyId={familyId} fd={fd} txs={txs} blindFate={blindFate} relations={relations} revDuels={revDuels} debriefFullAccess={debriefFullAccess} debriefTab={playerDebriefTab} setDebriefTab={setPlayerDebriefTab} readOnly={true} debriefNotes={{}} setDebriefNotes={null} debriefUnlocked={debriefUnlocked} setDebriefUnlocked={null} setDebriefFullAccess={null} showMsg={null} mapEnabled={mapEnabled}/>}
           {activeTab==="rev"&&revEnabled&&(()=>{
             var rc=revActive.find(d=>d.familyA===familyId||d.familyB===familyId)||revCurrent;
             var duelTimer=rc?getRevTimer(rc.id):-1;
@@ -5007,9 +4998,18 @@ function App({roomCode,role,playerId,playerName}) {
           {(pMode==="sale"||pMode==="barter")&&pStep>1&&!(gameActive&&tradePartner&&pStep===2)&&<img src={IMG_BASE+"przycisk_wstecz.png"} alt="Wstecz" onClick={()=>setPStep(s=>s-1)} style={{height:36,width:"auto",cursor:"pointer",display:"block"}}/>}
           <div style={{flex:1}}/>
           {(pMode==="sale"||pMode==="barter")&&pStep<3&&<img src={IMG_BASE+"przycisk_dalej.png"} alt="Dalej" onClick={()=>{var fs=formStateRef.current;if(fs.pStep===1&&!fs.tFam)return;if(fs.pStep===2&&!selItems.length)return;setPStep(s=>s+1);}} style={{height:36,width:"auto",cursor:((pStep===1&&!tFam)||(pStep===2&&!selItems.length))?"not-allowed":"pointer",opacity:((pStep===1&&!tFam)||(pStep===2&&!selItems.length))?0.4:1,display:"block"}}/>}
-          {pMode==="sale"&&pStep===3&&<button style={btnS("success",price<=0||sending)} onClick={submitSale}>{sending?"Wysyłanie…":"Wyślij ofertę"}</button>}
-          {pMode==="barter"&&pStep===3&&<button style={btnS("barter",sending)} onClick={submitBarter}>{sending?"Wysyłanie…":"Wyślij propozycję"}</button>}
-          {pMode==="barter_response"&&<button style={btnS("barter",!selItems.length||sending)} onClick={submitResponse}>{sending?"Wysyłanie…":"Wyślij kontr-ofertę"}</button>}
+          {pMode==="sale"&&pStep===3&&<div onClick={()=>{if(!(price<=0||sending))submitSale();}} style={{position:"relative",height:36,width:139,cursor:(price<=0||sending)?"not-allowed":"pointer",opacity:(price<=0||sending)?0.5:1,flexShrink:0}}>
+            <img src={IMG_BASE+"przycisk_panel-sp.png"} style={{width:"100%",height:"100%",display:"block",objectFit:"fill"}} alt=""/>
+            <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:13,fontWeight:700,fontFamily:"'Aka Posse',Georgia,serif",letterSpacing:"0.5px"}}>{sending?"Wysyłanie…":"Wyślij ofertę"}</div>
+          </div>}
+          {pMode==="barter"&&pStep===3&&<div onClick={()=>{if(!sending)submitBarter();}} style={{position:"relative",height:36,width:139,cursor:sending?"not-allowed":"pointer",opacity:sending?0.5:1,flexShrink:0}}>
+            <img src={IMG_BASE+"przycisk_panel-sp.png"} style={{width:"100%",height:"100%",display:"block",objectFit:"fill"}} alt=""/>
+            <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:13,fontWeight:700,fontFamily:"'Aka Posse',Georgia,serif",letterSpacing:"0.5px"}}>{sending?"Wysyłanie…":"Wyślij propozycję"}</div>
+          </div>}
+          {pMode==="barter_response"&&<div onClick={()=>{if(!(!selItems.length||sending))submitResponse();}} style={{position:"relative",height:36,width:139,cursor:(!selItems.length||sending)?"not-allowed":"pointer",opacity:(!selItems.length||sending)?0.5:1,flexShrink:0}}>
+            <img src={IMG_BASE+"przycisk_panel-sp.png"} style={{width:"100%",height:"100%",display:"block",objectFit:"fill"}} alt=""/>
+            <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:12,fontWeight:700,fontFamily:"'Aka Posse',Georgia,serif",letterSpacing:"0.5px"}}>{sending?"Wysyłanie…":"Wyślij kontr-ofertę"}</div>
+          </div>}
         </div>
       </div>
     </div>)}
