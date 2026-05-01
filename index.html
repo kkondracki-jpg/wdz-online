@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.29.8</title>
+  <title>Wschód Dzikiego Zachodu© Online — Platforma Sieciowa v1.29.9</title>
   <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -460,7 +460,7 @@ function Lobby({onJoin}){
           <div style={{fontSize:32,fontWeight:900,color:"#D4A853",letterSpacing:1,fontFamily:"'Alegreya Sans',sans-serif",lineHeight:1.1}} className="wt">Wschód Dzikiego Zachodu<sup style={{fontSize:16,fontWeight:400}}>©</sup> Online</div>
           <div style={{fontSize:14,color:"#C4B090",marginTop:2}}>Platforma Sieciowa</div>
         </div>
-        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.29.8</div>
+        <div style={{fontSize:13,color:"#8B7355",marginTop:10}}>v1.29.9</div>
       </div>
 
       {/* === INITIAL CHOICE === */}
@@ -1323,7 +1323,7 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
   return (<div>
     <div style={{minHeight:300,marginBottom:16}}>{renderPage()}</div>
     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",borderTop:"1px solid #E8D9B8",paddingTop:12}}>
-      <img src={IMG_BASE+"przycis_wstecz.png"} alt="Wstecz" onClick={()=>{if(page>0)setPage(p=>p-1);}}
+      <img src={IMG_BASE+"przycisk_wstecz.png"} alt="Wstecz" onClick={()=>{if(page>0)setPage(p=>p-1);}}
         style={{height:36,width:"auto",cursor:page===0?"not-allowed":"pointer",opacity:page===0?0.4:1,display:"block"}}/>
       <div style={{display:"flex",gap:6}}>
         {PAGE_TITLES.map((t,i)=>{
@@ -1339,7 +1339,7 @@ function InstructionSlides({familyId, roomCode, bnbEnabled}) {
           title={t}>{i+1}</div>);
         })}
       </div>
-      <img src={IMG_BASE+"przycis_dalej.png"} alt="Dalej" onClick={()=>{if(page<totalPages-1&&canNext)setPage(p=>p+1);}}
+      <img src={IMG_BASE+"przycisk_dalej.png"} alt="Dalej" onClick={()=>{if(page<totalPages-1&&canNext)setPage(p=>p+1);}}
         style={{height:36,width:"auto",cursor:(page>=totalPages-1||!canNext)?"not-allowed":"pointer",opacity:(page>=totalPages-1||!canNext)?0.4:1,display:"block"}}/>
     </div>
   </div>);
@@ -4535,7 +4535,7 @@ function App({roomCode,role,playerId,playerName}) {
       <div style={{fontSize:22,fontWeight:700,letterSpacing:"1px"}} className="wt">WSCHÓD DZIKIEGO ZACHODU</div>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{fontSize:13,color:"#C4B090",fontFamily:"monospace"}}>Rozgrywka: {roomCode}</div>
-        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.29.8</div>
+        <div style={{fontSize:13,background:"#D4A853",color:"#2C1810",padding:"3px 10px",borderRadius:3,fontWeight:600}}>v1.29.9</div>
       </div>
     </div>
     {isSheriffAny?(()=>{
@@ -4999,9 +4999,9 @@ function App({roomCode,role,playerId,playerName}) {
           </div>;})()}
         </div>
         <div style={{padding:"14px 18px",borderTop:"1px solid #D7B56D",display:"flex",gap:8,justifyContent:"flex-end"}}>
-          {(pMode==="sale"||pMode==="barter")&&pStep>1&&!(gameActive&&tradePartner&&pStep===2)&&<img src={IMG_BASE+"przycis_wstecz.png"} alt="Wstecz" onClick={()=>setPStep(s=>s-1)} style={{height:36,width:"auto",cursor:"pointer",display:"block"}}/>}
+          {(pMode==="sale"||pMode==="barter")&&pStep>1&&!(gameActive&&tradePartner&&pStep===2)&&<img src={IMG_BASE+"przycisk_wstecz.png"} alt="Wstecz" onClick={()=>setPStep(s=>s-1)} style={{height:36,width:"auto",cursor:"pointer",display:"block"}}/>}
           <div style={{flex:1}}/>
-          {(pMode==="sale"||pMode==="barter")&&pStep<3&&<img src={IMG_BASE+"przycis_dalej.png"} alt="Dalej" onClick={()=>{var fs=formStateRef.current;if(fs.pStep===1&&!fs.tFam)return;if(fs.pStep===2&&!selItems.length)return;setPStep(s=>s+1);}} style={{height:36,width:"auto",cursor:((pStep===1&&!tFam)||(pStep===2&&!selItems.length))?"not-allowed":"pointer",opacity:((pStep===1&&!tFam)||(pStep===2&&!selItems.length))?0.4:1,display:"block"}}/>}
+          {(pMode==="sale"||pMode==="barter")&&pStep<3&&<img src={IMG_BASE+"przycisk_dalej.png"} alt="Dalej" onClick={()=>{var fs=formStateRef.current;if(fs.pStep===1&&!fs.tFam)return;if(fs.pStep===2&&!selItems.length)return;setPStep(s=>s+1);}} style={{height:36,width:"auto",cursor:((pStep===1&&!tFam)||(pStep===2&&!selItems.length))?"not-allowed":"pointer",opacity:((pStep===1&&!tFam)||(pStep===2&&!selItems.length))?0.4:1,display:"block"}}/>}
           {pMode==="sale"&&pStep===3&&<button style={btnS("success",price<=0||sending)} onClick={submitSale}>{sending?"Wysyłanie…":"Wyślij ofertę"}</button>}
           {pMode==="barter"&&pStep===3&&<button style={btnS("barter",sending)} onClick={submitBarter}>{sending?"Wysyłanie…":"Wyślij propozycję"}</button>}
           {pMode==="barter_response"&&<button style={btnS("barter",!selItems.length||sending)} onClick={submitResponse}>{sending?"Wysyłanie…":"Wyślij kontr-ofertę"}</button>}
