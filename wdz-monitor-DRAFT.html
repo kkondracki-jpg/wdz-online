@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WDZ Monitor v0.4.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+@font-face{font-family:'Aka Posse';src:url('https://kkondracki-jpg.github.io/wdz-online/img/akaPosse.ttf') format('truetype');}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Alegreya Sans',sans-serif;background:#1A0E08;color:#F5F0E8;min-height:100vh;}
+.wt{font-family:'Aka Posse',serif;}
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:#2C1810;}
+::-webkit-scrollbar-thumb{background:#6B3A2A;border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:#842504;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="wdz-shared.js"></script>
+<script type="text/babel">
+
+/* ================================================================
+   WDZ MONITOR v0.4.0
+   Osobny plik HTML — read-only nasłuchiwacz Firebase.
+   Nie pisze NICZEGO do bazy — czyste on("value").
+   v0.2.0: śledzenie połączeń, detekcja zmian, podgląd wyników,
+           wizualizacja gotówki, alert dźwiękowy, filtr dziennika
+   v0.4.0: transakcje per faza, pomiar czasu reakcji na oferty,
+           watchdog konsultacji, eksport raportu z sesji
+   ================================================================ */
+
+const VERSION = "0.4.0";
+
+/* ========== FIREBASE CONFIG ========== */
+var db = null, auth = null;
+try {
+  const firebaseConfig = {
+    apiKey: "AIzaSyC0h2oqWeC4LUvTZ7n7y1Fte6kxIl-VTac",
+    authDomain: "wdz-online.firebaseapp.com",
+    databaseURL: "https://wdz-online-default-rtdb.firebaseio.com",
+    projectId: "wdz-online",
+    storageBucket: "wdz-online.firebasestorage.app",
+    messagingSenderId: "1034809779367",
+    appId: "1:1034809779367:web:d913232cf95f2ede3c2782"
+  };
+  var fbApp = firebase.initializeApp(firebaseConfig, "wdz-monitor");
+  db = fbApp.database();
+  auth = fbApp.auth();
+  auth.signInAnonymously().catch(function(e){ console.warn("[Monitor] Auth failed:", e.message); });
+} catch(e) { console.error("[Monitor] Firebase init failed:", e); }
+
+/* ========== GAME CONSTANTS — z wdz-shared.js: FM, FO, C_*, STAGES, BNB_PRODUCTS, PAIRINGS, ensureArray ========== */
+
+const START_CASH = 600;
+const EXPECTED_ITEMS = { adams:32, bennet:28, clinton:29, dexter:31 };
+const TOTAL_ITEMS = 120;
+const TOTAL_CASH = 2400;
+const MAP_FRAGS_PER_FAMILY = 4;
+const TOTAL_MAP_FRAGS = 16;
+const TOTAL_PLOTS = 4;
+
+/* ========== HELPERS ========== */
+function fixFdFromFirebase(fd){
+  if(!fd)return fd;
+  var r={};
+  for(var k in fd){r[k]={cash:fd[k].cash!=null?fd[k].cash:0,items:ensureArray(fd[k].items)};}
+  return r;
+}
+function ts(){return new Date().toLocaleTimeString("pl",{hour:"2-digit",minute:"2-digit",second:"2-digit"});}
+
+/* ========== SOUND ALERT ========== */
+var audioCtx = null;
+function playAlertBeep() {
+  try {
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.frequency.value = 880; osc.type = "square";
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.3);
+  } catch(e) { /* ignore audio errors */ }
+}
+
+/* ========== SCORE CALCULATOR — wrapper nad calcScore z wdz-shared.js ========== */
+function monCalcScore(fId, fd, biznesNaBoku, bnbEnabled, blindFate, mapEnabled) {
+  var result = calcScore(fId, fd, blindFate, bnbEnabled, mapEnabled);
+  if(!bnbEnabled && biznesNaBoku && biznesNaBoku[fId]) {
+    result.bnb = biznesNaBoku[fId];
+    result.bizTotal = result.bizTotal + biznesNaBoku[fId];
+  }
+  return result;
+}
+
+/* ========== CHANGE DETECTION ========== */
+function detectChanges(cur, prev) {
+  var changes = [];
+  if(!prev) return changes;
+  // Stage change
+  if(cur.stageIdx !== prev.stageIdx && cur.stageIdx != null) {
+    var st = STAGES[cur.stageIdx];
+    changes.push({sev:SEV.INFO, cat:"ETAP", msg:"Przejście do: " + (st ? st.label : "etap " + cur.stageIdx)});
+  }
+  // Game started
+  if(cur.gameStarted && !prev.gameStarted) {
+    changes.push({sev:SEV.INFO, cat:"GRA", msg:"Rozgrywka rozpoczęta"});
+  }
+  // Timer paused/resumed
+  if(cur.timerPaused && !prev.timerPaused) {
+    changes.push({sev:SEV.INFO, cat:"TIMER", msg:"Timer wstrzymany (pauza)"});
+  }
+  if(!cur.timerPaused && prev.timerPaused && cur.timerRunning) {
+    changes.push({sev:SEV.INFO, cat:"TIMER", msg:"Timer wznowiony"});
+  }
+  // Mechanic toggles
+  var mechs = [
+    {key:"bnbEnabled", label:"Biznes na Boku"},
+    {key:"fateEnabled", label:"Ślepy Los"},
+    {key:"mapEnabled", label:"Złotodajna Żyła"},
+    {key:"revEnabled", label:"Rewolwerowiec"},
+    {key:"relationsUnlocked", label:"Relacje"},
+  ];
+  mechs.forEach(m => {
+    if(cur[m.key] && !prev[m.key]) changes.push({sev:SEV.INFO, cat:"MECHANIKA", msg:m.label + " — aktywowany"});
+  });
+  // New transactions
+  var curTxs = cur.txs ? ensureArray(cur.txs) : [];
+  var prevTxs = prev.txs ? ensureArray(prev.txs) : [];
+  if(curTxs.length > prevTxs.length) {
+    var diff = curTxs.length - prevTxs.length;
+    changes.push({sev:SEV.INFO, cat:"TRANSAKCJA", msg:"+" + diff + " now" + (diff > 1 ? "ych" : "a") + " transakcj" + (diff > 1 ? "i" : "a")});
+  }
+  // mapBonus claimed
+  if(cur.mapBonusClaimed && prev.mapBonusClaimed) {
+    FO.forEach(fId => {
+      if(cur.mapBonusClaimed[fId] && !prev.mapBonusClaimed[fId]) {
+        changes.push({sev:SEV.INFO, cat:"MAPA", msg:FM[fId].nom + " — odebrano premię za mapę (300 $)"});
+      }
+    });
+  }
+  // Debrief unlocked
+  if(cur.debriefUnlocked && !prev.debriefUnlocked) {
+    changes.push({sev:SEV.INFO, cat:"OMÓWIENIE", msg:"Wyniki udostępnione rodzinom"});
+  }
+  if(cur.debriefFullAccess && !prev.debriefFullAccess) {
+    changes.push({sev:SEV.INFO, cat:"OMÓWIENIE", msg:"Pełny dostęp do wyników — wszystkie rodziny"});
+  }
+  return changes;
+}
+
+/* ========== SEVERITY LEVELS ========== */
+const SEV = {INFO:"info", WARN:"warn", ERROR:"error"};
+const SEV_LABEL = {info:"INFO", warn:"UWAGA", error:"BŁĄD"};
+const SEV_COLOR = {info:"#6B8E6B", warn:"#D4A853", error:"#C04030"};
+const SEV_BG    = {info:"#1A2A1A", warn:"#2A2210", error:"#2A1210"};
+
+/* ========== ANOMALY DETECTION ENGINE ========== */
+function runChecks(gameState, players, prevState) {
+  var events = [];
+  if(!gameState) return events;
+
+  var fd = gameState.fd ? fixFdFromFirebase(gameState.fd) : null;
+  var txs = gameState.txs ? ensureArray(gameState.txs) : [];
+
+  // --- LAYER 1: Connection health ---
+  if(players) {
+    // Check sheriff presence
+    if(!players.sheriff || !players.sheriff.connected) {
+      events.push({sev:SEV.WARN, cat:"POŁĄCZENIE", msg:"Szeryf jest rozłączony"});
+    }
+    // Check family presence
+    FO.forEach(fId => {
+      var fp = players[fId];
+      if(!fp || !fp.members || Object.keys(fp.members).length === 0) {
+        if(gameState.gameStarted) {
+          events.push({sev:SEV.WARN, cat:"POŁĄCZENIE", msg:FM[fId].nom + " — brak podłączonych graczy"});
+        }
+      }
+    });
+  }
+
+  if(!fd) return events;
+
+  // --- LAYER 2: State anomalies ---
+
+  // 2a. Cash integrity
+  var totalCash = 0;
+  FO.forEach(fId => {
+    var cash = fd[fId].cash;
+    totalCash += cash;
+    if(cash < 0) {
+      events.push({sev:SEV.ERROR, cat:"GOTÓWKA", msg:FM[fId].nom + " — ujemna gotówka: " + cash + " $"});
+    }
+  });
+
+  // 2b. Total cash conservation (accounting for blind fate events)
+  var blindFate = gameState.blindFate || {};
+  var fateDelta = 0;
+  FO.forEach(fId => {
+    var bf = blindFate[fId];
+    if(bf && bf.rolls) {
+      ensureArray(bf.rolls).forEach(roll => {
+        if(roll && roll.resolved && roll.event) {
+          if(roll.event.type === "loss" || roll.event.type === "gain") {
+            var amt = roll.event.amount || 0;
+            // Apply policy reduction for losses
+            if(roll.event.type === "loss" && roll.policyUsed) {
+              if(roll.policyUsed === 100) amt = 0;
+              else if(roll.policyUsed === 50) amt = Math.round(amt / 2);
+            }
+            fateDelta += amt;
+          }
+        }
+      });
+    }
+  });
+  // Account for consultations (15$ each deducted from family cash)
+  // consultations[fId] is an array — each entry = 1 sold consultation
+  // Note: cancelled consultations (refunded) also remain in array; sheriffCalls tracks actual state
+  var consultsCost = 0;
+  var calls = gameState.sheriffCalls || [];
+  if(Array.isArray(calls)) {
+    calls.forEach(c => {
+      if(c && c.status === "sold") consultsCost += 15;
+      // "cancelled" after "sold" means refund already happened — no net cost
+    });
+  }
+  // Fallback: count from consultations arrays if sheriffCalls not available
+  if(consultsCost === 0) {
+    var consultsObj = gameState.consultations || {};
+    FO.forEach(fId => {
+      var cArr = consultsObj[fId];
+      if(cArr) consultsCost += ensureArray(cArr).length * 15;
+    });
+  }
+  // Account for plot penalties (50$ each, deducted from family cash)
+  var plotPens = gameState.plotPenalties || {};
+  var penaltyCost = 0;
+  FO.forEach(fId => { if(plotPens[fId]) penaltyCost += 50; });
+  // Map bonus: +300 winner, -100 each of 3 losers = net 0 for total cash
+  // No adjustment needed for expectedCash
+
+  var expectedCash = TOTAL_CASH + fateDelta - consultsCost - penaltyCost;
+  // BnB doesn't change total cash — it's between families
+  if(Math.abs(totalCash - expectedCash) > 1) {
+    events.push({sev:SEV.ERROR, cat:"GOTÓWKA",
+      msg:"Suma gotówki (" + totalCash + " $) nie zgadza się z oczekiwaną (" + expectedCash + " $). Różnica: " + (totalCash - expectedCash) + " $"});
+  }
+
+  // 2c. Item count integrity
+  var totalItems = 0;
+  FO.forEach(fId => { totalItems += fd[fId].items.length; });
+  // BnB cards can be added if bnbEnabled
+  var bnbCardCount = 0;
+  if(gameState.bnbEnabled) {
+    FO.forEach(fId => { bnbCardCount += BNB_PRODUCTS[fId].qty; });
+  }
+  var expectedItems = TOTAL_ITEMS + bnbCardCount;
+  if(totalItems !== expectedItems) {
+    events.push({sev:SEV.WARN, cat:"KARTY",
+      msg:"Łączna liczba kart (" + totalItems + ") różni się od oczekiwanej (" + expectedItems + "). Różnica: " + (totalItems - expectedItems)});
+  }
+
+  // 2d. Pending transactions stuck too long
+  var now = Date.now();
+  txs.forEach(tx => {
+    if(tx.status === "pending" && tx.ts) {
+      var age = (now - tx.ts) / 1000;
+      if(age > 120) {
+        events.push({sev:SEV.ERROR, cat:"TRANSAKCJA",
+          msg:"Transakcja " + (tx.id||"?").substring(0,10) + " utknęła w pending od " + Math.round(age) + "s (" + FM[tx.from]?.nom + " → " + FM[tx.to]?.nom + ")"});
+      } else if(age > 60) {
+        events.push({sev:SEV.WARN, cat:"TRANSAKCJA",
+          msg:"Transakcja " + (tx.id||"?").substring(0,10) + " w pending od " + Math.round(age) + "s"});
+      }
+    }
+  });
+
+  // 2e. Duplicate map fragments per family (more unique frags than possible)
+  FO.forEach(fId => {
+    var maps = fd[fId].items.filter(i => i.cat === C_MAP);
+    var uniqueFrags = [...new Set(maps.map(m => m.fragNr))];
+    if(uniqueFrags.length > 4) {
+      events.push({sev:SEV.ERROR, cat:"MAPA", msg:FM[fId].nom + " — " + uniqueFrags.length + " unikalnych fragmentów mapy (max 4)"});
+    }
+  });
+
+  // 2f. Multiple plots per family
+  FO.forEach(fId => {
+    var plots = fd[fId].items.filter(i => i.cat === C_PLOT);
+    if(plots.length > 1) {
+      events.push({sev:SEV.WARN, cat:"DZIAŁKA", msg:FM[fId].nom + " — posiada " + plots.length + " działek"});
+    }
+    if(plots.length === 0 && gameState.gameStarted) {
+      events.push({sev:SEV.WARN, cat:"DZIAŁKA", msg:FM[fId].nom + " — nie posiada żadnej działki"});
+    }
+  });
+
+  // 2g. Stage/mechanic consistency
+  if(gameState.bnbEnabled && !gameState.gameStarted) {
+    events.push({sev:SEV.WARN, cat:"MECHANIKA", msg:"BnB włączone, ale gra nie została wystartowana"});
+  }
+  if(gameState.fateEnabled && !gameState.gameStarted) {
+    events.push({sev:SEV.WARN, cat:"MECHANIKA", msg:"Ślepy Los włączony, ale gra nie została wystartowana"});
+  }
+
+  // 2h. mapBonusClaimed but cash didn't increase
+  if(gameState.mapBonusClaimed && fd) {
+    FO.forEach(fId => {
+      if(gameState.mapBonusClaimed[fId]) {
+        var uniqueFrags = [...new Set(fd[fId].items.filter(i => i.cat === C_MAP).map(m => m.fragNr))];
+        if(uniqueFrags.length < 4) {
+          events.push({sev:SEV.ERROR, cat:"MAPA",
+            msg:FM[fId].nom + " — mapBonusClaimed=true, ale posiada tylko " + uniqueFrags.length + " unikalnych fragmentów"});
+        }
+      }
+    });
+  }
+
+  // 2i. Blind fate rolling stuck
+  if(blindFate) {
+    FO.forEach(fId => {
+      var bf = blindFate[fId];
+      if(bf && bf.rolls) {
+        ensureArray(bf.rolls).forEach((roll, idx) => {
+          if(roll && roll.rolling === true) {
+            events.push({sev:SEV.WARN, cat:"ŚLEPY LOS",
+              msg:FM[fId].nom + " — rzut #" + (idx+1) + " utknął w animacji (rolling=true)"});
+          }
+        });
+      }
+    });
+  }
+
+  // 2j. Rewolwerowiec watchdog — active duels exceeding expected time
+  if(gameState.revEnabled) {
+    var revActive = gameState.revActive;
+    if(revActive) {
+      var duels = Array.isArray(revActive) ? revActive : (revActive === "__empty__" ? [] : Object.values(revActive));
+      duels.forEach(function(duel) {
+        if(duel && duel.timerPhase && duel.timerStartedAt && duel.timerDuration) {
+          var elapsed = (Date.now() - duel.timerStartedAt) / 1000;
+          if(elapsed > duel.timerDuration + 30) {
+            events.push({sev:SEV.WARN, cat:"REWOLWEROWIEC",
+              msg:"Pojedynek " + (duel.a||"?") + " vs " + (duel.b||"?") + " — timer przekroczony o " + Math.round(elapsed - duel.timerDuration) + "s"});
+          }
+        }
+      });
+    }
+    // revCurrent (legacy single-duel) check
+    var rc = gameState.revCurrent;
+    if(rc && rc !== false && rc.timerPhase && rc.timerStartedAt && rc.timerDuration) {
+      var rcElapsed = (Date.now() - rc.timerStartedAt) / 1000;
+      if(rcElapsed > rc.timerDuration + 30) {
+        events.push({sev:SEV.WARN, cat:"REWOLWEROWIEC",
+          msg:"Aktywny pojedynek — timer przekroczony o " + Math.round(rcElapsed - rc.timerDuration) + "s"});
+      }
+    }
+  }
+
+  // 2k. BnB settlement consistency
+  if(gameState.bnbEnabled && gameState.bnbSettled && fd) {
+    // After settlement, check that no BnB cards remain "unsold" in original family
+    // (settlement should have cleared unsold cards and added cash)
+    // This is a soft check — just inform
+    FO.forEach(fId => {
+      var bnbOwn = fd[fId].items.filter(i => i.cat === C_BNB && i.bnbOrigin === fId);
+      if(bnbOwn.length > 0) {
+        events.push({sev:SEV.INFO, cat:"BNB",
+          msg:FM[fId].nom + " — " + bnbOwn.length + " niesprzedanych produktów BnB po rozliczeniu"});
+      }
+    });
+  }
+
+  // 2l. Consultation consistency
+  var consults = gameState.consultations || {};
+  FO.forEach(fId => {
+    var cArr = consults[fId];
+    if(!cArr) return;
+    var active = ensureArray(cArr).filter(c => c && c.status === "active");
+    active.forEach(c => {
+      if(c.questionsTotal && c.questionsUsed >= c.questionsTotal) {
+        events.push({sev:SEV.INFO, cat:"KONSULTACJA",
+          msg:FM[fId].nom + " — konsultacja wyczerpana (" + c.questionsUsed + "/" + c.questionsTotal + " pytań)"});
+      }
+    });
+    // Multiple simultaneous active consultations is unusual
+    if(active.length > 1) {
+      events.push({sev:SEV.WARN, cat:"KONSULTACJA",
+        msg:FM[fId].nom + " — " + active.length + " aktywne konsultacje jednocześnie"});
+    }
+  });
+  // Cross-check: consultations cash accounting
+  // Count total consultations sold (active or completed) and verify cash deductions
+  var totalConsultsSold = 0;
+  FO.forEach(fId => {
+    var cArr = consults[fId];
+    if(cArr) totalConsultsSold += ensureArray(cArr).length;
+  });
+
+  // If no issues found
+  if(events.length === 0) {
+    events.push({sev:SEV.INFO, cat:"SYSTEM", msg:"Brak wykrytych anomalii"});
+  }
+
+  return events;
+}
+
+/* ========== TRANSACTION STATS ========== */
+function calcTxStats(txs) {
+  if(!txs || txs.length === 0) return {total:0, accepted:0, rejected:0, cancelled:0, pending:0, pairs:{}};
+  var stats = {total:txs.length, accepted:0, rejected:0, cancelled:0, pending:0, pairs:{}};
+  txs.forEach(tx => {
+    if(tx.status === "accepted") stats.accepted++;
+    else if(tx.status === "rejected") stats.rejected++;
+    else if(tx.status === "cancelled") stats.cancelled++;
+    else if(tx.status === "pending") stats.pending++;
+    // Track per-pair activity
+    if(tx.from && tx.to) {
+      var pair = [tx.from, tx.to].sort().join("-");
+      if(!stats.pairs[pair]) stats.pairs[pair] = {accepted:0, rejected:0, cancelled:0, total:0};
+      stats.pairs[pair].total++;
+      if(tx.status === "accepted") stats.pairs[pair].accepted++;
+      else if(tx.status === "rejected") stats.pairs[pair].rejected++;
+      else if(tx.status === "cancelled") stats.pairs[pair].cancelled++;
+    }
+  });
+  return stats;
+}
+
+/* ========== TRANSACTION PHASE BREAKDOWN ========== */
+function calcPhaseStats(txs) {
+  var phases = {1:{accepted:0,rejected:0,cancelled:0,total:0}, 2:{accepted:0,rejected:0,cancelled:0,total:0}, 3:{accepted:0,rejected:0,cancelled:0,total:0}};
+  if(!txs) return phases;
+  txs.forEach(tx => {
+    var p = tx.phase;
+    if(p >= 1 && p <= 3) {
+      phases[p].total++;
+      if(tx.status === "accepted") phases[p].accepted++;
+      else if(tx.status === "rejected") phases[p].rejected++;
+      else if(tx.status === "cancelled") phases[p].cancelled++;
+    }
+  });
+  return phases;
+}
+
+/* ========== SESSION REPORT EXPORT ========== */
+function generateReport(roomCode, gameState, players, scores, txStats, phaseStats, eventLog, cashSnapshots, connHistory, elapsed) {
+  var fd = gameState ? gameState.fd : null;
+  var lines = [];
+  lines.push("═══════════════════════════════════════════════");
+  lines.push("  WDZ MONITOR — RAPORT Z SESJI");
+  lines.push("═══════════════════════════════════════════════");
+  lines.push("Kod rozgrywki: " + roomCode);
+  lines.push("Data: " + new Date().toLocaleString("pl"));
+  lines.push("Czas sesji: " + Math.floor(elapsed/3600) + "h " + Math.floor((elapsed%3600)/60) + "min");
+  var st = gameState && gameState.stageIdx != null ? STAGES[gameState.stageIdx] : null;
+  lines.push("Etap końcowy: " + (st ? st.label : "nieznany"));
+
+  // Fix 5: Winner declaration
+  if(fd) {
+    var bestFam = null, bestPts = -999;
+    FO.forEach(fId => { if(scores && scores[fId] && scores[fId].bizTotal > bestPts) { bestPts = scores[fId].bizTotal; bestFam = fId; } });
+    if(bestFam) lines.push("Zwycięzca: " + FM[bestFam].nom + " (" + bestPts + " pkt)");
+  }
+  lines.push("");
+
+  lines.push("── WYNIKI RODZIN ──");
+  if(scores && fd) {
+    FO.forEach(fId => {
+      var sc = scores[fId];
+      lines.push(FM[fId].nom + ": " + sc.bizTotal + " pkt  (zasoby:" + sc.resScore + " kompetencje:" + sc.compScore + " działka:" + sc.plotScore + " gotówka:" + sc.cashScore + " mapa:" + sc.mapScore + (sc.bnb>0?" bnb:"+sc.bnb:"") + ")  cash=" + fd[fId].cash + "$");
+    });
+  }
+  lines.push("");
+
+  lines.push("── TRANSAKCJE ──");
+  if(txStats) {
+    lines.push("Łącznie: " + txStats.total + " | Zaakceptowane: " + txStats.accepted + " | Odrzucone: " + txStats.rejected + " | Anulowane: " + txStats.cancelled);
+    lines.push("Per faza:  I: " + phaseStats[1].total + "  II: " + phaseStats[2].total + "  III: " + phaseStats[3].total);
+    if(Object.keys(txStats.pairs).length > 0) {
+      lines.push("Per para:");
+      Object.entries(txStats.pairs).forEach(([pair, data]) => {
+        var [a,b] = pair.split("-");
+        lines.push("  " + FM[a].gen + " — " + FM[b].gen + ": " + data.total + " tx (✓" + data.accepted + " ✗" + data.rejected + " ⊘" + data.cancelled + ")");
+      });
+    }
+  }
+  lines.push("");
+
+  lines.push("── TREND GOTÓWKI ──");
+  if(cashSnapshots.length > 0) {
+    lines.push("Etap    | Adams  | Bennet | Clinton| Dexter | Δ Adams| Δ Benn.| Δ Clin.| Δ Dext.");
+    cashSnapshots.forEach((snap, idx) => {
+      var id = (STAGES[snap.stageIdx]?.id || "?").padEnd(7);
+      var prev = idx > 0 ? cashSnapshots[idx-1].cash : null;
+      var deltas = FO.map(f => {
+        if(!prev) return "      ";
+        var d = snap.cash[f] - prev[f];
+        return (d>=0?"+":"") + String(d).padStart(5);
+      });
+      lines.push(id + " | " + FO.map(f => String(snap.cash[f]).padStart(6)).join(" | ") + " | " + deltas.join(" | "));
+    });
+  }
+  lines.push("");
+
+  lines.push("── POŁĄCZENIA ──");
+  FO.forEach(fId => {
+    var hist = connHistory[fId] || [];
+    var disc = hist.filter(h => h.event === "disconnect").length;
+    lines.push(FM[fId].nom + ": " + hist.length + " zdarzeń, " + disc + " rozłączeń");
+  });
+  lines.push("");
+
+  lines.push("── DZIENNIK (ostatnie 50) ──");
+  eventLog.slice(0, 50).forEach(ev => {
+    lines.push("[" + ev.ts + "] " + SEV_LABEL[ev.sev] + " " + ev.cat + ": " + ev.msg);
+  });
+
+  return lines.join("\n");
+}
+
+function downloadReport(text, roomCode) {
+  var blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "wdz-monitor-" + roomCode + "-" + new Date().toISOString().slice(0,10) + ".txt";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ========== MAIN APP ========== */
+function MonitorApp() {
+  const [roomCode, setRoomCode] = React.useState("");
+  const [inputCode, setInputCode] = React.useState("");
+  const [connected, setConnected] = React.useState(false);
+  const [error, setError] = React.useState(null);
+  const [gameState, setGameState] = React.useState(null);
+  const [players, setPlayers] = React.useState(null);
+  const [eventLog, setEventLog] = React.useState([]);
+  const [lastUpdate, setLastUpdate] = React.useState(null);
+  const [updateCount, setUpdateCount] = React.useState(0);
+  const prevStateRef = React.useRef(null);
+  const listenersRef = React.useRef([]);
+  // v0.2.0 additions
+  const [soundEnabled, setSoundEnabled] = React.useState(true);
+  const [logFilter, setLogFilter] = React.useState("all"); // "all"|"warn"|"error"
+  const [connHistory, setConnHistory] = React.useState({}); // {fId: [{ts, event:"connect"|"disconnect"}]}
+  const prevPlayersRef = React.useRef(null);
+  const [connectedAt, setConnectedAt] = React.useState(null);
+  const [elapsed, setElapsed] = React.useState(0);
+  const [cashSnapshots, setCashSnapshots] = React.useState([]); // [{stageIdx, ts, cash:{adams:N,...}}]
+  const pendingFirstSeen = React.useRef({}); // {txId: timestamp} — track when we first see a pending tx
+  const [reactionTimes, setReactionTimes] = React.useState([]); // [{txId, from, to, duration, result}]
+  const [txByPhase, setTxByPhase] = React.useState({1:0,2:0,3:0});
+  const lastTxCount = React.useRef(0);
+
+  function getPhase(idx) {
+    if(idx==null) return 0;
+    if(idx>=1&&idx<=6) return 1;
+    if(idx>=7&&idx<=12) return 2;
+    if(idx>=13) return 3;
+    return 0;
+  }
+
+  // Cleanup listeners on disconnect
+  function disconnectAll() {
+    listenersRef.current.forEach(({ref, cb}) => ref.off("value", cb));
+    listenersRef.current = [];
+    setConnected(false);
+    setGameState(null);
+    setPlayers(null);
+    setConnHistory({});
+    setCashSnapshots([]);
+    prevPlayersRef.current = null;
+    addEvent(SEV.INFO, "SYSTEM", "Rozłączono z rozgrywką " + roomCode);
+  }
+
+  function addEvent(sev, cat, msg) {
+    setEventLog(prev => [{ts:ts(), sev, cat, msg, key:Date.now()+Math.random()}, ...prev].slice(0, 500));
+  }
+
+  // Session elapsed timer
+  React.useEffect(() => {
+    if(!connectedAt) return;
+    var iv = setInterval(() => setElapsed(Math.floor((Date.now() - connectedAt) / 1000)), 1000);
+    return () => clearInterval(iv);
+  }, [connectedAt]);
+
+  // Connection tracking — detect connect/disconnect per family + sheriff
+  React.useEffect(() => {
+    if(!players) return;
+    var prev = prevPlayersRef.current;
+    prevPlayersRef.current = JSON.parse(JSON.stringify(players));
+    if(!prev) return;
+
+    // Sheriff
+    var sheriffNow = players.sheriff && players.sheriff.connected;
+    var sheriffPrev = prev.sheriff && prev.sheriff.connected;
+    if(sheriffNow && !sheriffPrev) addEvent(SEV.INFO, "POŁĄCZENIE", "Szeryf ponownie online");
+    if(!sheriffNow && sheriffPrev) addEvent(SEV.WARN, "POŁĄCZENIE", "Szeryf rozłączony");
+
+    // Families
+    FO.forEach(fId => {
+      var nowMembers = (players[fId] && players[fId].members) ? Object.keys(players[fId].members).length : 0;
+      var prevMembers = (prev[fId] && prev[fId].members) ? Object.keys(prev[fId].members).length : 0;
+      if(nowMembers > 0 && prevMembers === 0) {
+        addEvent(SEV.INFO, "POŁĄCZENIE", FM[fId].nom + " — gracze online (" + nowMembers + ")");
+        setConnHistory(h => {var n={...h}; if(!n[fId])n[fId]=[]; n[fId]=[...n[fId],{ts:Date.now(),event:"connect"}]; return n;});
+      }
+      if(nowMembers === 0 && prevMembers > 0) {
+        addEvent(SEV.WARN, "POŁĄCZENIE", FM[fId].nom + " — wszyscy gracze offline");
+        setConnHistory(h => {var n={...h}; if(!n[fId])n[fId]=[]; n[fId]=[...n[fId],{ts:Date.now(),event:"disconnect"}]; return n;});
+      }
+      if(nowMembers > 0 && prevMembers > 0 && nowMembers !== prevMembers) {
+        addEvent(SEV.INFO, "POŁĄCZENIE", FM[fId].nom + " — zmiana: " + prevMembers + " → " + nowMembers + " graczy");
+      }
+    });
+  }, [players]);
+
+  // Cash snapshots on stage change — forward-only, no undefined stages
+  React.useEffect(() => {
+    if(!gameState || !gameState.fd || gameState.stageIdx == null || gameState.stageIdx === undefined) return;
+    var fd = gameState.fd;
+    var cash = {};
+    FO.forEach(fId => { cash[fId] = fd[fId] ? fd[fId].cash : 0; });
+    setCashSnapshots(prev => {
+      if(prev.length > 0 && prev[prev.length - 1].stageIdx >= gameState.stageIdx) return prev;
+      return [...prev, {stageIdx: gameState.stageIdx, ts: Date.now(), cash}];
+    });
+  }, [gameState && gameState.stageIdx]);
+
+  function handleConnect() {
+    var code = inputCode.trim().toUpperCase();
+    if(!/^WDZ-[A-HJ-NP-Z2-9]{4,6}$/.test(code)) {
+      setError("Nieprawidłowy format kodu (WDZ-XXXX lub WDZ-XXXXXX)");
+      return;
+    }
+    if(!db) { setError("Brak połączenia z Firebase"); return; }
+    setError(null);
+
+    // Check if room exists
+    db.ref("rooms/" + code + "/meta").once("value").then(snap => {
+      if(!snap.exists()) {
+        setError("Rozgrywka " + code + " nie istnieje");
+        return;
+      }
+      setRoomCode(code);
+      setConnected(true);
+      setConnectedAt(Date.now());
+      addEvent(SEV.INFO, "SYSTEM", "Podłączono do rozgrywki " + code);
+
+      // Listen to gameState (read-only)
+      var gsRef = db.ref("rooms/" + code + "/gameState");
+      var gsCb = gsRef.on("value", snap => {
+        var s = snap.val();
+        if(!s) return;
+        // Fix fd from Firebase
+        if(s.fd) s.fd = fixFdFromFirebase(s.fd);
+        if(s.txs) s.txs = ensureArray(s.txs);
+        setGameState(prev => {
+          prevStateRef.current = prev;
+          return s;
+        });
+        setLastUpdate(new Date());
+        setUpdateCount(c => c + 1);
+      });
+      listenersRef.current.push({ref:gsRef, cb:gsCb});
+
+      // Listen to players (read-only)
+      var plRef = db.ref("rooms/" + code + "/players");
+      var plCb = plRef.on("value", snap => {
+        setPlayers(snap.val() || {});
+      });
+      listenersRef.current.push({ref:plRef, cb:plCb});
+    }).catch(e => {
+      setError("Błąd połączenia: " + e.message);
+    });
+  }
+
+  // Run checks + change detection whenever gameState or players change
+  React.useEffect(() => {
+    if(!gameState) return;
+    // Anomaly checks
+    var checks = runChecks(gameState, players, prevStateRef.current);
+    var hasError = false;
+    checks.forEach(ev => {
+      if(ev.sev !== SEV.INFO) {
+        addEvent(ev.sev, ev.cat, ev.msg);
+        if(ev.sev === SEV.ERROR) hasError = true;
+      }
+    });
+    // Sound alert on error
+    if(hasError && soundEnabled) playAlertBeep();
+    // Change detection
+    if(prevStateRef.current) {
+      var changes = detectChanges(gameState, prevStateRef.current);
+      changes.forEach(ev => addEvent(ev.sev, ev.cat, ev.msg));
+    }
+    // Reaction time tracking — track pending→resolved transitions
+    var txs = gameState.txs ? ensureArray(gameState.txs) : [];
+    var now = Date.now();
+    // Phase-based transaction counting
+    var curTxCount = txs.length;
+    if(curTxCount > lastTxCount.current && gameState.stageIdx != null) {
+      var newTx = curTxCount - lastTxCount.current;
+      var phase = getPhase(gameState.stageIdx);
+      if(phase > 0) setTxByPhase(prev => ({...prev, [phase]: prev[phase] + newTx}));
+    }
+    lastTxCount.current = curTxCount;
+    txs.forEach(tx => {
+      if(!tx.id) return;
+      if(tx.status === "pending" || tx.status === "awaiting_response") {
+        if(!pendingFirstSeen.current[tx.id]) pendingFirstSeen.current[tx.id] = now;
+      }
+      if((tx.status === "accepted" || tx.status === "rejected") && pendingFirstSeen.current[tx.id]) {
+        var dur = (now - pendingFirstSeen.current[tx.id]) / 1000;
+        delete pendingFirstSeen.current[tx.id];
+        if(dur > 0.5) { // ignore sub-second (same update batch)
+          setReactionTimes(prev => [...prev, {txId:tx.id, from:tx.from, to:tx.to, duration:Math.round(dur), result:tx.status}].slice(-100));
+        }
+      }
+      if(tx.status === "cancelled" && pendingFirstSeen.current[tx.id]) {
+        delete pendingFirstSeen.current[tx.id];
+      }
+    });
+  }, [gameState, players]);
+
+  // Current checks for display
+  var currentChecks = React.useMemo(() => {
+    if(!gameState) return [];
+    return runChecks(gameState, players, prevStateRef.current);
+  }, [gameState, players]);
+
+  var txStats = React.useMemo(() => {
+    if(!gameState || !gameState.txs) return null;
+    return calcTxStats(ensureArray(gameState.txs));
+  }, [gameState]);
+
+  // Scores per family
+  var scores = React.useMemo(() => {
+    if(!gameState || !gameState.fd) return null;
+    var fd = gameState.fd;
+    var sc = {};
+    FO.forEach(fId => {
+      sc[fId] = monCalcScore(fId, fd, gameState.biznesNaBoku || {}, gameState.bnbEnabled, gameState.blindFate || {}, gameState.mapEnabled);
+    });
+    return sc;
+  }, [gameState]);
+
+  // Filtered event log
+  var filteredLog = React.useMemo(() => {
+    if(logFilter === "all") return eventLog;
+    if(logFilter === "warn") return eventLog.filter(e => e.sev === SEV.WARN || e.sev === SEV.ERROR);
+    if(logFilter === "error") return eventLog.filter(e => e.sev === SEV.ERROR);
+    return eventLog;
+  }, [eventLog, logFilter]);
+
+  // Phase breakdown — from monitor's own tracking
+  var phaseStats = React.useMemo(() => {
+    return {1:{total:txByPhase[1]},2:{total:txByPhase[2]},3:{total:txByPhase[3]}};
+  }, [txByPhase]);
+
+  // Reaction time stats
+  var reactionStats = React.useMemo(() => {
+    if(reactionTimes.length === 0) return null;
+    var accepted = reactionTimes.filter(r => r.result === "accepted");
+    var rejected = reactionTimes.filter(r => r.result === "rejected");
+    var avgAll = reactionTimes.reduce((s, r) => s + r.duration, 0) / reactionTimes.length;
+    var avgAcc = accepted.length > 0 ? accepted.reduce((s, r) => s + r.duration, 0) / accepted.length : 0;
+    var avgRej = rejected.length > 0 ? rejected.reduce((s, r) => s + r.duration, 0) / rejected.length : 0;
+    var maxTime = Math.max(...reactionTimes.map(r => r.duration));
+    return {total:reactionTimes.length, avgAll:Math.round(avgAll), avgAcc:Math.round(avgAcc), avgRej:Math.round(avgRej), maxTime:Math.round(maxTime), accepted:accepted.length, rejected:rejected.length};
+  }, [reactionTimes]);
+
+  // Current stage info
+  var curStage = gameState && gameState.stageIdx != null ? STAGES[gameState.stageIdx] : null;
+  var elapsedStr = elapsed > 0 ? Math.floor(elapsed/3600) + ":" + String(Math.floor((elapsed%3600)/60)).padStart(2,"0") + ":" + String(elapsed%60).padStart(2,"0") : "0:00:00";
+
+  // Styles
+  var S = {
+    page: {minHeight:"100vh", padding:20, maxWidth:1200, margin:"0 auto"},
+    header: {display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24, borderBottom:"2px solid #842504", paddingBottom:16},
+    title: {fontSize:28, color:"#D4A853", letterSpacing:1},
+    badge: {fontSize:12, color:"#A89070", background:"#2C1810", padding:"4px 10px", borderRadius:4, border:"1px solid #3C2820"},
+    connectBox: {background:"#2C1810", border:"1px solid #842504", borderRadius:8, padding:24, maxWidth:500, margin:"60px auto", textAlign:"center"},
+    input: {background:"#1A0E08", border:"1px solid #5C3A2A", borderRadius:4, color:"#F5F0E8", padding:"10px 14px", fontSize:16, fontFamily:"'Alegreya Sans',sans-serif", width:"100%", marginBottom:12, textAlign:"center", letterSpacing:2},
+    btn: {background:"#842504", color:"#F5F0E8", border:"none", borderRadius:4, padding:"10px 24px", fontSize:15, fontFamily:"'Alegreya Sans',sans-serif", fontWeight:700, cursor:"pointer", letterSpacing:1},
+    btnSmall: {background:"#3C2820", color:"#D4A853", border:"1px solid #5C3A2A", borderRadius:4, padding:"6px 14px", fontSize:13, fontFamily:"'Alegreya Sans',sans-serif", cursor:"pointer"},
+    grid: {display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:20},
+    card: {background:"#2C1810", border:"1px solid #3C2820", borderRadius:8, padding:16},
+    cardTitle: {fontSize:15, fontWeight:700, color:"#D4A853", marginBottom:10, letterSpacing:0.5},
+    familyRow: {display:"flex", alignItems:"center", gap:8, padding:"6px 0", borderBottom:"1px solid #231810"},
+    familyDot: (col, online) => ({width:10, height:10, borderRadius:"50%", background:online?col:"#4A3A30", border:"2px solid "+(online?col:"#5C4A40"), flexShrink:0}),
+    feedItem: (sev) => ({display:"flex", gap:10, padding:"8px 12px", marginBottom:2, background:SEV_BG[sev], borderRadius:4, borderLeft:"3px solid "+SEV_COLOR[sev], fontSize:13}),
+    feedTs: {color:"#7A6A5A", fontFamily:"monospace", fontSize:12, flexShrink:0, minWidth:65},
+    feedCat: (sev) => ({color:SEV_COLOR[sev], fontWeight:700, fontSize:11, letterSpacing:0.5, flexShrink:0, minWidth:90}),
+    feedMsg: {color:"#D0C8B8", flex:1},
+    statusDot: (ok) => ({display:"inline-block", width:8, height:8, borderRadius:"50%", background:ok?"#6B8E6B":"#C04030", marginRight:6}),
+    statNum: {fontSize:22, fontWeight:900, color:"#D4A853", lineHeight:1},
+    statLabel: {fontSize:11, color:"#8A7A6A", letterSpacing:0.5},
+  };
+
+  /* ========== CONNECT SCREEN ========== */
+  if(!connected) {
+    return (
+      <div style={S.page}>
+        <div style={{...S.header, justifyContent:"center", borderBottom:"none"}}>
+          <div style={{textAlign:"center"}}>
+            <div className="wt" style={{...S.title, fontSize:36, marginBottom:4}}>WDZ Monitor</div>
+            <div style={{fontSize:13, color:"#8A7A6A"}}>Diagnostyka rozgrywki w czasie rzeczywistym</div>
+          </div>
+        </div>
+        <div style={S.connectBox}>
+          <div className="wt" style={{fontSize:20, color:"#D4A853", marginBottom:16}}>Podłącz się do rozgrywki</div>
+          <input
+            style={S.input}
+            placeholder="WDZ-XXXXXX"
+            value={inputCode}
+            onChange={e => setInputCode(e.target.value.toUpperCase())}
+            onKeyDown={e => e.key === "Enter" && handleConnect()}
+          />
+          {error && <div style={{color:"#C04030", fontSize:13, marginBottom:12}}>{error}</div>}
+          <button style={S.btn} onClick={handleConnect}>Podłącz</button>
+          <div style={{fontSize:12, color:"#6A5A4A", marginTop:16}}>
+            Monitor łączy się w trybie read-only — nie wpływa na stan gry.
+          </div>
+        </div>
+        <div style={{textAlign:"center", marginTop:40}}>
+          <span style={S.badge}>WDZ Monitor v{VERSION}</span>
+        </div>
+      </div>
+    );
+  }
+
+  /* ========== MAIN DASHBOARD ========== */
+  var errorCount = currentChecks.filter(c => c.sev === SEV.ERROR).length;
+  var warnCount = currentChecks.filter(c => c.sev === SEV.WARN).length;
+  var allGood = errorCount === 0 && warnCount === 0;
+
+  return (
+    <div style={S.page}>
+      {/* HEADER */}
+      <div style={S.header}>
+        <div style={{display:"flex", alignItems:"center", gap:16}}>
+          <div className="wt" style={S.title}>WDZ Monitor</div>
+          <span style={S.badge}>{roomCode}</span>
+          {curStage && <span style={S.badge}>{curStage.label}</span>}
+        </div>
+        <div style={{display:"flex", alignItems:"center", gap:12}}>
+          <div style={{fontSize:12, color:"#6A5A4A", textAlign:"right"}}>
+            <div>Sesja: {elapsedStr}</div>
+            <div>Odebrano: {updateCount} aktualizacji</div>
+          </div>
+          <button style={{...S.btnSmall, color:soundEnabled?"#8BC88B":"#7A6A5A"}} onClick={() => setSoundEnabled(s => !s)} title="Alert dźwiękowy">
+            {soundEnabled ? "🔔" : "🔇"}
+          </button>
+          <button style={{...S.btnSmall}} onClick={() => {
+            var report = generateReport(roomCode, gameState, players, scores, txStats, phaseStats, eventLog, cashSnapshots, connHistory, elapsed);
+            downloadReport(report, roomCode);
+          }} title="Eksportuj raport">📋</button>
+          <button style={S.btnSmall} onClick={disconnectAll}>Rozłącz</button>
+        </div>
+      </div>
+
+      {/* STATUS BANNER */}
+      <div style={{
+        background:allGood?"#1A2A1A":errorCount>0?"#2A1210":"#2A2210",
+        border:"1px solid "+(allGood?"#3A5A3A":errorCount>0?"#5A2A20":"#5A4A20"),
+        borderRadius:8, padding:"12px 20px", marginBottom:20, display:"flex", alignItems:"center", gap:16
+      }}>
+        <div style={{fontSize:28}}>{allGood?"✓":errorCount>0?"✗":"⚠"}</div>
+        <div>
+          <div style={{fontSize:16, fontWeight:700, color:allGood?"#6B8E6B":errorCount>0?"#C04030":"#D4A853"}}>
+            {allGood?"Wszystko w porządku":errorCount>0?errorCount+" błąd"+(errorCount>1?(errorCount<5?"y":"ów"):"")+" wykryt"+(errorCount>1?(errorCount<5?"e":"ych"):"y"):warnCount+" ostrzeżeni"+(warnCount>1?(warnCount<5?"a":"ń"):"e")}
+          </div>
+          <div style={{fontSize:12, color:"#8A7A6A"}}>
+            {currentChecks.filter(c => c.sev !== SEV.INFO).map(c => c.msg).join(" · ") || "Brak wykrytych anomalii w bieżącym stanie gry."}
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN GRID */}
+      <div style={S.grid}>
+
+        {/* === FAMILIES STATUS === */}
+        <div style={S.card}>
+          <div style={S.cardTitle}>Rodziny</div>
+          {FO.map(fId => {
+            var f = FM[fId];
+            var fp = players && players[fId];
+            var memberCount = fp && fp.members ? Object.keys(fp.members).length : 0;
+            var isOnline = memberCount > 0;
+            var fd_f = gameState && gameState.fd ? gameState.fd[fId] : null;
+            var cash = fd_f ? fd_f.cash : "—";
+            var itemCount = fd_f ? fd_f.items.length : "—";
+            return (
+              <div key={fId} style={S.familyRow}>
+                <div style={S.familyDot(f.col, isOnline)} />
+                <div style={{flex:1}}>
+                  <div style={{fontSize:14, fontWeight:700, color:f.col}}>{f.nom}</div>
+                  <div style={{fontSize:11, color:"#7A6A5A"}}>
+                    {isOnline ? memberCount + " gracz" + (memberCount > 1 ? (memberCount < 5 ? "y" : "ów") : "") : "offline"}
+                    {fd_f && <span> · {cash} $ · {itemCount} kart</span>}
+                  </div>
+                </div>
+                {fd_f && (() => {
+                  var plots = fd_f.items.filter(i => i.cat === C_PLOT);
+                  var plotOk = plots.length === 1 && plots[0].plotNr === f.tPlot;
+                  var maps = [...new Set(fd_f.items.filter(i => i.cat === C_MAP).map(m => m.fragNr))].length;
+                  return (
+                    <div style={{display:"flex", gap:8, fontSize:11, color:"#7A6A5A"}}>
+                      <span title="Działka" style={{color:plotOk?"#6B8E6B":plots.length>0?"#D4A853":"#8A7A6A"}}>◆{plots.length>0?plots[0].plotNr:"—"}</span>
+                      <span title="Fragmenty mapy">🗺{maps}/4</span>
+                    </div>
+                  );
+                })()}
+              </div>
+            );
+          })}
+          {/* Sheriff status */}
+          <div style={{...S.familyRow, borderBottom:"none"}}>
+            <div style={S.familyDot("#D4A853", players && players.sheriff && players.sheriff.connected)} />
+            <div>
+              <div style={{fontSize:14, fontWeight:700, color:"#D4A853"}}>Szeryf</div>
+              <div style={{fontSize:11, color:"#7A6A5A"}}>
+                {players && players.sheriff && players.sheriff.connected ? "online" : "offline"}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* === GAME STATE === */}
+        <div style={S.card}>
+          <div style={S.cardTitle}>Stan rozgrywki</div>
+          <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12}}>
+            <div>
+              <div style={S.statNum}>{gameState && gameState.stageIdx != null ? gameState.stageIdx + 1 : "—"}</div>
+              <div style={S.statLabel}>ETAP / {STAGES.length}</div>
+            </div>
+            <div>
+              <div style={S.statNum}>{txStats ? txStats.total : "—"}</div>
+              <div style={S.statLabel}>TRANSAKCJI</div>
+            </div>
+            <div>
+              <div style={S.statNum}>{txStats ? txStats.accepted : "—"}</div>
+              <div style={S.statLabel}>ZAAKCEPTOWANYCH</div>
+            </div>
+            <div>
+              <div style={S.statNum}>{txStats ? txStats.rejected : "—"}</div>
+              <div style={S.statLabel}>ODRZUCONYCH</div>
+            </div>
+            <div>
+              <div style={S.statNum}>{txStats ? txStats.cancelled : "—"}</div>
+              <div style={S.statLabel}>ANULOWANYCH</div>
+            </div>
+            <div>
+              <div style={S.statNum}>{txStats ? txStats.pending : "—"}</div>
+              <div style={S.statLabel}>OCZEKUJĄCYCH</div>
+            </div>
+          </div>
+          {/* Mechanics status */}
+          <div style={{marginTop:14, paddingTop:10, borderTop:"1px solid #3C2820", display:"flex", flexWrap:"wrap", gap:8}}>
+            {[
+              {label:"Gra", on:gameState?.gameStarted},
+              {label:"Timer", on:gameState?.timerRunning},
+              {label:"Pauza", on:gameState?.timerPaused},
+              {label:"Mapa", on:gameState?.mapEnabled},
+              {label:"Ślepy Los", on:gameState?.fateEnabled},
+              {label:"BnB", on:gameState?.bnbEnabled},
+              {label:"Rewolwerowiec", on:gameState?.revEnabled},
+              {label:"Relacje", on:gameState?.relationsUnlocked},
+            ].map(m => (
+              <span key={m.label} style={{
+                fontSize:11, padding:"3px 8px", borderRadius:3,
+                background:m.on?"#1A3A1A":"#231810",
+                color:m.on?"#8BC88B":"#5A4A3A",
+                border:"1px solid "+(m.on?"#2A5A2A":"#3C2820")
+              }}>
+                {m.on?"●":"○"} {m.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* === TRANSACTION HEATMAP (per pair) === */}
+      {txStats && Object.keys(txStats.pairs).length > 0 && (
+        <div style={{...S.card, marginBottom:20}}>
+          <div style={S.cardTitle}>Aktywność par negocjacyjnych</div>
+          <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(180px, 1fr))", gap:8}}>
+            {Object.entries(txStats.pairs).map(([pair, data]) => {
+              var [a, b] = pair.split("-");
+              var intensity = Math.min(1, data.total / 10);
+              return (
+                <div key={pair} style={{
+                  background:"rgba(212,168,83," + (0.05 + intensity * 0.15) + ")",
+                  border:"1px solid #3C2820", borderRadius:4, padding:"8px 10px"
+                }}>
+                  <div style={{fontSize:12, fontWeight:700, color:"#D0C8B8"}}>
+                    {FM[a]?.gen} — {FM[b]?.gen}
+                  </div>
+                  <div style={{fontSize:11, color:"#8A7A6A", marginTop:2}}>
+                    {data.total} tx · <span style={{color:"#6B8E6B"}}>{data.accepted}✓</span> · <span style={{color:"#C04030"}}>{data.rejected}✗</span> · <span style={{color:"#7A6A5A"}}>{data.cancelled}⊘</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* === PHASE BREAKDOWN + REACTION TIMES === */}
+      {txStats && txStats.total > 0 && (
+        <div style={{...S.grid, marginBottom:20}}>
+          {/* Phase breakdown */}
+          <div style={S.card}>
+            <div style={S.cardTitle}>Transakcje per faza</div>
+            <div style={{display:"flex", gap:12}}>
+              {[1,2,3].map(p => {
+                var ps = phaseStats[p];
+                var label = p===1?"FAZA I":p===2?"FAZA II":"FAZA III";
+                var sublabel = p===1?"Informacyjna":p===2?"Transakcyjna":"Finałowa";
+                var maxTotal = Math.max(1, ...([1,2,3].map(x => phaseStats[x].total)));
+                var barH = Math.max(4, (ps.total / maxTotal) * 60);
+                return (
+                  <div key={p} style={{flex:1, textAlign:"center"}}>
+                    <div style={{fontSize:12, fontWeight:700, color:"#D4A853"}}>{label}</div>
+                    <div style={{fontSize:10, color:"#6A5A4A", marginBottom:6}}>{sublabel}</div>
+                    <div style={{display:"flex", justifyContent:"center", alignItems:"flex-end", height:70, gap:3}}>
+                      <div title="Zaakceptowane" style={{width:16, height:Math.max(2,(ps.accepted/Math.max(1,maxTotal))*60), background:"#6B8E6B", borderRadius:"2px 2px 0 0"}} />
+                      <div title="Odrzucone" style={{width:16, height:Math.max(2,(ps.rejected/Math.max(1,maxTotal))*60), background:"#C04030", borderRadius:"2px 2px 0 0"}} />
+                      <div title="Anulowane" style={{width:16, height:Math.max(2,(ps.cancelled/Math.max(1,maxTotal))*60), background:"#5A4A3A", borderRadius:"2px 2px 0 0"}} />
+                    </div>
+                    <div style={{fontSize:18, fontWeight:900, color:"#D4A853", marginTop:4}}>{ps.total}</div>
+                    <div style={{fontSize:10, color:"#7A6A5A"}}>
+                      <span style={{color:"#6B8E6B"}}>✓{ps.accepted}</span>{" "}
+                      <span style={{color:"#C04030"}}>✗{ps.rejected}</span>{" "}
+                      <span style={{color:"#5A4A3A"}}>⊘{ps.cancelled}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Reaction times */}
+          <div style={S.card}>
+            <div style={S.cardTitle}>Czas reakcji na oferty</div>
+            {reactionStats ? (
+              <div>
+                <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:12}}>
+                  <div>
+                    <div style={S.statNum}>{reactionStats.avgAll}s</div>
+                    <div style={S.statLabel}>ŚREDNI CZAS</div>
+                  </div>
+                  <div>
+                    <div style={{...S.statNum, color:"#6B8E6B"}}>{reactionStats.avgAcc}s</div>
+                    <div style={S.statLabel}>ŚR. AKCEPTACJA</div>
+                  </div>
+                  <div>
+                    <div style={{...S.statNum, color:"#C04030"}}>{reactionStats.avgRej}s</div>
+                    <div style={S.statLabel}>ŚR. ODRZUCENIE</div>
+                  </div>
+                </div>
+                <div style={{fontSize:11, color:"#7A6A5A"}}>
+                  Pomierzono: {reactionStats.total} transakcji · Max: {reactionStats.maxTime}s · ✓{reactionStats.accepted} ✗{reactionStats.rejected}
+                </div>
+                {/* Last 5 reaction times */}
+                {reactionTimes.length > 0 && (
+                  <div style={{marginTop:8, paddingTop:8, borderTop:"1px solid #3C2820"}}>
+                    <div style={{fontSize:10, color:"#6A5A4A", marginBottom:4}}>Ostatnie pomiary:</div>
+                    {reactionTimes.slice(-5).reverse().map((r, i) => (
+                      <div key={i} style={{fontSize:11, color:"#8A7A6A", padding:"2px 0"}}>
+                        <span style={{color:r.result==="accepted"?"#6B8E6B":"#C04030"}}>{r.result==="accepted"?"✓":"✗"}</span>
+                        {" "}{FM[r.from]?.gen||"?"} → {FM[r.to]?.gen||"?"}: <span style={{color:"#D4A853", fontWeight:700}}>{r.duration}s</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{fontSize:13, color:"#5A4A3A", fontStyle:"italic"}}>
+                Pomiar rozpocznie się po pierwszej transakcji w trybie pending.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* === CASH BARS + SCORING === */}
+      {gameState && gameState.fd && (
+        <div style={{...S.grid, marginBottom:20}}>
+          {/* Cash visualization */}
+          <div style={S.card}>
+            <div style={S.cardTitle}>Gotówka</div>
+            {FO.map(fId => {
+              var cash = gameState.fd[fId] ? gameState.fd[fId].cash : 0;
+              var maxCash = Math.max(100, ...FO.map(f => gameState.fd[f] ? gameState.fd[f].cash : 0));
+              var pct = Math.max(0, (cash / maxCash) * 100);
+              return (
+                <div key={fId} style={{marginBottom:8}}>
+                  <div style={{display:"flex", justifyContent:"space-between", fontSize:12, marginBottom:2}}>
+                    <span style={{color:FM[fId].col, fontWeight:700}}>{FM[fId].gen}</span>
+                    <span style={{color:"#D4A853", fontWeight:700}}>{cash} $</span>
+                  </div>
+                  <div style={{height:14, background:"#1A0E08", borderRadius:3, overflow:"hidden"}}>
+                    <div style={{
+                      height:"100%", borderRadius:3, transition:"width 0.5s",
+                      width:pct+"%",
+                      background:"linear-gradient(90deg, "+FM[fId].col+", "+FM[fId].col+"80)"
+                    }} />
+                  </div>
+                </div>
+              );
+            })}
+            {/* Cash snapshot trend (last 5) */}
+            {cashSnapshots.length > 1 && (
+              <div style={{marginTop:12, paddingTop:10, borderTop:"1px solid #3C2820"}}>
+                <div style={{fontSize:11, color:"#7A6A5A", marginBottom:6}}>Trend gotówki per etap</div>
+                <div style={{display:"flex", gap:4, overflowX:"auto"}}>
+                  {cashSnapshots.slice(-8).map((snap, idx) => (
+                    <div key={idx} style={{fontSize:10, color:"#6A5A4A", textAlign:"center", minWidth:45}}>
+                      <div style={{fontWeight:700}}>{STAGES[snap.stageIdx]?.id || "?"}</div>
+                      {FO.map(fId => (
+                        <div key={fId} style={{color:FM[fId].col, fontSize:9}}>{snap.cash[fId]}</div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Scoring preview */}
+          <div style={S.card}>
+            <div style={S.cardTitle}>Podgląd wyników (na żywo)</div>
+            {scores && FO.map(fId => {
+              var sc = scores[fId];
+              return (
+                <div key={fId} style={{marginBottom:10, paddingBottom:8, borderBottom:"1px solid #231810"}}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:4}}>
+                    <span style={{fontSize:14, fontWeight:700, color:FM[fId].col}}>{FM[fId].nom}</span>
+                    <span style={{fontSize:20, fontWeight:900, color:"#D4A853"}}>{sc.bizTotal} pkt</span>
+                  </div>
+                  <div style={{display:"flex", gap:6, flexWrap:"wrap", fontSize:10, color:"#8A7A6A"}}>
+                    <span>Zasoby: {sc.resPct}% ({sc.resScore})</span>
+                    <span>·</span>
+                    <span>Kompetencje: {sc.compPct}% ({sc.compScore})</span>
+                    <span>·</span>
+                    <span style={{color:sc.plotOk?"#6B8E6B":"#C04030"}}>Działka: {sc.plotScore}</span>
+                    <span>·</span>
+                    <span style={{color:sc.cashScore<0?"#C04030":"#8A7A6A"}}>Gotówka: {sc.cashScore}</span>
+                    <span>·</span>
+                    <span>Mapa: {sc.mapScore}</span>
+                    {sc.bnb > 0 && <span>· BnB: {sc.bnb}</span>}
+                  </div>
+                </div>
+              );
+            })}
+            {!scores && <div style={{fontSize:13, color:"#5A4A3A", fontStyle:"italic"}}>Brak danych</div>}
+          </div>
+        </div>
+      )}
+
+      {/* === CONNECTION HISTORY === */}
+      {Object.keys(connHistory).length > 0 && (
+        <div style={{...S.card, marginBottom:20}}>
+          <div style={S.cardTitle}>Historia połączeń</div>
+          <div style={{display:"flex", gap:16, flexWrap:"wrap"}}>
+            {FO.map(fId => {
+              var hist = connHistory[fId];
+              if(!hist || hist.length === 0) return null;
+              var disconnects = hist.filter(h => h.event === "disconnect").length;
+              // Detect flickering: 3+ events in last 5 min
+              var recent = hist.filter(h => Date.now() - h.ts < 300000).length;
+              var flickering = recent >= 4;
+              return (
+                <div key={fId} style={{fontSize:12, padding:"6px 10px", background:"#231810", borderRadius:4, border:flickering?"1px solid #C04030":"1px solid #3C2820"}}>
+                  <span style={{color:FM[fId].col, fontWeight:700}}>{FM[fId].gen}</span>
+                  <span style={{color:"#7A6A5A"}}> · {hist.length} zdarzeń · {disconnects} rozłączeń</span>
+                  {flickering && <span style={{color:"#C04030", fontWeight:700}}> · MIGOTANIE</span>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* === EVENT LOG === */}
+      <div style={{...S.card, maxHeight:450, display:"flex", flexDirection:"column"}}>
+        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10}}>
+          <div style={{display:"flex", alignItems:"center", gap:12}}>
+            <div style={S.cardTitle}>Dziennik zdarzeń</div>
+            <span style={{fontSize:11, color:"#6A5A4A"}}>{filteredLog.length} / {eventLog.length}</span>
+          </div>
+          <div style={{display:"flex", gap:6}}>
+            {[
+              {key:"all", label:"Wszystko"},
+              {key:"warn", label:"Uwagi+"},
+              {key:"error", label:"Błędy"},
+            ].map(f => (
+              <button key={f.key} style={{...S.btnSmall, background:logFilter===f.key?"#5C3A2A":"#3C2820", fontSize:11, padding:"4px 10px"}} onClick={() => setLogFilter(f.key)}>{f.label}</button>
+            ))}
+            <button style={{...S.btnSmall, fontSize:11, padding:"4px 10px"}} onClick={() => setEventLog([])}>Wyczyść</button>
+          </div>
+        </div>
+        <div style={{flex:1, overflowY:"auto", minHeight:0}}>
+          {filteredLog.length === 0 && (
+            <div style={{color:"#5A4A3A", fontSize:13, fontStyle:"italic", padding:8}}>
+              {eventLog.length === 0 ? "Oczekiwanie na zdarzenia..." : "Brak zdarzeń dla wybranego filtru."}
+            </div>
+          )}
+          {filteredLog.map(ev => (
+            <div key={ev.key} style={S.feedItem(ev.sev)}>
+              <span style={S.feedTs}>{ev.ts}</span>
+              <span style={S.feedCat(ev.sev)}>{SEV_LABEL[ev.sev]}</span>
+              <span style={{color:SEV_COLOR[ev.sev], fontSize:11, fontWeight:600, flexShrink:0, minWidth:85}}>{ev.cat}</span>
+              <span style={S.feedMsg}>{ev.msg}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* FOOTER */}
+      <div style={{textAlign:"center", marginTop:20, paddingTop:12, borderTop:"1px solid #231810"}}>
+        <span style={S.badge}>WDZ Monitor v{VERSION} · read-only · {new Date().toLocaleDateString("pl")}</span>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<MonitorApp />);
+</script>
+</body>
+</html>
